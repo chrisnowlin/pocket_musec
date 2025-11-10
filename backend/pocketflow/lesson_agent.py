@@ -288,6 +288,7 @@ class LessonAgent(Agent):
         
         if not objectives:
             # No objectives available, skip to context collection
+            self.lesson_requirements['selected_objectives'] = []
             self.set_state("context_collection")
             return self._handle_context_collection("")
         

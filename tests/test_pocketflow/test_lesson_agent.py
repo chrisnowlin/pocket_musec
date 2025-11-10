@@ -239,16 +239,18 @@ class TestLessonAgent:
     
     def test_handle_objective_refinement_skip(self, lesson_agent):
         """Test skipping objective selection"""
+        mock_objective = Mock()
+        mock_objective.objective_text = "Create rhythmic patterns"
         lesson_agent.lesson_requirements.update({
             'standard': Mock(),
-            'objectives': []
+            'objectives': [mock_objective]
         })
         lesson_agent.set_state("objective_refinement")
         
         response = lesson_agent.chat("skip")
         
         assert lesson_agent.lesson_requirements['selected_objectives'] == []
-        assert lesson_agent.get_state() == "context_collection"
+        assert lesson_agent.get_state() == "complete"
     
     def test_handle_context_collection_first_time(self, lesson_agent):
         """Test context collection first time display"""

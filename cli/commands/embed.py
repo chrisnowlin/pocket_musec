@@ -206,5 +206,10 @@ def clear():
         raise typer.Exit(1)
 
 
+def generate_embeddings(force: bool = False, batch_size: int = 10, verbose: bool = False):
+    """Wrapper function for test compatibility"""
+    return generate(force=force, batch_size=batch_size, verbose=verbose)
+
+
 if __name__ == "__main__":
     app()
