@@ -32,11 +32,11 @@
 - [ ] Write ingestion tests with sample PDFs
 
 ## Phase 5: Standards Query Layer
-- [ ] Build standards repository class for database queries
-- [ ] Implement filtering by grade, strand, and standard ID
-- [ ] Create methods to retrieve objectives for standards
-- [ ] Add full-text search for standard descriptions
-- [ ] Cache frequently accessed standards in memory
+- [x] Build standards repository class for database queries
+- [x] Implement filtering by grade, strand, and standard ID
+- [x] Create methods to retrieve objectives for standards
+- [x] Add full-text search for standard descriptions
+- [x] Cache frequently accessed standards in memory
 
 ## Phase 6: Chutes LLM Integration
 - [ ] Set up Chutes API client with authentication
