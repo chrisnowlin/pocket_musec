@@ -9,7 +9,7 @@ _Last updated: 2025-11-09_
 | Vision & Goals | Offer a lean, teacher-first app that organizes scattered resources and produces clear, ready-to-use lesson plans for music teachers using RAG and AI agents. | |
 | Target Audience | K-12 music teachers (priority: elementary) | |
 | Platform & Tech Stack | Hybrid: Python core (PocketFlow) for local LLM runtime + ingestion/processing; TypeScript UI/API gateway. UI: Vite + React SPA. Desktop hosts: Electron (primary), Tauri (secondary). Local LLM: TBD; Cloud: Chutes. | |
-| Repository Structure | Standard monorepo with Python backend and TypeScript frontend in single repository | |
+| Repository Structure | Standard monorepo with Python backend and TypeScript frontend in single repository | Directory layout: /backend (Python), /frontend (TypeScript/React), /docs |
 | Python Package Management | uv for dependency management and package tooling | |
 | LLM Framework | PocketFlow (100-line minimalist framework) for agent/RAG implementation | Lightweight graph-based architecture with Node/Flow/Store pattern. Zero dependencies, supports Multi-Agents, Workflow, and RAG. |
 | Embedding Model | Chutes embedding models for vector generation | Consistent with cloud LLM provider choice for v1. |
