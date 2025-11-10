@@ -30,7 +30,7 @@ _Last updated: 2025-11-10_
 
 
 
-| Timeline & Milestones | Milestone 1: Foundations & RAG prototype delivering an end-to-end CLI that supports basic lesson tweaks via the configured editor.<br>Milestone 2: Teacher-facing alpha shell with editable lesson fields and export in the Electron app.<br>Milestone 3: Expanded ingestion (PDF + images) with citation support and cloud/local processing toggle. | Each milestone must yield a usable teacher workflow, even if minimal. |
+| Timeline & Milestones | Milestone 1: Foundations & RAG prototype delivering an end-to-end CLI that supports basic lesson tweaks via the configured editor.<br>Milestone 2: Teacher-facing alpha shell with editable lesson fields and export in the Electron app.<br>Milestone 3: Expanded ingestion (images, DOCX, web URLs) with chunk-level citations, cloud/local toggle, user-provided standards, SSE streaming, and multi-document search. | Each milestone must yield a usable teacher workflow, even if minimal. |
 | Milestone 2 Lesson Editor Fields | Full set: title; grade; strands/standards; objectives; materials; warm-up; activities (title, duration, steps/notes, per-activity standards alignment); total timing; differentiation; assessment; exit ticket; citations; teacher notes; prerequisites; accommodations; homework; reflection. | Include per-activity alignment mapping and citations in M2; lesson schema will be versioned. |
 | Milestone 2 Export Formats | Markdown (.md) + PDF (.pdf) | Use Electron/Chromium print-to-PDF for reliable export; keep Markdown as canonical editable format; defer DOCX to a later milestone. |
 | Milestone 2 Backend Orchestration | Electron launches local Python FastAPI on app start; UI communicates over local HTTP; add SSE/WS later as needed. | Detect free localhost port; restart if backend crashes; graceful shutdown with app quit. |
@@ -45,6 +45,13 @@ _Last updated: 2025-11-10_
 | Milestone 2 Lesson JSON Schema | Version: m2.0; Meta: id (uuid), created_at, updated_at; title, grade, strands[], standards[] (code,title,summary), objectives[]; Content: materials, warmup, activities[] (id,title,duration_minutes,steps[],aligned_standards[],citations[]), assessment, differentiation, exit_ticket, notes, prerequisites, accommodations, homework, reflection, timing.total_minutes; Citations: citations[]; Revision: revision (int). | Contract between FE and FastAPI; validate via schema; per-activity alignment and citations included. |
 ### Milestone Notes
 | Milestone 2 Settings Scope | Balanced: API key; default save folder; default export format; revision retention count; semantic search fallback toggle; + Theming (light/dark). | Keep UI minimal; store settings via Electron store; apply theme app-wide. |
+| Milestone 3 Ingestion Scope | Images (generic OCR, diagrams, sheet music); DOCX/Google Docs (full fidelity: text, tables, images, hierarchy); Web URLs (vision-based rendering). | Prioritize multi-document search and cross-type RAG retrieval. |
+| Milestone 3 Citation Support | Optional per-lesson toggle; default = chunk-level citations (sentence/paragraph linked to source chunk with footnote/inline reference). | Support in both Markdown and PDF exports. |
+| Milestone 3 Cloud/Local Toggle | Cloud-first by default (Chutes LLM); local-only mode requires explicit opt-in via Settings toggle. | Preserve M2 local-only privacy policy (offline with exceptions). |
+| Milestone 3 Standards Support | User-provided standards; allow teachers to upload their own standards documents (PDF/DOCX) and use them for lesson generation alongside NC standards. | Build ingestion pipeline to normalize user standards to canonical schema. |
+| Milestone 3 Streaming | SSE-based streaming; stream lesson generation token-by-token via Server-Sent Events; show live preview in editor as text arrives. | Requires FastAPI SSE endpoint and frontend streaming UI. |
+| Milestone 3 Success Metrics | (E) Ingest and successfully search across 3+ document types (PDF, image, DOCX, URL) in a single session; (F) Toggle between cloud and local processing without errors; verify lesson quality difference is acceptable. | Acceptance criteria for M3 alpha usability. |
+| Milestone 3 OS Targets | macOS only | Defer Windows/Linux to M4+. |
 
 #### Milestone 1 – Standards ingestion
 
