@@ -20,7 +20,7 @@ _Last updated: 2025-11-09_
 | Authentication & Access | No accounts (internal alpha only) | |
 
 | Cloud LLM Provider | Chutes | |
-| Vector Store & Graph | SQLite + sqlite-vss (or sqlite-vec) for embeddings; graph relations via nodes/edges tables and recursive CTEs (Graph RAG). | |
+| Vector Store & Graph | SQLite + sqlite-vec for vector embeddings; graph relations via nodes/edges tables and recursive CTEs (Graph RAG). | Start with sqlite-vec for simplicity. Vector search handles similarity, graph tables handle relationships. |
 
 
 
