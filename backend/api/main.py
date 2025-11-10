@@ -9,13 +9,16 @@ import logging
 from pathlib import Path
 
 from .routes import auth, images, settings
-from .middleware import RateLimitMiddleware, AuthRateLimitMiddleware, SecurityHeadersMiddleware
+from .middleware import (
+    RateLimitMiddleware,
+    AuthRateLimitMiddleware,
+    SecurityHeadersMiddleware,
+)
 from ..repositories.migrations import MigrationManager
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -26,25 +29,30 @@ app = FastAPI(
     version="0.3.0",
     docs_url="/api/docs",
     redoc_url="/api/redoc",
-    openapi_url="/api/openapi.json"
+    openapi_url="/api/openapi.json",
 )
 
 
-# CORS middleware - configure for production
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=os.getenv("CORS_ORIGINS", "http://localhost:3000,http://localhost:5173").split(","),
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Add middleware in reverse order (last added runs first)
+# Rate limiting middleware
+app.add_middleware(AuthRateLimitMiddleware, max_attempts=5)
+app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
 
 # Security headers middleware
 app.add_middleware(SecurityHeadersMiddleware)
 
-# Rate limiting middleware
-app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
-app.add_middleware(AuthRateLimitMiddleware, max_attempts=5)
+# CORS middleware - must be added last so it runs first
+cors_origins = os.getenv(
+    "CORS_ORIGINS",
+    "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173",
+).split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[origin.strip() for origin in cors_origins],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 # Include routers
@@ -60,7 +68,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     logger.warning(f"Validation error: {exc}")
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-        content={"detail": exc.errors(), "body": str(exc.body)}
+        content={"detail": exc.errors(), "body": str(exc.body)},
     )
 
 
@@ -70,7 +78,7 @@ async def general_exception_handler(request: Request, exc: Exception):
     logger.error(f"Unexpected error: {exc}", exc_info=True)
     return JSONResponse(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        content={"detail": "Internal server error"}
+        content={"detail": "Internal server error"},
     )
 
 
@@ -94,14 +102,18 @@ async def startup_event():
 
         # Check if default admin exists
         if not migration_manager.check_users_exist():
-            logger.warning("No users in database. Create an admin user via POST /api/setup/init-admin")
+            logger.warning(
+                "No users in database. Create an admin user via POST /api/setup/init-admin"
+            )
     except Exception as e:
         logger.error(f"Migration failed: {e}")
         raise
 
     # Check JWT secret
     if not os.getenv("JWT_SECRET_KEY"):
-        logger.warning("JWT_SECRET_KEY not set. Using default (INSECURE for production!)")
+        logger.warning(
+            "JWT_SECRET_KEY not set. Using default (INSECURE for production!)"
+        )
         logger.warning("Set JWT_SECRET_KEY environment variable for production use")
 
     logger.info("PocketMusec API started successfully")
@@ -117,31 +129,19 @@ async def shutdown_event():
 @app.get("/health")
 async def health_check():
     """Health check endpoint"""
-    return {
-        "status": "healthy",
-        "service": "PocketMusec API",
-        "version": "0.3.0"
-    }
+    return {"status": "healthy", "service": "PocketMusec API", "version": "0.3.0"}
 
 
 # Root endpoint
 @app.get("/")
 async def root():
     """Root endpoint"""
-    return {
-        "message": "PocketMusec API",
-        "version": "0.3.0",
-        "docs": "/api/docs"
-    }
+    return {"message": "PocketMusec API", "version": "0.3.0", "docs": "/api/docs"}
 
 
 # Setup endpoint for initial admin creation
 @app.post("/api/setup/init-admin", tags=["setup"])
-async def initialize_admin(
-    email: str,
-    password: str,
-    full_name: str = "Admin User"
-):
+async def initialize_admin(email: str, password: str, full_name: str = "Admin User"):
     """
     Create initial admin user (only works if no users exist)
 
@@ -157,16 +157,16 @@ async def initialize_admin(
     if migration_manager.check_users_exist():
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": "Admin user already exists. Use /api/auth/register to create additional users."}
+            content={
+                "detail": "Admin user already exists. Use /api/auth/register to create additional users."
+            },
         )
 
     try:
         # Hash password and create admin
         password_hash = hash_password(password)
         admin_id = migration_manager.create_default_admin(
-            email=email,
-            password_hash=password_hash,
-            full_name=full_name
+            email=email, password_hash=password_hash, full_name=full_name
         )
 
         logger.info(f"Initial admin user created: {email}")
@@ -174,20 +174,19 @@ async def initialize_admin(
         return {
             "message": "Admin user created successfully",
             "admin_id": admin_id,
-            "email": email
+            "email": email,
         }
 
     except ValueError as e:
         # Password validation error
         raise JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"detail": str(e)}
+            status_code=status.HTTP_400_BAD_REQUEST, content={"detail": str(e)}
         )
     except Exception as e:
         logger.error(f"Failed to create admin: {e}")
         raise JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Failed to create admin user"}
+            content={"detail": "Failed to create admin user"},
         )
 
 
@@ -200,9 +199,5 @@ if __name__ == "__main__":
     reload = os.getenv("API_RELOAD", "true").lower() == "true"
 
     uvicorn.run(
-        "backend.api.main:app",
-        host=host,
-        port=port,
-        reload=reload,
-        log_level="info"
+        "backend.api.main:app", host=host, port=port, reload=reload, log_level="info"
     )
