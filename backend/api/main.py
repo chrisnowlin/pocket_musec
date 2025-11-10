@@ -8,7 +8,7 @@ import os
 import logging
 from pathlib import Path
 
-from .routes import auth
+from .routes import auth, images
 from .middleware import RateLimitMiddleware, AuthRateLimitMiddleware, SecurityHeadersMiddleware
 from ..repositories.migrations import MigrationManager
 
@@ -49,6 +49,7 @@ app.add_middleware(AuthRateLimitMiddleware, max_attempts=5)
 
 # Include routers
 app.include_router(auth.router)
+app.include_router(images.router)
 
 
 # Exception handlers

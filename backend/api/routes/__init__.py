@@ -1,5 +1,5 @@
 """API routes package"""
 
-from . import auth
+from . import auth, images
 
-__all__ = ["auth"]
+__all__ = ["auth", "images"]
