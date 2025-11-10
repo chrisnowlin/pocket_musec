@@ -9,13 +9,24 @@ _Last updated: 2025-11-09_
 | Vision & Goals | Offer a lean, teacher-first app that organizes scattered resources and produces clear, ready-to-use lesson plans for music teachers using RAG and AI agents. | |
 | Target Audience | K-12 music teachers (priority: elementary) | |
 | Platform & Tech Stack | Hybrid: Python core (PocketFlow) for local LLM runtime + ingestion/processing; TypeScript UI/API gateway. UI: Vite + React SPA. Desktop hosts: Electron (primary), Tauri (secondary). Local LLM: TBD; Cloud: Chutes. | |
+| Repository Structure | Standard monorepo with Python backend and TypeScript frontend in single repository | Directory layout: /backend (Python), /frontend (TypeScript/React), /docs |
+| Python Package Management | uv for dependency management and package tooling | |
+| LLM Framework | PocketFlow (100-line minimalist framework) for agent/RAG implementation | Lightweight graph-based architecture with Node/Flow/Store pattern. Zero dependencies, supports Multi-Agents, Workflow, and RAG. |
+| Embedding Model | Chutes embedding models for vector generation | Consistent with cloud LLM provider choice for v1. |
+| PDF Parsing | pdfplumber for text extraction and structured data | Good for layout analysis and table extraction. OCRmyPDF as fallback for scanned documents. |
+| CLI Framework | Typer for command-line interface | Modern, type-hint based, built on Click. Good for interactive flows. |
+| Backend-Frontend Communication | WebSocket for real-time bidirectional communication; HTTP+SSE fallback | WebSocket primary for chat and streaming LLM responses. SSE fallback for compatibility. |
+| Python Web Framework | FastAPI for HTTP and WebSocket server | Modern async framework with excellent WebSocket support and automatic API documentation. |
+| React State Management | Zustand for client state management | Lightweight and simple state management for lesson state, chat history, and UI state. |
+| UI Components & Styling | shadcn/ui + Tailwind CSS | Accessible, customizable copy-paste components built on Radix with utility-first styling. |
+| Testing Frameworks | Python: pytest; Frontend: Vitest + React Testing Library | pytest for backend unit/integration tests. Vitest (Vite-native) with RTL for frontend component tests. |
 | Data Sources & Formats | Broad ingestion: PDFs, Google Docs/DOCX, web pages/URLs, YouTube links/transcripts, images (e.g., sheet music), standards docs, CSVs. v1 priorities: PDFs, standards documents, images. | |
 | Lesson Plan Output | Core fields: title, grade level, duration, objectives, materials, standards alignment, procedure/steps, assessment, differentiation/accommodations, extensions, references/sources. Output: Markdown. If RAG is used, include citations to source chunks. | CLI-generated Markdown should open in the configured editor for basic tweaks before save/export. |
 | Privacy & Data Posture | v1: Cloud-first for speed/power with explicit toggle for local-only processing. Student/sensitive data should have a local path. Long-term: full local-first capability. | |
 | Authentication & Access | No accounts (internal alpha only) | |
 
 | Cloud LLM Provider | Chutes | |
-| Vector Store & Graph | SQLite + sqlite-vss (or sqlite-vec) for embeddings; graph relations via nodes/edges tables and recursive CTEs (Graph RAG). | |
+| Vector Store & Graph | SQLite + sqlite-vec for vector embeddings; graph relations via nodes/edges tables and recursive CTEs (Graph RAG). | Start with sqlite-vec for simplicity. Vector search handles similarity, graph tables handle relationships. |
 
 
 
