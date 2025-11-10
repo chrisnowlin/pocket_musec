@@ -30,9 +30,8 @@ _Last updated: 2025-11-09_
 
 
 
-| Monetization | _TBD_ | |
 | Timeline & Milestones | Milestone 1: Foundations & RAG prototype delivering an end-to-end CLI that supports basic lesson tweaks via the configured editor.<br>Milestone 2: Teacher-facing alpha shell with editable lesson fields and export in the Electron app.<br>Milestone 3: Expanded ingestion (PDF + images) with citation support and cloud/local processing toggle. | Each milestone must yield a usable teacher workflow, even if minimal. |
-| Open Questions | _TBD_ | |
+| Open Questions | 1. Define the canonical standards metadata schema (fields, identifiers, relationships) to align ingestion outputs with CLI filtering/export flows.<br>2. Select target local LLM models and document the minimum viable hardware footprint to make the local-only option practical.<br>3. Clarify privacy safeguards and storage limits when users toggle between cloud-first and local processing, including handling of sensitive student inputs.<br>4. Outline the teacher feedback loop and success metrics needed to judge milestone usability. | |
 
 ### Milestone Notes
 
@@ -41,6 +40,59 @@ _Last updated: 2025-11-09_
 - **Focus:** Ingest and parse the new North Carolina Standard Course of Study standards for elementary general music as the initial standards corpus.
 - Extract structured metadata (grade level, strand, clarifying objectives, etc.) from standards documents so lesson plans can target specific requirements.
 - Define the canonical metadata schema for standards (field names, data types, relationships) as part of Milestone 1.
+- **Standards Schema**: JSON and SQLite representations with the following structure:
+  - **Grade Levels**: K, 1-8, BE (Beginning HS), IN (Intermediate HS), AC (Accomplished HS), AD (Advanced HS)
+  - **Strand Codes**: CN (Connect), CR (Create), PR (Present), RE (Respond)
+  - **ID Format**: `{grade}.{strand}.{standard_number}` for standards, `{grade}.{strand}.{standard_number}.{objective_number}` for objectives
+  - **JSON Example**:
+    ```json
+    {
+      "standard_id": "K.CN.1",
+      "grade_level": "K",
+      "strand_code": "CN",
+      "strand_name": "Connect",
+      "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+      "standard_text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+      "objectives": [
+        {
+          "objective_id": "K.CN.1.1",
+          "objective_text": "Identify the similarities and differences of music representing diverse global communities."
+        },
+        {
+          "objective_id": "K.CN.1.2",
+          "objective_text": "Identify how music is used in school and in daily life."
+        }
+      ],
+      "source_document": "Final Music NCSCOS - Google Docs.pdf",
+      "ingestion_date": "2024-11-09T20:57:00Z",
+      "version": "2024-05-16"
+    }
+    ```
+  - **SQLite Schema**:
+    ```sql
+    CREATE TABLE standards (
+        standard_id TEXT PRIMARY KEY,
+        grade_level TEXT NOT NULL,
+        strand_code TEXT NOT NULL,
+        strand_name TEXT NOT NULL,
+        strand_description TEXT NOT NULL,
+        standard_text TEXT NOT NULL,
+        source_document TEXT,
+        ingestion_date TEXT,
+        version TEXT
+    );
+    
+    CREATE TABLE objectives (
+        objective_id TEXT PRIMARY KEY,
+        standard_id TEXT NOT NULL,
+        objective_text TEXT NOT NULL,
+        FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
+    );
+    
+    CREATE INDEX idx_grade_level ON standards(grade_level);
+    CREATE INDEX idx_strand_code ON standards(strand_code);
+    CREATE INDEX idx_standard_objectives ON objectives(standard_id);
+    ```
 - Schema approach: Prefer flat fields with identifiers for strands/clarifying objectives to simplify querying.
 - Identifier strategy: Reuse the existing codes/labels from the North Carolina standards corpus for fields and objectives.
 - Preprocessing: Convert source standards PDFs into a cached JSON/SQLite representation during ingestion so CLI runs operate on prepared data.
@@ -48,8 +100,8 @@ _Last updated: 2025-11-09_
 - Parsing strategy: Implement source-specific parsers (PDF, DOCX/Google Docs, etc.) instead of normalizing via conversion.
 - Parsing priority: Start with PDF standards parsing before expanding to other formats.
 - OCR fallback: Integrate OCR (e.g., via OCRmyPDF) for scanned or partially scanned standards PDFs.
-- Next parser target: After PDF support, prioritize syncing and parsing directly from Google Docs versions of the standards.
-- Google Docs auth: Use an OAuth login flow when running the ingestion command.
+- Next parser target: After PDF support, prioritize ingestion of standard Microsoft Office document types (e.g., DOCX) that districts already distribute.
+- Office document handling: Add DOCX parsing via a direct file import flow—no external authentication required for v1.
 - Cached data storage: Persist normalized JSON/SQLite outputs in a single `data/standards/` directory to keep retrieval straightforward.
 - PDF parsing approach: Assume positional heuristics are required to identify strands/objectives rather than relying on consistent fonts/labels.
 - Heuristic tuning: Infer positional rules dynamically across the corpus instead of hard-coding page-specific coordinates.
@@ -59,14 +111,27 @@ _Last updated: 2025-11-09_
 - Primary use case: Enable filtering of lesson suggestions by grade, strand, and clarifying objective alignment.
 - Lesson generation goal: Provide broad strand coverage with at least one exemplar lesson per strand before deepening grade-level themes.
 - Next focus: Define the CLI end-to-end flow (generate → open configured editor → confirm/save) for Milestone 1 usability.
-- Teacher input: Collect lesson requirements through an interactive chat-style prompt sequence with the PocketFlow agent rather than CLI flags.
-- Chat guidance: When teachers supply grade/context, PocketFlow proactively recommends relevant standards/strands before refinement.
+- Teacher input: Collect lesson requirements through an interactive chat-style prompt sequence with the PocketFlow agent rather than CLI flags. PocketFlow leads the teacher through:
+  1. **Grade selection** – Prompt: "What grade level are you planning for?" Validate against `K, 1-8, BE, IN, AC, AD`; show available options on invalid input.
+  2. **Strand selection** – Prompt: "Which strand would you like to focus on?" Accept strand code (e.g., `CN`) or name (`Connect`) and display the four strands with descriptions.
+  3. **Standard recommendations** – After grade+strand confirmation, display matching standards (e.g., `K.CN.1`, `K.CN.2`) with short summaries and ask: "Which standard(s) should this lesson address? (comma-separated or 'all')".
+  4. **Objective refinement** – List objectives for the selected standard(s) and prompt: "Any specific objectives to emphasize? (comma-separated or 'all')". Default to all objectives if skipped.
+  5. **Additional context** – Offer an optional free-form prompt: "Any additional context for this lesson?" (theme, materials, student needs). Allow skip on empty input.
+  6. **Confirmation** – Summarize selections and ask "Generate lesson plan? (yes/no)" supporting `back` to revisit steps, `quit` to exit.
+- Chat guidance: PocketFlow proactively surfaces relevant standards and objectives immediately after grade and strand selection, but waits for explicit teacher confirmation before locking selections.
 - Chat transcripts: Keep PocketFlow conversations ephemeral for Milestone 1 (no transcript storage).
-- Editor fallback: Respect a configured PocketFlow editor or $EDITOR/$VISUAL; otherwise fall back to nano on macOS/Linux and notepad on Windows.
+- Editor handling: For Milestone 1, launch OS defaults only (nano on macOS/Linux, notepad on Windows). Defer configurable editor discovery and environment variable overrides to a later milestone.
 - Post-edit options: After closing the editor, offer save-as-is, regenerate, duplicate for another strand, and cancel without saving.
 - Saving: Prompt teachers to pick the filename and destination directory for each lesson export.
-- Version history: Maintain a history of regenerated drafts so teachers can review and select their preferred version before saving.
-- History selection: Present saved drafts as a timestamped list for selection without diffing.
-- History scope: Limit stored drafts to the current CLI session for Milestone 1.
+- Version history: Maintain a history of regenerated drafts so teachers can review and select their preferred version before saving. Persist drafts in a temporary on-disk workspace preserved for the session.
+- History selection: Present saved drafts (including the original plus up to nine subsequent revisions) as a timestamped list for selection without diffing. Always retain the original draft; when an 11th draft is created, prune the oldest non-original entry.
+- History scope: Limit stored drafts to the current CLI session for Milestone 1 and delete the temporary workspace on session exit.
 - Export recap: After saving, show the file path and aligned standard metadata for teacher confirmation.
-- Session wrap-up: Provide a session summary listing generated drafts, their timestamps, aligned standards, and final status (saved, discarded, etc.) before exit.
+- Session wrap-up: Provide a session summary table before exit with columns `Draft #`, `Timestamp` (local, ISO-like), `Status` (Saved/Discarded/Regenerated), `Standards` (IDs), and `File` (saved path or `(temp only)` if still in workspace). Example:
+  ```
+  Draft   Timestamp             Status      Standards         File
+  -----   -------------------   ----------  ----------------  ----------------------------
+  #1      2025-11-09 21:12:04   Saved       K.CN.1            ~/Lessons/kindergarten-cn1.md
+  #2      2025-11-09 21:18:17   Discarded   K.CN.1            —
+  #3      2025-11-09 21:25:52   Regenerated K.CN.1, K.CN.2    (temp only)
+  ```
