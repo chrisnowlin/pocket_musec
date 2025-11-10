@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variant 4: Visual Card-Based Interface - PocketMusec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        .float-animation {
+            animation: float 3s ease-in-out infinite;
+        }
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        .card-hover:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-purple-100 via-blue-50 to-indigo-100 min-h-screen">
+    <!-- Floating Header -->
+    <header class="relative">
+        <div class="absolute top-0 left-0 right-0 bg-white/80 backdrop-blur-lg border-b border-white/20 shadow-sm z-50">
+            <div class="max-w-7xl mx-auto px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-500 via-purple-600 to-blue-600 rounded-2xl flex items-center justify-center shadow-lg float-animation">
+                            <svg class="w-7 h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-bold gradient-text">PocketMusec</h1>
+                            <p class="text-sm text-gray-600">Visual Lesson Builder</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="px-4 py-2 text-gray-700 hover:text-gray-900 font-medium transition-colors">
+                            My Lessons
+                        </button>
+                        <button class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-6 py-2 rounded-xl font-medium transition-all shadow-md hover:shadow-lg">
+                            + New Lesson
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-6 pt-28 pb-16">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-bold text-gray-900 mb-4">
+                Choose Your Music Strand
+            </h2>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Start creating an engaging lesson plan by selecting the music standard strand that fits your teaching goals
+            </p>
+        </div>
+
+        <!-- Large Strand Cards -->
+        <div class="grid md:grid-cols-2 gap-6 mb-16">
+            <!-- Connect Card -->
+            <div class="card-hover bg-gradient-to-br from-blue-500 to-blue-600 rounded-3xl p-8 text-white cursor-pointer shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+                <div class="relative z-10">
+                    <div class="text-6xl mb-6">🔗</div>
+                    <h3 class="text-3xl font-bold mb-3">Connect</h3>
+                    <p class="text-blue-100 text-lg mb-6">
+                        Understanding relationships between music, other disciplines, and daily life
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-blue-200">12 standards available</span>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Card -->
+            <div class="card-hover bg-gradient-to-br from-green-500 to-emerald-600 rounded-3xl p-8 text-white cursor-pointer shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+                <div class="relative z-10">
+                    <div class="text-6xl mb-6">✨</div>
+                    <h3 class="text-3xl font-bold mb-3">Create</h3>
+                    <p class="text-green-100 text-lg mb-6">
+                        Generating new musical ideas through improvisation and composition
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-green-200">8 standards available</span>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Present Card -->
+            <div class="card-hover bg-gradient-to-br from-purple-500 to-pink-600 rounded-3xl p-8 text-white cursor-pointer shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+                <div class="relative z-10">
+                    <div class="text-6xl mb-6">🎭</div>
+                    <h3 class="text-3xl font-bold mb-3">Present</h3>
+                    <p class="text-purple-100 text-lg mb-6">
+                        Performing, sharing, and presenting musical works
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-purple-200">15 standards available</span>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Respond Card -->
+            <div class="card-hover bg-gradient-to-br from-orange-500 to-red-600 rounded-3xl p-8 text-white cursor-pointer shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32"></div>
+                <div class="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full -ml-24 -mb-24"></div>
+                <div class="relative z-10">
+                    <div class="text-6xl mb-6">🎵</div>
+                    <h3 class="text-3xl font-bold mb-3">Respond</h3>
+                    <p class="text-orange-100 text-lg mb-6">
+                        Analyzing, interpreting, and evaluating musical works
+                    </p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-sm text-orange-200">10 standards available</span>
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Access Section -->
+        <div class="mb-16">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Quick Access</h3>
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Recent Lesson -->
+                <div class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer border-2 border-transparent hover:border-purple-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-purple-100 to-blue-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">2 hours ago</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Grade 3 - Create Strand</h4>
+                    <p class="text-sm text-gray-600 mb-4">Organize musical ideas using notation</p>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-purple-600 font-medium">Resume →</span>
+                        <span class="text-gray-400">Draft</span>
+                    </div>
+                </div>
+
+                <!-- Templates -->
+                <div class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer border-2 border-transparent hover:border-purple-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-green-100 to-emerald-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <span class="text-xs text-green-600 bg-green-100 px-2 py-1 rounded-full font-medium">New</span>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Lesson Templates</h4>
+                    <p class="text-sm text-gray-600 mb-4">Start with pre-built lesson structures</p>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-purple-600 font-medium">Browse →</span>
+                        <span class="text-gray-400">8 templates</span>
+                    </div>
+                </div>
+
+                <!-- Standards Browser -->
+                <div class="card-hover bg-white rounded-2xl p-6 shadow-lg cursor-pointer border-2 border-transparent hover:border-purple-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl flex items-center justify-center">
+                            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </div>
+                    </div>
+                    <h4 class="font-semibold text-gray-900 mb-2">Browse All Standards</h4>
+                    <p class="text-sm text-gray-600 mb-4">Explore the complete standards library</p>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-purple-600 font-medium">Explore →</span>
+                        <span class="text-gray-400">45 standards</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grade Level Quick Selector -->
+        <div class="bg-white rounded-2xl p-8 shadow-xl">
+            <h3 class="text-2xl font-bold text-gray-900 mb-6">Select Grade Level</h3>
+            <div class="grid grid-cols-3 md:grid-cols-9 gap-4">
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200 hover:border-purple-400 hover:from-purple-100 hover:to-blue-100 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-purple-700 group-hover:scale-110 transition-transform">K</span>
+                    <span class="text-xs text-gray-600">Kinder</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-purple-400 hover:from-purple-50 hover:to-blue-50 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-gray-700 group-hover:text-purple-700 group-hover:scale-110 transition-all">1</span>
+                    <span class="text-xs text-gray-600">Grade</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-purple-400 hover:from-purple-50 hover:to-blue-50 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-gray-700 group-hover:text-purple-700 group-hover:scale-110 transition-all">2</span>
+                    <span class="text-xs text-gray-600">Grade</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-purple-400 hover:from-purple-50 hover:to-blue-50 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-gray-700 group-hover:text-purple-700 group-hover:scale-110 transition-all">3</span>
+                    <span class="text-xs text-gray-600">Grade</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-purple-400 hover:from-purple-50 hover:to-blue-50 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-gray-700 group-hover:text-purple-700 group-hover:scale-110 transition-all">4</span>
+                    <span class="text-xs text-gray-600">Grade</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-purple-400 hover:from-purple-50 hover:to-blue-50 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-gray-700 group-hover:text-purple-700 group-hover:scale-110 transition-all">5</span>
+                    <span class="text-xs text-gray-600">Grade</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-purple-400 hover:from-purple-50 hover:to-blue-50 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-gray-700 group-hover:text-purple-700 group-hover:scale-110 transition-all">6</span>
+                    <span class="text-xs text-gray-600">Grade</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-purple-400 hover:from-purple-50 hover:to-blue-50 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-gray-700 group-hover:text-purple-700 group-hover:scale-110 transition-all">7</span>
+                    <span class="text-xs text-gray-600">Grade</span>
+                </button>
+                <button class="aspect-square rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-purple-400 hover:from-purple-50 hover:to-blue-50 transition-all flex flex-col items-center justify-center gap-2 group">
+                    <span class="text-2xl font-bold text-gray-700 group-hover:text-purple-700 group-hover:scale-110 transition-all">8</span>
+                    <span class="text-xs text-gray-600">Grade</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Action Button -->
+    <button class="fixed bottom-8 right-8 w-16 h-16 bg-gradient-to-br from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full shadow-2xl hover:shadow-3xl transition-all hover:scale-110 flex items-center justify-center z-50">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+        </svg>
+    </button>
+</body>
+</html>

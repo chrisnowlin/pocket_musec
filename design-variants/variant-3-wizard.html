@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variant 3: Guided Wizard Interface - PocketMusec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .step-line {
+            position: absolute;
+            top: 20px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: #e5e7eb;
+            z-index: 0;
+        }
+        .step-line-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(to right, #8b5cf6, #3b82f6);
+            transition: width 0.3s ease;
+            width: 33%;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 via-purple-50 to-blue-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200 shadow-sm">
+        <div class="max-w-5xl mx-auto px-6 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="text-xl font-bold text-gray-900">PocketMusec</h1>
+                        <p class="text-xs text-gray-500">Lesson Plan Wizard</p>
+                    </div>
+                </div>
+                <button class="text-sm text-gray-600 hover:text-gray-900">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Progress Steps -->
+    <div class="max-w-5xl mx-auto px-6 py-8">
+        <div class="relative mb-12">
+            <div class="step-line">
+                <div class="step-line-progress"></div>
+            </div>
+            <div class="relative z-10 flex justify-between">
+                <!-- Step 1 - Complete -->
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-semibold shadow-lg">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium text-gray-900 mt-2">Grade</span>
+                </div>
+
+                <!-- Step 2 - Complete -->
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-500 flex items-center justify-center text-white font-semibold shadow-lg">
+                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium text-gray-900 mt-2">Strand</span>
+                </div>
+
+                <!-- Step 3 - Active -->
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-white border-4 border-purple-500 flex items-center justify-center text-purple-600 font-bold shadow-lg">
+                        3
+                    </div>
+                    <span class="text-xs font-medium text-gray-900 mt-2">Standards</span>
+                </div>
+
+                <!-- Step 4 - Pending -->
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-400 font-semibold">
+                        4
+                    </div>
+                    <span class="text-xs font-medium text-gray-500 mt-2">Objectives</span>
+                </div>
+
+                <!-- Step 5 - Pending -->
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-400 font-semibold">
+                        5
+                    </div>
+                    <span class="text-xs font-medium text-gray-500 mt-2">Details</span>
+                </div>
+
+                <!-- Step 6 - Pending -->
+                <div class="flex flex-col items-center">
+                    <div class="w-10 h-10 rounded-full bg-white border-2 border-gray-300 flex items-center justify-center text-gray-400 font-semibold">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                    <span class="text-xs font-medium text-gray-500 mt-2">Generate</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Card -->
+        <div class="bg-white rounded-2xl shadow-xl border border-gray-200 overflow-hidden">
+            <!-- Card Header -->
+            <div class="bg-gradient-to-r from-purple-500 to-blue-500 px-8 py-6 text-white">
+                <div class="flex items-center justify-between mb-2">
+                    <h2 class="text-2xl font-bold">Step 3: Choose a Standard</h2>
+                    <span class="text-purple-100 text-sm">Step 3 of 6</span>
+                </div>
+                <p class="text-purple-100">
+                    Select a music standard that aligns with your lesson goals for Grade 3 in the Create strand.
+                </p>
+            </div>
+
+            <!-- Current Selection Summary -->
+            <div class="px-8 py-4 bg-purple-50 border-b border-purple-100">
+                <div class="flex items-center gap-6 text-sm">
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-gray-700"><span class="font-semibold">Grade:</span> 3</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <svg class="w-4 h-4 text-purple-600" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                        </svg>
+                        <span class="text-gray-700"><span class="font-semibold">Strand:</span> Create (CR)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Content -->
+            <div class="px-8 py-8">
+                <!-- Search Bar -->
+                <div class="mb-6">
+                    <div class="relative">
+                        <input
+                            type="text"
+                            placeholder="Search standards by keyword or description..."
+                            class="w-full border-2 border-gray-200 rounded-xl px-4 py-3 pl-11 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                        <svg class="w-5 h-5 text-gray-400 absolute left-4 top-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <!-- Standards Options -->
+                <div class="space-y-4">
+                    <!-- Option 1 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="standard" class="peer sr-only" />
+                        <div class="border-2 border-gray-200 rounded-xl p-5 hover:border-purple-300 hover:bg-purple-50 transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:shadow-lg">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 mt-1">
+                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-purple-500 peer-checked:bg-purple-500 flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-sm font-mono font-bold text-purple-700 bg-purple-100 px-2 py-1 rounded">3.CR.1</span>
+                                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Create Strand</span>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                        Generate musical ideas for a specific purpose
+                                    </h3>
+                                    <p class="text-sm text-gray-600 mb-3">
+                                        Students will explore the creative process of generating new musical ideas through improvisation and composition, developing their ability to create music for specific contexts and audiences.
+                                    </p>
+                                    <div class="flex items-center gap-4 text-sm">
+                                        <span class="flex items-center gap-1 text-gray-600">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            5 learning objectives
+                                        </span>
+                                        <span class="flex items-center gap-1 text-green-600">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 1.414L10.586 9H7a1 1 0 100 2h3.586l-1.293 1.293a1 1 0 101.414 1.414l3-3a1 1 0 000-1.414z" clip-rule="evenodd"/>
+                                            </svg>
+                                            Recommended
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Option 2 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="standard" class="peer sr-only" checked />
+                        <div class="border-2 border-purple-500 rounded-xl p-5 bg-purple-50 shadow-lg transition-all">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 mt-1">
+                                    <div class="w-5 h-5 rounded-full border-2 border-purple-500 bg-purple-500 flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-sm font-mono font-bold text-purple-700 bg-purple-100 px-2 py-1 rounded">3.CR.2</span>
+                                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Create Strand</span>
+                                        <span class="text-xs font-semibold text-purple-700 bg-purple-200 px-2 py-1 rounded">SELECTED</span>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                        Organize personal musical ideas using iconic or standard notation
+                                    </h3>
+                                    <p class="text-sm text-gray-600 mb-3">
+                                        Students will learn to document and organize their creative musical ideas using both pictorial (iconic) and traditional music notation systems.
+                                    </p>
+                                    <div class="flex items-center gap-4 text-sm">
+                                        <span class="flex items-center gap-1 text-gray-600">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            4 learning objectives
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <!-- Option 3 -->
+                    <label class="block cursor-pointer">
+                        <input type="radio" name="standard" class="peer sr-only" />
+                        <div class="border-2 border-gray-200 rounded-xl p-5 hover:border-purple-300 hover:bg-purple-50 transition-all peer-checked:border-purple-500 peer-checked:bg-purple-50 peer-checked:shadow-lg">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-shrink-0 mt-1">
+                                    <div class="w-5 h-5 rounded-full border-2 border-gray-300 peer-checked:border-purple-500 peer-checked:bg-purple-500 flex items-center justify-center">
+                                        <svg class="w-3 h-3 text-white hidden peer-checked:block" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-sm font-mono font-bold text-purple-700 bg-purple-100 px-2 py-1 rounded">3.CR.3</span>
+                                        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Create Strand</span>
+                                    </div>
+                                    <h3 class="text-lg font-semibold text-gray-900 mb-2">
+                                        Interpret and apply personal feedback to revise compositions
+                                    </h3>
+                                    <p class="text-sm text-gray-600 mb-3">
+                                        Students will develop critical listening skills and apply feedback to improve their musical creations through revision and refinement.
+                                    </p>
+                                    <div class="flex items-center gap-4 text-sm">
+                                        <span class="flex items-center gap-1 text-gray-600">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            3 learning objectives
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Help Text -->
+                <div class="mt-6 bg-blue-50 border border-blue-200 rounded-xl p-4">
+                    <div class="flex gap-3">
+                        <svg class="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                        </svg>
+                        <div>
+                            <h4 class="text-sm font-semibold text-blue-900 mb-1">Not sure which standard to choose?</h4>
+                            <p class="text-sm text-blue-800">
+                                Each standard focuses on different aspects of musical creation. After selecting a standard, you'll be able to choose specific learning objectives that match your lesson goals.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card Footer / Navigation -->
+            <div class="px-8 py-6 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                <button class="flex items-center gap-2 px-5 py-2.5 text-gray-700 hover:text-gray-900 font-medium transition-colors">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                    </svg>
+                    Back
+                </button>
+
+                <div class="flex items-center gap-3">
+                    <button class="px-5 py-2.5 text-gray-600 hover:text-gray-900 font-medium transition-colors">
+                        Save Draft
+                    </button>
+                    <button class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-2.5 rounded-lg font-medium transition-all shadow-md hover:shadow-lg flex items-center gap-2">
+                        Continue
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Additional Info -->
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Need help? <a href="#" class="text-purple-600 hover:text-purple-700 font-medium">View the Quick Start Guide</a>
+            </p>
+        </div>
+    </div>
+</body>
+</html>

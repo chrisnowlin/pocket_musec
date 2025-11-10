@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variant 2: Dashboard Power User Interface - PocketMusec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .panel {
+            height: 100vh;
+        }
+        .scrollable {
+            overflow-y: auto;
+        }
+        .resizer {
+            cursor: col-resize;
+            width: 4px;
+            background: #e5e7eb;
+        }
+        .resizer:hover {
+            background: #9ca3af;
+        }
+        .standard-item:hover {
+            background-color: #f3f4f6;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Main Layout: Sidebar + Content + Inspector -->
+    <div class="flex h-screen">
+        <!-- Left Sidebar (Navigation & History) -->
+        <div class="w-64 bg-gray-900 text-white flex flex-col panel">
+            <!-- Logo & User -->
+            <div class="p-4 border-b border-gray-700">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="font-bold">PocketMusec</h1>
+                        <p class="text-xs text-gray-400">Power Mode</p>
+                    </div>
+                </div>
+                <button class="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    New Lesson
+                </button>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="flex-1 scrollable p-3 space-y-1">
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-gray-800 text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <span class="text-sm font-medium">All Standards</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                    </svg>
+                    <span class="text-sm">Saved Drafts</span>
+                    <span class="ml-auto bg-gray-700 text-xs px-2 py-0.5 rounded-full">8</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="text-sm">Recent</span>
+                </a>
+                <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                    </svg>
+                    <span class="text-sm">Templates</span>
+                </a>
+
+                <!-- Recent Sessions -->
+                <div class="pt-4 mt-4 border-t border-gray-700">
+                    <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Recent Sessions</h3>
+                    <div class="space-y-1">
+                        <a href="#" class="block px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                            <div class="text-sm font-medium truncate">Grade 3 - Create Strand</div>
+                            <div class="text-xs text-gray-500">2 hours ago</div>
+                        </a>
+                        <a href="#" class="block px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                            <div class="text-sm font-medium truncate">Grade 5 - Respond: Form</div>
+                            <div class="text-xs text-gray-500">Yesterday</div>
+                        </a>
+                        <a href="#" class="block px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                            <div class="text-sm font-medium truncate">Grade 1 - Present: Singing</div>
+                            <div class="text-xs text-gray-500">2 days ago</div>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Footer -->
+            <div class="p-3 border-t border-gray-700">
+                <button class="flex items-center gap-2 text-gray-400 hover:text-white text-sm w-full px-3 py-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content Area (Standards Browser) -->
+        <div class="flex-1 flex flex-col panel bg-white">
+            <!-- Toolbar -->
+            <div class="border-b border-gray-200 bg-white px-6 py-4">
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="flex-1 relative">
+                        <input
+                            type="text"
+                            placeholder="Search standards, objectives, or topics..."
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <button class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                        Filters
+                    </button>
+                </div>
+
+                <!-- Quick Filters -->
+                <div class="flex gap-2 flex-wrap">
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+                        Grade 3
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Kindergarten
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Grade 5
+                    </button>
+                    <div class="border-l border-gray-300 mx-2"></div>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                        Connect
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Create
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Present
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Respond
+                    </button>
+                </div>
+            </div>
+
+            <!-- Standards List -->
+            <div class="flex-1 scrollable">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900">Standards for Grade 3 - Connect</h2>
+                        <span class="text-sm text-gray-500">12 standards found</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Standard Item -->
+                        <div class="border border-gray-200 rounded-lg p-4 standard-item cursor-pointer transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-mono font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">3.CN.1</span>
+                                        <span class="text-xs text-gray-500">Connect Strand</span>
+                                    </div>
+                                    <h3 class="font-medium text-gray-900 mb-2">
+                                        Understand relationships between music, other disciplines, and daily life
+                                    </h3>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            4 objectives
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Last used: 2 days ago
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="text-purple-600 hover:text-purple-700 font-medium text-sm ml-4 whitespace-nowrap">
+                                    Generate →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- More Standards -->
+                        <div class="border border-gray-200 rounded-lg p-4 standard-item cursor-pointer transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-mono font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">3.CN.2</span>
+                                        <span class="text-xs text-gray-500">Connect Strand</span>
+                                    </div>
+                                    <h3 class="font-medium text-gray-900 mb-2">
+                                        Understand global, interdisciplinary, and 21st century connections
+                                    </h3>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            3 objectives
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Never used
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="text-purple-600 hover:text-purple-700 font-medium text-sm ml-4 whitespace-nowrap">
+                                    Generate →
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="border border-blue-200 bg-blue-50 rounded-lg p-4 standard-item cursor-pointer transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-mono font-semibold text-blue-700 bg-blue-100 px-2 py-1 rounded">3.CN.1.1</span>
+                                        <span class="text-xs text-blue-600 font-medium">SELECTED</span>
+                                    </div>
+                                    <h3 class="font-medium text-gray-900 mb-2">
+                                        Compare responses to music from a variety of cultures
+                                    </h3>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            Objective 1 of 4
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="text-blue-600 hover:text-blue-700 font-medium text-sm ml-4 whitespace-nowrap">
+                                    View Details →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="border-t border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-between">
+                <div class="text-sm text-gray-600">
+                    <span class="font-medium">1 standard selected</span> • 1 objective
+                </div>
+                <button class="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-lg px-6 py-2 font-medium transition-all shadow-sm">
+                    Generate Lesson Plan
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel (Inspector/Preview) -->
+        <div class="w-96 bg-gray-50 border-l border-gray-200 flex flex-col panel">
+            <!-- Header -->
+            <div class="border-b border-gray-200 bg-white px-6 py-4">
+                <h2 class="font-semibold text-gray-900">Details & Preview</h2>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 scrollable p-6">
+                <!-- Standard Detail -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-xs font-mono font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">3.CN.1.1</span>
+                        <span class="text-xs text-gray-500">Grade 3 • Connect</span>
+                    </div>
+                    <h3 class="font-medium text-gray-900 mb-3">
+                        Compare responses to music from a variety of cultures
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Description</h4>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                Students will explore how different cultures respond to and engage with music,
+                                comparing various musical traditions and expressions.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Learning Objectives</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Identify characteristics of music from different cultures</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Compare cultural contexts and meanings</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Related Standards</h4>
+                            <div class="space-y-1">
+                                <a href="#" class="block text-sm text-purple-600 hover:text-purple-700 font-mono">3.CN.1 →</a>
+                                <a href="#" class="block text-sm text-purple-600 hover:text-purple-700 font-mono">3.RE.1.2 →</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lesson Configuration -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Lesson Configuration</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Context (Optional)</label>
+                            <textarea
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                rows="3"
+                                placeholder="e.g., Class has recorders, 30-minute period..."
+                            ></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lesson Duration</label>
+                            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option>30 minutes</option>
+                                <option>45 minutes</option>
+                                <option>60 minutes</option>
+                                <option>90 minutes</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Class Size</label>
+                            <input
+                                type="number"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="e.g., 25"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-200 p-4">
+                    <h3 class="font-semibold text-gray-900 mb-3">Your Activity</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white rounded-lg p-3">
+                            <div class="text-2xl font-bold text-purple-600">23</div>
+                            <div class="text-xs text-gray-600">Lessons Created</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3">
+                            <div class="text-2xl font-bold text-blue-600">8</div>
+                            <div class="text-xs text-gray-600">Active Drafts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
