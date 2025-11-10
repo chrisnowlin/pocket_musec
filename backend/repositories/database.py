@@ -1,0 +1,61 @@
+"""Database connection and initialization for pocket_musec"""
+
+import sqlite3
+import os
+from pathlib import Path
+from typing import Optional
+
+
+class DatabaseManager:
+    """Manages SQLite database connections and initialization"""
+    
+    def __init__(self, db_path: Optional[str] = None):
+        if db_path is None:
+            # Default to data/standards/standards.db
+            project_root = Path(__file__).parent.parent.parent
+            db_path = str(project_root / "data" / "standards" / "standards.db")
+        
+        self.db_path = Path(db_path)
+        self.db_path.parent.mkdir(parents=True, exist_ok=True)
+    
+    def get_connection(self) -> sqlite3.Connection:
+        """Get a database connection"""
+        return sqlite3.connect(self.db_path)
+    
+    def initialize_database(self) -> None:
+        """Create database tables if they don't exist"""
+        conn = self.get_connection()
+        try:
+            conn.executescript("""
+                -- Core standards storage
+                CREATE TABLE IF NOT EXISTS standards (
+                    standard_id TEXT PRIMARY KEY,
+                    grade_level TEXT NOT NULL,
+                    strand_code TEXT NOT NULL,
+                    strand_name TEXT NOT NULL,
+                    strand_description TEXT NOT NULL,
+                    standard_text TEXT NOT NULL,
+                    source_document TEXT,
+                    ingestion_date TEXT,
+                    version TEXT
+                );
+
+                CREATE TABLE IF NOT EXISTS objectives (
+                    objective_id TEXT PRIMARY KEY,
+                    standard_id TEXT NOT NULL,
+                    objective_text TEXT NOT NULL,
+                    FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
+                );
+
+                -- Indexes for common queries
+                CREATE INDEX IF NOT EXISTS idx_grade_level ON standards(grade_level);
+                CREATE INDEX IF NOT EXISTS idx_strand_code ON standards(strand_code);
+                CREATE INDEX IF NOT EXISTS idx_standard_objectives ON objectives(standard_id);
+            """)
+            conn.commit()
+        finally:
+            conn.close()
+    
+    def database_exists(self) -> bool:
+        """Check if database file exists"""
+        return self.db_path.exists()

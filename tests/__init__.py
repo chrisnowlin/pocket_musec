@@ -1,0 +1,1 @@
+"""Test suite for pocket_musec"""
