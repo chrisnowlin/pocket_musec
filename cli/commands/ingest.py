@@ -137,6 +137,11 @@ def _has_standards(db_manager: DatabaseManager) -> bool:
         return False
 
 
+def ingest_standards(pdf_path: str, db_path: str = None, force: bool = False):
+    """Wrapper function for ingesting standards from CLI"""
+    return standards(pdf_path, db_path, force)
+
+
 def _save_standards(db_manager: DatabaseManager, standards, objectives):
     """Save standards and objectives to database"""
     with db_manager.get_connection() as conn:

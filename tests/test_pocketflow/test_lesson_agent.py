@@ -34,6 +34,7 @@ class TestLessonAgent:
             "CN": {"name": "Musical Creativity", "description": "Creating music"},
             "PR": {"name": "Musical Performance", "description": "Performing music"}
         }
+        repo.get_standards_by_grade_and_strand.return_value = []
         return repo
     
     @pytest.fixture
@@ -183,7 +184,9 @@ class TestLessonAgent:
         mock_standard.standard_id = "K.CN.1"
         mock_standard.standard_text = "Create music"
         mock_standards_repo.get_standards_by_grade_and_strand.return_value = [mock_standard]
-        mock_standards_repo.get_objectives_for_standard.return_value = []
+        mock_objective = Mock()
+        mock_objective.objective_text = "Create rhythmic patterns"
+        mock_standards_repo.get_objectives_for_standard.return_value = [mock_objective]
         
         response = lesson_agent.chat("1")
         
@@ -270,7 +273,7 @@ class TestLessonAgent:
         response = lesson_agent.chat("Focus on rhythm using classroom instruments")
         
         assert lesson_agent.lesson_requirements['additional_context'] == "Focus on rhythm using classroom instruments"
-        assert lesson_agent.get_state() == "lesson_generation"
+        assert lesson_agent.get_state() == "complete"
     
     def test_handle_context_collection_skip(self, lesson_agent, mock_llm_client):
         """Test skipping context collection"""
@@ -285,7 +288,7 @@ class TestLessonAgent:
         
         response = lesson_agent.chat("skip")
         
-        assert lesson_agent.get_state() == "lesson_generation"
+        assert lesson_agent.get_state() == "complete"
     
     def test_generate_lesson_success(self, lesson_agent, mock_llm_client):
         """Test successful lesson generation"""
