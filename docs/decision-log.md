@@ -19,6 +19,7 @@ _Last updated: 2025-11-09_
 | Python Web Framework | FastAPI for HTTP and WebSocket server | Modern async framework with excellent WebSocket support and automatic API documentation. |
 | React State Management | Zustand for client state management | Lightweight and simple state management for lesson state, chat history, and UI state. |
 | UI Components & Styling | shadcn/ui + Tailwind CSS | Accessible, customizable copy-paste components built on Radix with utility-first styling. |
+| Testing Frameworks | Python: pytest; Frontend: Vitest + React Testing Library | pytest for backend unit/integration tests. Vitest (Vite-native) with RTL for frontend component tests. |
 | Data Sources & Formats | Broad ingestion: PDFs, Google Docs/DOCX, web pages/URLs, YouTube links/transcripts, images (e.g., sheet music), standards docs, CSVs. v1 priorities: PDFs, standards documents, images. | |
 | Lesson Plan Output | Core fields: title, grade level, duration, objectives, materials, standards alignment, procedure/steps, assessment, differentiation/accommodations, extensions, references/sources. Output: Markdown. If RAG is used, include citations to source chunks. | CLI-generated Markdown should open in the configured editor for basic tweaks before save/export. |
 | Privacy & Data Posture | v1: Cloud-first for speed/power with explicit toggle for local-only processing. Student/sensitive data should have a local path. Long-term: full local-first capability. | |
