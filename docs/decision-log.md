@@ -17,6 +17,7 @@ _Last updated: 2025-11-09_
 | CLI Framework | Typer for command-line interface | Modern, type-hint based, built on Click. Good for interactive flows. |
 | Backend-Frontend Communication | WebSocket for real-time bidirectional communication; HTTP+SSE fallback | WebSocket primary for chat and streaming LLM responses. SSE fallback for compatibility. |
 | Python Web Framework | FastAPI for HTTP and WebSocket server | Modern async framework with excellent WebSocket support and automatic API documentation. |
+| React State Management | Zustand for client state management | Lightweight and simple state management for lesson state, chat history, and UI state. |
 | Data Sources & Formats | Broad ingestion: PDFs, Google Docs/DOCX, web pages/URLs, YouTube links/transcripts, images (e.g., sheet music), standards docs, CSVs. v1 priorities: PDFs, standards documents, images. | |
 | Lesson Plan Output | Core fields: title, grade level, duration, objectives, materials, standards alignment, procedure/steps, assessment, differentiation/accommodations, extensions, references/sources. Output: Markdown. If RAG is used, include citations to source chunks. | CLI-generated Markdown should open in the configured editor for basic tweaks before save/export. |
 | Privacy & Data Posture | v1: Cloud-first for speed/power with explicit toggle for local-only processing. Student/sensitive data should have a local path. Long-term: full local-first capability. | |
