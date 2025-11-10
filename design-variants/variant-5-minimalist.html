@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variant 5: Minimalist Focus Mode - PocketMusec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .focus-button {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .focus-button:hover {
+            transform: translateX(4px);
+        }
+        .minimalist-input:focus {
+            outline: none;
+            border-bottom-color: #000;
+        }
+    </style>
+</head>
+<body class="bg-white min-h-screen">
+    <!-- Minimal Header -->
+    <header class="border-b border-gray-200">
+        <div class="max-w-3xl mx-auto px-6 py-6 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-black rounded flex items-center justify-center">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                    </svg>
+                </div>
+                <span class="font-semibold text-gray-900">PocketMusec</span>
+            </div>
+            <button class="text-sm text-gray-600 hover:text-gray-900">Exit</button>
+        </div>
+    </header>
+
+    <!-- Main Content - Centered Single Focus -->
+    <main class="max-w-3xl mx-auto px-6 py-16">
+        <!-- Progress Indicator (Subtle) -->
+        <div class="mb-12 fade-in">
+            <div class="flex items-center justify-center gap-2 mb-4">
+                <div class="w-2 h-2 rounded-full bg-black"></div>
+                <div class="w-2 h-2 rounded-full bg-black"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+                <div class="w-2 h-2 rounded-full bg-gray-300"></div>
+            </div>
+            <p class="text-center text-sm text-gray-500">Step 2 of 5</p>
+        </div>
+
+        <!-- Main Question -->
+        <div class="mb-16 fade-in">
+            <h1 class="text-4xl md:text-5xl font-light text-gray-900 mb-4 text-center leading-tight">
+                Which strand would you<br />like to focus on?
+            </h1>
+            <p class="text-center text-gray-600 text-lg">
+                Each strand represents a different aspect of music learning.
+            </p>
+        </div>
+
+        <!-- Answer Options (Minimal List) -->
+        <div class="space-y-4 fade-in" style="animation-delay: 0.2s;">
+            <!-- Option 1 -->
+            <button class="w-full text-left border-b border-gray-200 py-6 focus-button group">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-baseline gap-3 mb-2">
+                            <span class="text-xs font-mono text-gray-400">CN</span>
+                            <h3 class="text-2xl font-light text-gray-900 group-hover:text-black">Connect</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm pl-8">
+                            Understanding relationships between music, other disciplines, and daily life
+                        </p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-black transition-colors ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Option 2 -->
+            <button class="w-full text-left border-b border-gray-200 py-6 focus-button group">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-baseline gap-3 mb-2">
+                            <span class="text-xs font-mono text-gray-400">CR</span>
+                            <h3 class="text-2xl font-light text-gray-900 group-hover:text-black">Create</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm pl-8">
+                            Generating new musical ideas through improvisation and composition
+                        </p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-black transition-colors ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Option 3 -->
+            <button class="w-full text-left border-b border-gray-200 py-6 focus-button group">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-baseline gap-3 mb-2">
+                            <span class="text-xs font-mono text-gray-400">PR</span>
+                            <h3 class="text-2xl font-light text-gray-900 group-hover:text-black">Present</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm pl-8">
+                            Performing, sharing, and presenting musical works
+                        </p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-black transition-colors ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Option 4 -->
+            <button class="w-full text-left border-b border-gray-200 py-6 focus-button group">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <div class="flex items-baseline gap-3 mb-2">
+                            <span class="text-xs font-mono text-gray-400">RE</span>
+                            <h3 class="text-2xl font-light text-gray-900 group-hover:text-black">Respond</h3>
+                        </div>
+                        <p class="text-gray-600 text-sm pl-8">
+                            Analyzing, interpreting, and evaluating musical works
+                        </p>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400 group-hover:text-black transition-colors ml-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </div>
+            </button>
+        </div>
+
+        <!-- Alternative: Search/Type Option -->
+        <div class="mt-12 fade-in" style="animation-delay: 0.4s;">
+            <div class="border-t border-gray-200 pt-8">
+                <p class="text-sm text-gray-500 mb-4 text-center">Or describe what you're teaching</p>
+                <div class="relative">
+                    <input
+                        type="text"
+                        placeholder="e.g., composition, performance techniques..."
+                        class="w-full text-center text-lg border-0 border-b-2 border-gray-200 pb-3 minimalist-input transition-colors"
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="mt-16 pt-8 border-t border-gray-200 flex items-center justify-between fade-in" style="animation-delay: 0.6s;">
+            <button class="text-gray-600 hover:text-gray-900 text-sm font-medium flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+                Back
+            </button>
+            <button class="text-gray-400 hover:text-gray-600 text-sm">
+                Save & Exit
+            </button>
+        </div>
+    </main>
+
+    <!-- Minimal Footer -->
+    <footer class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100">
+        <div class="max-w-3xl mx-auto px-6 py-3">
+            <div class="flex items-center justify-center gap-6 text-xs text-gray-400">
+                <span>Grade 3 selected</span>
+                <span>•</span>
+                <span>Auto-saved 2 min ago</span>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Auto-resize input and add subtle interactions
+        const input = document.querySelector('.minimalist-input');
+        input.addEventListener('input', function() {
+            if (this.value.length > 0) {
+                this.style.borderBottomColor = '#000';
+            } else {
+                this.style.borderBottomColor = '#e5e7eb';
+            }
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const buttons = Array.from(document.querySelectorAll('.focus-button'));
+                const focused = document.activeElement;
+                const currentIndex = buttons.indexOf(focused);
+
+                if (e.key === 'ArrowDown' && currentIndex < buttons.length - 1) {
+                    buttons[currentIndex + 1].focus();
+                } else if (e.key === 'ArrowUp' && currentIndex > 0) {
+                    buttons[currentIndex - 1].focus();
+                }
+            }
+        });
+
+        // Add subtle hover effects
+        const buttons = document.querySelectorAll('.focus-button');
+        buttons.forEach(button => {
+            button.addEventListener('mouseenter', function() {
+                this.style.backgroundColor = '#fafafa';
+            });
+            button.addEventListener('mouseleave', function() {
+                this.style.backgroundColor = 'transparent';
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variant 6: Dashboard Chat Hybrid - PocketMusec</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        .panel {
+            height: 100vh;
+        }
+        .scrollable {
+            overflow-y: auto;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message-enter {
+            animation: fadeIn 0.3s ease-out;
+        }
+        .typing-indicator span {
+            animation: blink 1.4s infinite both;
+        }
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes blink {
+            0%, 80%, 100% { opacity: 0; }
+            40% { opacity: 1; }
+        }
+        .standard-tag {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .standard-tag:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .resizer {
+            width: 4px;
+            cursor: col-resize;
+            background: transparent;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .resizer:hover {
+            background: #9ca3af;
+        }
+        .resizer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: -2px;
+            right: -2px;
+        }
+        .resizer.resizing {
+            background: #6366f1;
+        }
+        .no-select {
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Main Layout: Sidebar + Chat + Inspector -->
+    <div class="flex h-screen">
+        <!-- Left Sidebar (Conversations & Navigation) -->
+        <div id="sidebar" class="bg-gray-900 text-white flex flex-col panel" style="width: 256px; min-width: 200px; max-width: 400px;">
+            <!-- Logo & User -->
+            <div class="p-4 border-b border-gray-700">
+                <div class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h1 class="font-bold">PocketMusec</h1>
+                        <p class="text-xs text-gray-400">AI Assistant</p>
+                    </div>
+                </div>
+                <button class="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    New Conversation
+                </button>
+            </div>
+
+            <!-- Mode Toggle -->
+            <div class="p-3 border-b border-gray-700">
+                <div class="bg-gray-800 rounded-lg p-1 flex">
+                    <button id="chatModeBtn" class="flex-1 px-3 py-2 text-xs font-medium rounded bg-gray-700 text-white transition-colors" onclick="switchToChat()">
+                        <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
+                        </svg>
+                        Chat
+                    </button>
+                    <button id="browseModeBtn" class="flex-1 px-3 py-2 text-xs font-medium rounded text-gray-400 hover:text-white transition-colors" onclick="switchToBrowse()">
+                        <svg class="w-4 h-4 inline-block mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                        </svg>
+                        Browse
+                    </button>
+                </div>
+            </div>
+
+            <!-- Navigation / Conversations -->
+            <nav class="flex-1 scrollable p-3 space-y-1">
+                <div class="mb-4">
+                    <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Today</h3>
+                    <div class="space-y-1">
+                        <a href="#" class="block px-3 py-2 rounded-lg bg-gray-800 text-white">
+                            <div class="text-sm font-medium truncate">Grade 3 - Create Strand</div>
+                            <div class="text-xs text-gray-500">2 hours ago · 12 messages</div>
+                        </a>
+                        <a href="#" class="block px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                            <div class="text-sm font-medium truncate">Grade 5 Rhythm Lesson</div>
+                            <div class="text-xs text-gray-500">4 hours ago · 8 messages</div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">This Week</h3>
+                    <div class="space-y-1">
+                        <a href="#" class="block px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                            <div class="text-sm font-medium truncate">Grade 1 - Present: Singing</div>
+                            <div class="text-xs text-gray-500">2 days ago · 15 messages</div>
+                        </a>
+                        <a href="#" class="block px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                            <div class="text-sm font-medium truncate">Kindergarten Movement</div>
+                            <div class="text-xs text-gray-500">3 days ago · 6 messages</div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Quick Access -->
+                <div class="pt-4 mt-4 border-t border-gray-700">
+                    <h3 class="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Quick Access</h3>
+                    <div class="space-y-1">
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/>
+                            </svg>
+                            <span class="text-sm">Templates</span>
+                        </a>
+                        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+                            </svg>
+                            <span class="text-sm">Saved Drafts</span>
+                            <span class="ml-auto bg-gray-700 text-xs px-2 py-0.5 rounded-full">8</span>
+                        </a>
+                    </div>
+                </div>
+            </nav>
+
+            <!-- Footer -->
+            <div class="p-3 border-t border-gray-700">
+                <button class="flex items-center gap-2 text-gray-400 hover:text-white text-sm w-full px-3 py-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    Settings
+                </button>
+            </div>
+        </div>
+
+        <!-- Resizer for Sidebar -->
+        <div id="sidebarResizer" class="resizer"></div>
+
+        <!-- Main Content Area (Chat Interface) -->
+        <div id="chatView" class="flex-1 flex flex-col panel bg-gray-50">
+            <!-- Chat Header -->
+            <div class="border-b border-gray-200 bg-white px-6 py-4">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900">Grade 3 Lesson Planning</h2>
+                        <p class="text-sm text-gray-500">Conversational AI Assistant</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                            </svg>
+                            Actions
+                        </button>
+                        <button class="border border-gray-300 rounded-lg px-3 py-1.5 text-sm font-medium hover:bg-gray-50 flex items-center gap-2 transition-colors">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Export
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chat Messages -->
+            <div class="flex-1 scrollable px-6 py-6 bg-gray-50" id="chatMessages">
+                <!-- Welcome Message -->
+                <div class="mb-4 message-enter">
+                    <div class="flex gap-3 items-start">
+                        <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 max-w-3xl">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs font-semibold text-gray-700">PocketMusec AI</span>
+                                <span class="text-xs text-gray-400">•</span>
+                                <span class="text-xs text-gray-500">Just now</span>
+                            </div>
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <p class="text-gray-700 mb-3 leading-relaxed">👋 Welcome! I'm your PocketMusec AI assistant. I'll help you create engaging, standards-aligned music lesson plans for K-8 students.</p>
+                                <p class="text-gray-700 mb-4 leading-relaxed">Let's get started! What grade level are you teaching?</p>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Kindergarten')">
+                                        Kindergarten
+                                    </button>
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Grade 1')">
+                                        Grade 1
+                                    </button>
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Grade 2')">
+                                        Grade 2
+                                    </button>
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Grade 3')">
+                                        Grade 3
+                                    </button>
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Grade 4')">
+                                        Grade 4
+                                    </button>
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Grade 5')">
+                                        Grade 5
+                                    </button>
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Grade 6')">
+                                        Grade 6
+                                    </button>
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Grade 7')">
+                                        Grade 7
+                                    </button>
+                                    <button class="border border-gray-200 hover:border-purple-300 hover:bg-purple-50 bg-white text-gray-700 hover:text-purple-700 rounded-lg px-3 py-2 text-sm font-medium transition-all" onclick="selectGrade('Grade 8')">
+                                        Grade 8
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example: User Response -->
+                <div class="mb-4 message-enter flex justify-end">
+                    <div class="flex gap-3 items-start max-w-3xl">
+                        <div class="flex-1 text-right">
+                            <div class="flex items-center gap-2 mb-2 justify-end">
+                                <span class="text-xs text-gray-500">Just now</span>
+                                <span class="text-xs text-gray-400">•</span>
+                                <span class="text-xs font-semibold text-gray-700">You</span>
+                            </div>
+                            <div class="bg-purple-600 rounded-lg shadow-sm p-3 inline-block">
+                                <p class="text-white font-medium">Grade 3</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Example: AI Response with Strands -->
+                <div class="mb-4 message-enter">
+                    <div class="flex gap-3 items-start">
+                        <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                            </svg>
+                        </div>
+                        <div class="flex-1 max-w-3xl">
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs font-semibold text-gray-700">PocketMusec AI</span>
+                                <span class="text-xs text-gray-400">•</span>
+                                <span class="text-xs text-gray-500">Just now</span>
+                            </div>
+                            <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                                <p class="text-gray-700 mb-4 leading-relaxed">Perfect! Now, which strand of music standards would you like to focus on?</p>
+                                <div class="space-y-2">
+                                    <button class="w-full bg-white hover:bg-blue-50 border border-gray-200 hover:border-blue-300 rounded-lg p-3 text-left transition-all group" onclick="selectStrand('Connect')">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-blue-200 transition-colors">
+                                                <span class="text-xl">🔗</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">Connect (CN)</h3>
+                                                <p class="text-xs text-gray-600 mt-0.5">Relationships between music, other disciplines, and daily life</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    <button class="w-full bg-white hover:bg-green-50 border border-gray-200 hover:border-green-300 rounded-lg p-3 text-left transition-all group" onclick="selectStrand('Create')">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-green-200 transition-colors">
+                                                <span class="text-xl">✨</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="font-semibold text-gray-900 group-hover:text-green-700 transition-colors">Create (CR)</h3>
+                                                <p class="text-xs text-gray-600 mt-0.5">Generating new musical ideas through improvisation and composition</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    <button class="w-full bg-white hover:bg-purple-50 border border-gray-200 hover:border-purple-300 rounded-lg p-3 text-left transition-all group" onclick="selectStrand('Present')">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-purple-200 transition-colors">
+                                                <span class="text-xl">🎭</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="font-semibold text-gray-900 group-hover:text-purple-700 transition-colors">Present (PR)</h3>
+                                                <p class="text-xs text-gray-600 mt-0.5">Performing, sharing, and presenting musical works</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                    <button class="w-full bg-white hover:bg-orange-50 border border-gray-200 hover:border-orange-300 rounded-lg p-3 text-left transition-all group" onclick="selectStrand('Respond')">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center flex-shrink-0 group-hover:bg-orange-200 transition-colors">
+                                                <span class="text-xl">🎵</span>
+                                            </div>
+                                            <div class="flex-1">
+                                                <h3 class="font-semibold text-gray-900 group-hover:text-orange-700 transition-colors">Respond (RE)</h3>
+                                                <p class="text-xs text-gray-600 mt-0.5">Analyzing, interpreting, and evaluating musical works</p>
+                                            </div>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fixed Input Area -->
+            <div class="border-t border-gray-200 bg-white">
+                <div class="px-6 py-4">
+                    <div class="flex gap-3 items-end">
+                        <div class="flex-1 relative">
+                            <textarea
+                                id="messageInput"
+                                class="w-full border border-gray-300 rounded-lg px-4 py-3 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                                rows="1"
+                                placeholder="Type a message or use the buttons above..."
+                            ></textarea>
+                            <button class="absolute right-3 bottom-3 text-gray-400 hover:text-gray-600 transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <button class="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-6 py-3 font-medium transition-colors shadow-sm" onclick="sendMessage()">
+                            Send
+                        </button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2">
+                        <span class="font-medium">Tip:</span> Click buttons or type freely • Press Enter to send
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Browse View (Standards Browser) - Hidden by default -->
+        <div id="browseView" class="flex-1 flex flex-col panel bg-white" style="display: none;">
+            <!-- Browse Header -->
+            <div class="border-b border-gray-200 bg-white px-6 py-4">
+                <div class="flex items-center gap-4 mb-3">
+                    <div class="flex-1 relative">
+                        <input
+                            type="text"
+                            placeholder="Search standards, objectives, or topics..."
+                            class="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                        <svg class="w-5 h-5 text-gray-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <button class="border border-gray-300 rounded-lg px-4 py-2 text-sm font-medium hover:bg-gray-50 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                        </svg>
+                        Filters
+                    </button>
+                </div>
+
+                <!-- Quick Filters -->
+                <div class="flex gap-2 flex-wrap">
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+                        Grade 3
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Kindergarten
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Grade 5
+                    </button>
+                    <div class="border-l border-gray-300 mx-2"></div>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                        Connect
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Create
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Present
+                    </button>
+                    <button class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                        Respond
+                    </button>
+                </div>
+            </div>
+
+            <!-- Standards List -->
+            <div class="flex-1 scrollable bg-gray-50">
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-lg font-semibold text-gray-900">Standards for Grade 3 - Connect</h2>
+                        <span class="text-sm text-gray-500">12 standards found</span>
+                    </div>
+
+                    <div class="space-y-3">
+                        <!-- Standard Item 1 -->
+                        <div class="border border-gray-200 bg-white rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-mono font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">3.CN.1</span>
+                                        <span class="text-xs text-gray-500">Connect Strand</span>
+                                    </div>
+                                    <h3 class="font-medium text-gray-900 mb-2">
+                                        Understand relationships between music, other disciplines, and daily life
+                                    </h3>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            4 objectives
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Last used: 2 days ago
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="text-purple-600 hover:text-purple-700 font-medium text-sm ml-4 whitespace-nowrap">
+                                    Select →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Standard Item 2 -->
+                        <div class="border border-gray-200 bg-white rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-mono font-semibold text-purple-700 bg-purple-50 px-2 py-1 rounded">3.CN.2</span>
+                                        <span class="text-xs text-gray-500">Connect Strand</span>
+                                    </div>
+                                    <h3 class="font-medium text-gray-900 mb-2">
+                                        Understand global, interdisciplinary, and 21st century connections
+                                    </h3>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            3 objectives
+                                        </span>
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Never used
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="text-purple-600 hover:text-purple-700 font-medium text-sm ml-4 whitespace-nowrap">
+                                    Select →
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Standard Item 3 - Selected -->
+                        <div class="border-2 border-blue-300 bg-blue-50 rounded-lg p-4 cursor-pointer transition-colors">
+                            <div class="flex items-start justify-between">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-mono font-semibold text-blue-700 bg-blue-100 px-2 py-1 rounded">3.CN.1.1</span>
+                                        <span class="text-xs text-blue-600 font-medium">SELECTED</span>
+                                    </div>
+                                    <h3 class="font-medium text-gray-900 mb-2">
+                                        Compare responses to music from a variety of cultures
+                                    </h3>
+                                    <div class="flex items-center gap-4 text-sm text-gray-600">
+                                        <span class="flex items-center gap-1">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                            </svg>
+                                            Objective 1 of 4
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="text-blue-600 hover:text-blue-700 font-medium text-sm ml-4 whitespace-nowrap">
+                                    View Details →
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Bar -->
+            <div class="border-t border-gray-200 bg-gray-50 px-6 py-4 flex items-center justify-between">
+                <div class="text-sm text-gray-600">
+                    <span class="font-medium">1 standard selected</span> • 1 objective
+                </div>
+                <button class="bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-6 py-2 font-medium transition-colors shadow-sm">
+                    Start Chat with Selected
+                </button>
+            </div>
+        </div>
+
+        <!-- Resizer for Right Panel -->
+        <div id="rightPanelResizer" class="resizer"></div>
+
+        <!-- Right Panel (Context & Configuration) -->
+        <div id="rightPanel" class="bg-white border-l border-gray-200 flex flex-col panel" style="width: 384px; min-width: 300px; max-width: 600px;">
+            <!-- Header -->
+            <div class="border-b border-gray-200 bg-white px-6 py-4">
+                <h2 class="font-semibold text-gray-900">Context & Configuration</h2>
+                <p class="text-xs text-gray-500 mt-1">Lesson settings and details</p>
+            </div>
+
+            <!-- Content -->
+            <div class="flex-1 scrollable p-6 bg-gray-50">
+                <!-- Current Selection Summary -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4 shadow-sm">
+                    <h3 class="font-semibold text-gray-900 mb-4 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        Current Selections
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Grade Level</h4>
+                            <span class="inline-block px-3 py-1 text-sm font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200">
+                                Grade 3
+                            </span>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Strand</h4>
+                            <span class="text-sm text-gray-500 italic">Not selected yet</span>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Standard</h4>
+                            <span class="text-sm text-gray-500 italic">Not selected yet</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lesson Configuration -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4 shadow-sm">
+                    <h3 class="font-semibold text-gray-900 mb-4">Lesson Settings</h3>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Additional Context (Optional)</label>
+                            <textarea
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                rows="3"
+                                placeholder="e.g., Class has recorders, 30-minute period..."
+                            ></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Lesson Duration</label>
+                            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
+                                <option>30 minutes</option>
+                                <option>45 minutes</option>
+                                <option>60 minutes</option>
+                                <option>90 minutes</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Class Size</label>
+                            <input
+                                type="number"
+                                class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                placeholder="e.g., 25"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selected Standard Details (Hidden initially) -->
+                <div class="bg-white rounded-lg border border-gray-200 p-4 mb-4 shadow-sm hidden" id="standardDetails">
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="text-xs font-mono font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">3.CN.1.1</span>
+                        <span class="text-xs text-gray-500">Grade 3 • Connect</span>
+                    </div>
+                    <h3 class="font-medium text-gray-900 mb-3">
+                        Compare responses to music from a variety of cultures
+                    </h3>
+
+                    <div class="space-y-3">
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Description</h4>
+                            <p class="text-sm text-gray-600 leading-relaxed">
+                                Students will explore how different cultures respond to and engage with music,
+                                comparing various musical traditions and expressions.
+                            </p>
+                        </div>
+
+                        <div>
+                            <h4 class="text-xs font-semibold text-gray-700 uppercase mb-2">Learning Objectives</h4>
+                            <ul class="text-sm text-gray-600 space-y-1">
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Identify characteristics of music from different cultures</span>
+                                </li>
+                                <li class="flex items-start gap-2">
+                                    <svg class="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                    </svg>
+                                    <span>Compare cultural contexts and meanings</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Stats -->
+                <div class="bg-gradient-to-br from-purple-50 to-blue-50 rounded-lg border border-purple-200 p-4">
+                    <h3 class="font-semibold text-gray-900 mb-3">Your Activity</h3>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white rounded-lg p-3">
+                            <div class="text-2xl font-bold text-purple-600">23</div>
+                            <div class="text-xs text-gray-600">Lessons Created</div>
+                        </div>
+                        <div class="bg-white rounded-lg p-3">
+                            <div class="text-2xl font-bold text-blue-600">8</div>
+                            <div class="text-xs text-gray-600">Active Drafts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Panel resizing functionality
+        let isResizing = false;
+        let currentResizer = null;
+        let startX = 0;
+        let startWidth = 0;
+
+        function initResizer(resizerId, panelId) {
+            const resizer = document.getElementById(resizerId);
+            const panel = document.getElementById(panelId);
+            
+            resizer.addEventListener('mousedown', function(e) {
+                isResizing = true;
+                currentResizer = resizerId;
+                startX = e.clientX;
+                startWidth = panel.offsetWidth;
+                
+                resizer.classList.add('resizing');
+                document.body.classList.add('no-select');
+                
+                e.preventDefault();
+            });
+        }
+
+        document.addEventListener('mousemove', function(e) {
+            if (!isResizing) return;
+            
+            const resizer = document.getElementById(currentResizer);
+            
+            if (currentResizer === 'sidebarResizer') {
+                const sidebar = document.getElementById('sidebar');
+                const newWidth = startWidth + (e.clientX - startX);
+                const minWidth = parseInt(sidebar.style.minWidth);
+                const maxWidth = parseInt(sidebar.style.maxWidth);
+                
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
+                    sidebar.style.width = newWidth + 'px';
+                }
+            } else if (currentResizer === 'rightPanelResizer') {
+                const rightPanel = document.getElementById('rightPanel');
+                const newWidth = startWidth - (e.clientX - startX);
+                const minWidth = parseInt(rightPanel.style.minWidth);
+                const maxWidth = parseInt(rightPanel.style.maxWidth);
+                
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
+                    rightPanel.style.width = newWidth + 'px';
+                }
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            if (isResizing) {
+                const resizer = document.getElementById(currentResizer);
+                resizer.classList.remove('resizing');
+                document.body.classList.remove('no-select');
+                
+                isResizing = false;
+                currentResizer = null;
+            }
+        });
+
+        // Initialize resizers
+        initResizer('sidebarResizer', 'sidebar');
+        initResizer('rightPanelResizer', 'rightPanel');
+
+        // Auto-resize textarea
+        const textarea = document.getElementById('messageInput');
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+        });
+
+        // Send message function
+        function sendMessage() {
+            const message = textarea.value.trim();
+            if (!message) return;
+
+            // Add user message
+            addUserMessage(message);
+            textarea.value = '';
+            textarea.style.height = 'auto';
+
+            // Simulate AI response
+            setTimeout(() => {
+                addAIMessage("I understand. Let me help you with that...");
+            }, 1000);
+        }
+
+        // Add user message to chat
+        function addUserMessage(text) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'mb-4 message-enter flex justify-end';
+            messageDiv.innerHTML = `
+                <div class="flex gap-3 items-start max-w-3xl">
+                    <div class="flex-1 text-right">
+                        <div class="flex items-center gap-2 mb-2 justify-end">
+                            <span class="text-xs text-gray-500">Just now</span>
+                            <span class="text-xs text-gray-400">•</span>
+                            <span class="text-xs font-semibold text-gray-700">You</span>
+                        </div>
+                        <div class="bg-purple-600 rounded-lg shadow-sm p-3 inline-block">
+                            <p class="text-white font-medium">${text}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Add AI message to chat
+        function addAIMessage(text) {
+            const chatMessages = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'mb-4 message-enter';
+            messageDiv.innerHTML = `
+                <div class="flex gap-3 items-start">
+                    <div class="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3"/>
+                        </svg>
+                    </div>
+                    <div class="flex-1 max-w-3xl">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs font-semibold text-gray-700">PocketMusec AI</span>
+                            <span class="text-xs text-gray-400">•</span>
+                            <span class="text-xs text-gray-500">Just now</span>
+                        </div>
+                        <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+                            <p class="text-gray-700 leading-relaxed">${text}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Handle grade selection
+        function selectGrade(grade) {
+            addUserMessage(grade);
+            setTimeout(() => {
+                addAIMessage("Perfect! Now, which strand of music standards would you like to focus on?");
+            }, 800);
+        }
+
+        // Handle strand selection
+        function selectStrand(strand) {
+            addUserMessage(strand);
+            setTimeout(() => {
+                addAIMessage(`Great choice! I'll show you the available ${strand} standards for Grade 3. Would you like me to suggest a specific standard, or would you prefer to browse the options?`);
+            }, 800);
+        }
+
+        // Mode switching functions
+        function switchToChat() {
+            // Show chat view, hide browse view
+            document.getElementById('chatView').style.display = 'flex';
+            document.getElementById('browseView').style.display = 'none';
+            
+            // Update button styles
+            const chatBtn = document.getElementById('chatModeBtn');
+            const browseBtn = document.getElementById('browseModeBtn');
+            
+            chatBtn.classList.add('bg-gray-700', 'text-white');
+            chatBtn.classList.remove('text-gray-400');
+            
+            browseBtn.classList.remove('bg-gray-700', 'text-white');
+            browseBtn.classList.add('text-gray-400');
+        }
+        
+        function switchToBrowse() {
+            // Show browse view, hide chat view
+            document.getElementById('chatView').style.display = 'none';
+            document.getElementById('browseView').style.display = 'flex';
+            
+            // Update button styles
+            const chatBtn = document.getElementById('chatModeBtn');
+            const browseBtn = document.getElementById('browseModeBtn');
+            
+            browseBtn.classList.add('bg-gray-700', 'text-white');
+            browseBtn.classList.remove('text-gray-400');
+            
+            chatBtn.classList.remove('bg-gray-700', 'text-white');
+            chatBtn.classList.add('text-gray-400');
+        }
+
+        // Button click animations
+        document.querySelectorAll('button[class*="bg-"]').forEach(button => {
+            button.addEventListener('click', function() {
+                this.style.transform = 'scale(0.98)';
+                setTimeout(() => {
+                    this.style.transform = 'scale(1)';
+                }, 100);
+            });
+        });
+
+        // Enter key to send
+        textarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
