@@ -24,7 +24,7 @@ dev = [
 ]
 
 [project.scripts]
-pocketflow = "cli.main:app"
+pocketmusec = "cli.main:app"
 
 [build-system]
 requires = ["hatchling"]

@@ -114,7 +114,7 @@ def stats():
         console.print(table)
         
         if stats["standard_embeddings"] == 0:
-            console.print("\n[yellow]No embeddings found. Run 'pocketflow embeddings generate' to create them.[/yellow]")
+            console.print("\n[yellow]No embeddings found. Run 'pocketmusec embeddings generate' to create them.[/yellow]")
         
     except Exception as e:
         console.print(f"[bold red]❌ Error getting stats: {str(e)}[/bold red]")
@@ -203,6 +203,102 @@ def clear():
         
     except Exception as e:
         console.print(f"[bold red]❌ Error clearing embeddings: {str(e)}[/bold red]")
+        raise typer.Exit(1)
+
+
+@app.command()
+def texts():
+    """Show prepared embedding texts"""
+    
+    try:
+        embedder = StandardsEmbedder()
+        texts = embedder.embeddings_manager.list_prepared_texts()
+        
+        console.print(Panel.fit(
+            "[bold blue]Prepared Embedding Texts[/bold blue]",
+            title="Text Files Status"
+        ))
+        
+        table = Table(title="Prepared Text Files")
+        table.add_column("Type", style="cyan")
+        table.add_column("Count", style="magenta")
+        
+        table.add_row("Standard texts", str(len(texts["standards"])))
+        table.add_row("Objective texts", str(len(texts["objectives"])))
+        
+        console.print(table)
+        
+        if texts["standards"]:
+            console.print("\n[bold]Standard IDs with prepared texts:[/bold]")
+            console.print(", ".join(texts["standards"][:10]) + ("..." if len(texts["standards"]) > 10 else ""))
+        
+        if texts["objectives"]:
+            console.print("\n[bold]Objective IDs with prepared texts:[/bold]")
+            console.print(", ".join(texts["objectives"][:10]) + ("..." if len(texts["objectives"]) > 10 else ""))
+        
+        if not texts["standards"] and not texts["objectives"]:
+            console.print("\n[yellow]No prepared texts found. Run 'pocketmusec embeddings generate' to create them.[/yellow]")
+        
+    except Exception as e:
+        console.print(f"[bold red]❌ Error listing prepared texts: {str(e)}[/bold red]")
+        raise typer.Exit(1)
+
+
+@app.command()
+def show_text(
+    item_id: str = typer.Argument(..., help="Standard or Objective ID"),
+    item_type: str = typer.Option("standard", "--type", "-t", help="Type: 'standard' or 'objective'")
+):
+    """Show prepared text for a specific standard or objective"""
+    
+    if item_type not in ["standard", "objective"]:
+        console.print("[bold red]❌ Type must be 'standard' or 'objective'[/bold red]")
+        raise typer.Exit(1)
+    
+    try:
+        embedder = StandardsEmbedder()
+        
+        if item_type == "standard":
+            text = embedder.embeddings_manager.get_prepared_standard_text(item_id)
+            label = f"Standard {item_id}"
+        else:
+            text = embedder.embeddings_manager.get_prepared_objective_text(item_id)
+            label = f"Objective {item_id}"
+        
+        if text:
+            console.print(Panel.fit(
+                text,
+                title=f"Prepared Text - {label}",
+                subtitle="Text sent to embedding API"
+            ))
+        else:
+            console.print(f"[yellow]No prepared text found for {label}[/yellow]")
+            console.print("Run 'pocketmusec embeddings generate' to create prepared texts.")
+        
+    except Exception as e:
+        console.print(f"[bold red]❌ Error retrieving prepared text: {str(e)}[/bold red]")
+        raise typer.Exit(1)
+
+
+@app.command()
+def clear_texts():
+    """Clear all prepared text files"""
+    
+    console.print("[bold red]⚠️  This will delete all prepared text files![/bold red]")
+    console.print("[yellow]This will not affect embeddings in the database.[/yellow]")
+    
+    if not typer.confirm("Are you sure you want to delete all prepared text files?"):
+        console.print("[green]Operation cancelled.[/green]")
+        return
+    
+    try:
+        embedder = StandardsEmbedder()
+        embedder.embeddings_manager.delete_all_prepared_texts()
+        
+        console.print("[bold green]✅ All prepared text files deleted[/bold green]")
+        
+    except Exception as e:
+        console.print(f"[bold red]❌ Error clearing prepared texts: {str(e)}[/bold red]")
         raise typer.Exit(1)
 
 

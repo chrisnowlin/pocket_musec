@@ -7,7 +7,7 @@ from backend.pocketflow.store import Store
 from backend.repositories.standards_repository import StandardsRepository
 from backend.repositories.models import Standard, Objective, StandardWithObjectives
 from backend.llm.chutes_client import ChutesClient
-from backend.llm.prompt_templates import LessonPromptTemplates
+from backend.llm.prompt_templates import LessonPromptContext, LessonPromptTemplates
 
 
 class LessonAgent(Agent):
@@ -397,28 +397,22 @@ class LessonAgent(Agent):
             self.set_state("complete")
             raise
     
-    def _build_lesson_context(self) -> Dict[str, Any]:
+    def _build_lesson_context(self) -> LessonPromptContext:
         """Build context dictionary for lesson generation"""
-        context = {
-            'grade_level': self.lesson_requirements['grade_level'],
-            'strand_code': self.lesson_requirements['strand_code'],
-            'strand_name': self.lesson_requirements['strand_info'].get('name', ''),
-            'strand_description': self.lesson_requirements['strand_info'].get('description', ''),
-            'standard_id': self.lesson_requirements['standard'].standard_id,
-            'standard_text': self.lesson_requirements['standard'].standard_text,
-        }
-        
-        # Add objectives if selected
-        if 'selected_objectives' in self.lesson_requirements:
-            context['objectives'] = [
-                obj.objective_text for obj in self.lesson_requirements['selected_objectives']
-            ]
-        
-        # Add additional context if provided
-        if 'additional_context' in self.lesson_requirements:
-            context['additional_context'] = self.lesson_requirements['additional_context']
-        
-        return context
+        objective_texts = [
+            obj.objective_text for obj in self.lesson_requirements.get('selected_objectives', [])
+        ]
+
+        return LessonPromptContext(
+            grade_level=self.lesson_requirements['grade_level'],
+            strand_code=self.lesson_requirements['strand_code'],
+            strand_name=self.lesson_requirements['strand_info'].get('name', ''),
+            strand_description=self.lesson_requirements['strand_info'].get('description', ''),
+            standard_id=self.lesson_requirements['standard'].standard_id,
+            standard_text=self.lesson_requirements['standard'].standard_text,
+            objectives=objective_texts,
+            additional_context=self.lesson_requirements.get('additional_context'),
+        )
     
     def _handle_complete(self, message: str) -> str:
         """Handle completion state"""

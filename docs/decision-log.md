@@ -2,7 +2,7 @@
 
 Tracks the current agreement for key aspects of the project. Update entries when the team makes or revises a decision.
 
-_Last updated: 2025-11-09_
+_Last updated: 2025-11-10_
 
 | Area | Current Decision | Notes |
 | --- | --- | --- |
@@ -31,9 +31,19 @@ _Last updated: 2025-11-09_
 
 
 | Timeline & Milestones | Milestone 1: Foundations & RAG prototype delivering an end-to-end CLI that supports basic lesson tweaks via the configured editor.<br>Milestone 2: Teacher-facing alpha shell with editable lesson fields and export in the Electron app.<br>Milestone 3: Expanded ingestion (PDF + images) with citation support and cloud/local processing toggle. | Each milestone must yield a usable teacher workflow, even if minimal. |
+| Milestone 2 Lesson Editor Fields | Full set: title; grade; strands/standards; objectives; materials; warm-up; activities (title, duration, steps/notes, per-activity standards alignment); total timing; differentiation; assessment; exit ticket; citations; teacher notes; prerequisites; accommodations; homework; reflection. | Include per-activity alignment mapping and citations in M2; lesson schema will be versioned. |
+| Milestone 2 Export Formats | Markdown (.md) + PDF (.pdf) | Use Electron/Chromium print-to-PDF for reliable export; keep Markdown as canonical editable format; defer DOCX to a later milestone. |
+| Milestone 2 Backend Orchestration | Electron launches local Python FastAPI on app start; UI communicates over local HTTP; add SSE/WS later as needed. | Detect free localhost port; restart if backend crashes; graceful shutdown with app quit. |
+| Milestone 2 Generation Mode | Whole-response only (no streaming) | Simplest path for alpha; add SSE-based live preview in a later milestone. |
+| Milestone 2 Drafts & Auto-save | Hybrid: continuous auto-save + explicit “Save revision” snapshots; keep last 10 snapshots per lesson. | Store snapshots in a per-lesson .revisions folder; show a simple revisions panel in the editor. |
 | Open Questions | 1. Define the canonical standards metadata schema (fields, identifiers, relationships) to align ingestion outputs with CLI filtering/export flows.<br>2. Select target local LLM models and document the minimum viable hardware footprint to make the local-only option practical.<br>3. Clarify privacy safeguards and storage limits when users toggle between cloud-first and local processing, including handling of sensitive student inputs.<br>4. Outline the teacher feedback loop and success metrics needed to judge milestone usability. | |
+| Milestone 2 Standards Search | Semantic search (sqlite-vec embeddings) | Combine grade/strand filters with natural-language query over embeddings; provide text-search fallback when embeddings unavailable. |
 
+| Milestone 2 OS Targets | macOS only | Package with Electron Builder for macOS; internal alpha distribution (no App Store); ad-hoc signing for dev builds; revisit notarization if sharing beyond trusted testers. |
+| Milestone 2 Default Save Location | ~/Documents/PocketMusec Lessons | Make configurable in Settings; create folder on first save if missing; allow change per-save with a default pointing here. |
+| Milestone 2 Lesson JSON Schema | Version: m2.0; Meta: id (uuid), created_at, updated_at; title, grade, strands[], standards[] (code,title,summary), objectives[]; Content: materials, warmup, activities[] (id,title,duration_minutes,steps[],aligned_standards[],citations[]), assessment, differentiation, exit_ticket, notes, prerequisites, accommodations, homework, reflection, timing.total_minutes; Citations: citations[]; Revision: revision (int). | Contract between FE and FastAPI; validate via schema; per-activity alignment and citations included. |
 ### Milestone Notes
+| Milestone 2 Settings Scope | Balanced: API key; default save folder; default export format; revision retention count; semantic search fallback toggle; + Theming (light/dark). | Keep UI minimal; store settings via Electron store; apply theme app-wide. |
 
 #### Milestone 1 – Standards ingestion
 
@@ -81,14 +91,14 @@ _Last updated: 2025-11-09_
         ingestion_date TEXT,
         version TEXT
     );
-    
+
     CREATE TABLE objectives (
         objective_id TEXT PRIMARY KEY,
         standard_id TEXT NOT NULL,
         objective_text TEXT NOT NULL,
         FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
     );
-    
+
     CREATE INDEX idx_grade_level ON standards(grade_level);
     CREATE INDEX idx_strand_code ON standards(strand_code);
     CREATE INDEX idx_standard_objectives ON objectives(standard_id);

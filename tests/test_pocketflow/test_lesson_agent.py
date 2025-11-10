@@ -7,6 +7,7 @@ from backend.pocketflow.flow import Flow
 from backend.pocketflow.store import Store
 from backend.repositories.models import Standard, Objective
 from backend.llm.chutes_client import ChutesClient
+from backend.llm.prompt_templates import LessonPromptContext
 
 
 class TestLessonAgent:
@@ -250,7 +251,7 @@ class TestLessonAgent:
         response = lesson_agent.chat("skip")
         
         assert lesson_agent.lesson_requirements['selected_objectives'] == []
-        assert lesson_agent.get_state() == "complete"
+        assert lesson_agent.get_state() == "context_collection"
     
     def test_handle_context_collection_first_time(self, lesson_agent):
         """Test context collection first time display"""
@@ -389,14 +390,15 @@ class TestLessonAgent:
         
         context = lesson_agent._build_lesson_context()
         
-        assert context['grade_level'] == 'Kindergarten'
-        assert context['strand_code'] == 'CN'
-        assert context['strand_name'] == 'Creativity'
-        assert context['strand_description'] == 'Creating music'
-        assert context['standard_id'] == 'K.CN.1'
-        assert context['standard_text'] == 'Create music'
-        assert context['objectives'] == ['Create rhythmic patterns']
-        assert context['additional_context'] == 'Focus on rhythm'
+        assert isinstance(context, LessonPromptContext)
+        assert context.grade_level == 'Kindergarten'
+        assert context.strand_code == 'CN'
+        assert context.strand_name == 'Creativity'
+        assert context.strand_description == 'Creating music'
+        assert context.standard_id == 'K.CN.1'
+        assert context.standard_text == 'Create music'
+        assert context.objectives == ['Create rhythmic patterns']
+        assert context.additional_context == 'Focus on rhythm'
     
     def test_get_lesson_requirements(self, lesson_agent):
         """Test getting lesson requirements"""

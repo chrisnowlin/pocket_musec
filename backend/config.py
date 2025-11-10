@@ -16,6 +16,7 @@ class Config:
     # Chutes API Configuration
     CHUTES_API_KEY: Optional[str] = os.getenv('CHUTES_API_KEY')
     CHUTES_API_BASE_URL: str = os.getenv('CHUTES_API_BASE_URL', 'https://llm.chutes.ai/v1')
+    CHUTES_EMBEDDING_BASE_URL: str = os.getenv('CHUTES_EMBEDDING_BASE_URL', 'https://chutes-qwen-qwen3-embedding-8b.chutes.ai/v1')
     
     # LLM Configuration
     DEFAULT_MODEL: str = os.getenv('DEFAULT_MODEL', 'Qwen/Qwen3-VL-235B-A22B-Instruct')

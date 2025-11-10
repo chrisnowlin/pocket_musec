@@ -1,0 +1,403 @@
+{
+  "timestamp": "2025-11-10 09:04:52",
+  "parser_results": [
+    {
+      "parser_name": "Table Parser",
+      "total_standards": 80,
+      "total_objectives": 200,
+      "avg_objectives_per_standard": 2.5,
+      "parse_time_seconds": 1.2161259651184082,
+      "grade_distribution": {
+        "K": 8,
+        "1": 8,
+        "2": 8,
+        "3": 8,
+        "4": 8,
+        "5": 8,
+        "6": 8,
+        "7": 8,
+        "8": 8,
+        "AC": 8
+      },
+      "strand_distribution": {
+        "CN": 20,
+        "CR": 20,
+        "PR": 20,
+        "RE": 20
+      }
+    },
+    {
+      "parser_name": "Hybrid Parser",
+      "total_standards": 88,
+      "total_objectives": 193,
+      "avg_objectives_per_standard": 2.1931818181818183,
+      "parse_time_seconds": 1.826030969619751,
+      "grade_distribution": {
+        "1": 8,
+        "2": 8,
+        "3": 8,
+        "4": 8,
+        "5": 8,
+        "6": 8,
+        "7": 8,
+        "8": 8,
+        "AC": 8,
+        "AD": 8,
+        "K": 8
+      },
+      "strand_distribution": {
+        "CN": 22,
+        "CR": 22,
+        "PR": 22,
+        "RE": 22
+      }
+    },
+    {
+      "parser_name": "Vision Parser",
+      "total_standards": 103,
+      "total_objectives": 257,
+      "avg_objectives_per_standard": 2.495145631067961,
+      "parse_time_seconds": 493.0750319957733,
+      "grade_distribution": {
+        "K": 10,
+        "1": 8,
+        "2": 8,
+        "3": 8,
+        "4": 8,
+        "5": 8,
+        "6": 8,
+        "7": 8,
+        "8": 8,
+        "AC": 8,
+        "B": 8,
+        "D": 5,
+        "N": 8
+      },
+      "strand_distribution": {
+        "CN": 28,
+        "CR": 26,
+        "PR": 25,
+        "RE": 24
+      }
+    }
+  ],
+  "comparison_metrics": {
+    "standards_count_diff": {
+      "Table Parser": 80,
+      "Hybrid Parser": 88,
+      "Vision Parser": 103
+    },
+    "objectives_count_diff": {
+      "Table Parser": 200,
+      "Hybrid Parser": 193,
+      "Vision Parser": 257
+    },
+    "total_common_standards": 80,
+    "unique_standards_per_parser": {
+      "Table Parser": 0,
+      "Hybrid Parser": 8,
+      "Vision Parser": 23
+    },
+    "text_differences_count": 77
+  },
+  "unique_standards": {
+    "Table Parser": [],
+    "Hybrid Parser": [
+      "AD.CN.1",
+      "AD.CN.2",
+      "AD.CR.1",
+      "AD.CR.2",
+      "AD.PR.1",
+      "AD.PR.2",
+      "AD.RE.1",
+      "AD.RE.2"
+    ],
+    "Vision Parser": [
+      "B.CN.1",
+      "B.CN.2",
+      "B.CR.1",
+      "B.CR.2",
+      "B.PR.1",
+      "B.PR.2",
+      "B.RE.1",
+      "B.RE.2",
+      "D.CN.1",
+      "D.CN.2",
+      "D.CR.1",
+      "D.CR.2",
+      "D.PR.1",
+      "K.CN.3",
+      "K.CN.4",
+      "N.CN.1",
+      "N.CN.2",
+      "N.CR.1",
+      "N.CR.2",
+      "N.PR.1",
+      "N.PR.2",
+      "N.RE.1",
+      "N.RE.2"
+    ]
+  },
+  "text_differences": [
+    {
+      "standard_id": "1.CN.1",
+      "texts": {
+        "Table Parser": "1.CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+        "Hybrid Parser": "1.CN.1 Relate musical ideas and 1.CN.1.1 Explain how music can reflect culture, values, and ideas. works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups. entertainment, or other uses.",
+        "Vision Parser": "1.CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups."
+      },
+      "objectives_counts": {
+        "Table Parser": 3,
+        "Hybrid Parser": 2,
+        "Vision Parser": 3
+      }
+    },
+    {
+      "standard_id": "1.CN.2",
+      "texts": {
+        "Table Parser": "1.CN.2 Explore advancements in the field of music.",
+        "Hybrid Parser": "1.CN.2 consumption of music. the field of music. 5 May 16, 2024.",
+        "Vision Parser": "1.CN.2 Explore advancements in the field of music."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "1.CR.1",
+      "texts": {
+        "Table Parser": "1.CR.1 Create original musical ideas and works, independently and collaboratively.",
+        "Hybrid Parser": "1.CR.1 ideas and works, independently and collaboratively. incorporate grade-level appropriate rhythms.",
+        "Vision Parser": "1.CR.1 Create original musical ideas and works, independently and collaboratively."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "1.CR.2",
+      "texts": {
+        "Table Parser": "1.CR.2 Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+        "Hybrid Parser": "1.CR.2 non-traditional sound sources. and works, and those of peers and other artists, independently and collaboratively. from other musicians.",
+        "Vision Parser": "1.CR.2 Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "1.PR.1",
+      "texts": {
+        "Table Parser": "1.PR.1 Perform music from a variety of styles, cultures, and genres.",
+        "Hybrid Parser": "1.PR.1 and rhythms with quarter rests in 2/4 and 4/4 meters. variety of styles, cultures, and genres.",
+        "Vision Parser": "1.PR.1 Perform music from a variety of styles, cultures, and genres."
+      },
+      "objectives_counts": {
+        "Table Parser": 4,
+        "Hybrid Parser": 4,
+        "Vision Parser": 4
+      }
+    },
+    {
+      "standard_id": "1.PR.2",
+      "texts": {
+        "Table Parser": "1.PR.2 Develop musical presentations.",
+        "Hybrid Parser": "1.PR.2 performances. presentations. 6 May 16, 2024.",
+        "Vision Parser": "1.PR.2 Develop musical presentations."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "1.RE.1",
+      "texts": {
+        "Table Parser": "1.RE.1 Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+        "Hybrid Parser": "1.RE.1 Analyze musical works from 1.RE.1.1 Identify opposites in tempos, form, texture, articulations, and dynamics in aural or a variety of styles, cultures, and written musical works. genres including response through moving, singing, playing .3 Identify a variety of instruments and voices by sound, including available classroom vocabulary. instruments.",
+        "Vision Parser": "1.RE.1 Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary."
+      },
+      "objectives_counts": {
+        "Table Parser": 3,
+        "Hybrid Parser": 1,
+        "Vision Parser": 3
+      }
+    },
+    {
+      "standard_id": "1.RE.2",
+      "texts": {
+        "Table Parser": "1.RE.2 Evaluate musical works using content-specific vocabulary.",
+        "Hybrid Parser": "1.RE.2 using content-specific vocabulary. 7 May 16, 2024 NORTH CAROLINA STANDARD COURSE OF STUDY K - 12 General Music North Carolina Arts Education Standards Second Grade General Music Note on Numbering: 2 - Second Grade Note on Strands: CN - Connect, CR - Create, PR - Present, RE - Respond.",
+        "Vision Parser": "1.RE.2 Evaluate musical works using content-specific vocabulary."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "2.CN.1",
+      "texts": {
+        "Table Parser": "2.CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+        "Hybrid Parser": "2.CN.1 people in the United States, including various indigenous and cultural groups. works with personal, societal, .2 Identify cross-curricular connections between music and other content areas. contexts, including diverse and marginalized groups. other uses.",
+        "Vision Parser": "2.CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups."
+      },
+      "objectives_counts": {
+        "Table Parser": 3,
+        "Hybrid Parser": 2,
+        "Vision Parser": 3
+      }
+    },
+    {
+      "standard_id": "2.CN.2",
+      "texts": {
+        "Table Parser": "2.CN.2 Explore advancements in the field of music.",
+        "Hybrid Parser": "2.CN.2 and consumption of music. the field of music. 8 May 16, 2024.",
+        "Vision Parser": "2.CN.2 Explore advancements in the field of music."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "2.CR.1",
+      "texts": {
+        "Table Parser": "2.CR.1 Create original musical ideas and works, independently and collaboratively.",
+        "Hybrid Parser": "2.CR.1 ideas and works, independently and collaboratively. incorporate grade-level appropriate rhythms.",
+        "Vision Parser": "2.CR.1 Create original musical ideas and works, independently and collaboratively."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "2.CR.2",
+      "texts": {
+        "Table Parser": "2.CR.2 Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+        "Hybrid Parser": "2.CR.2 Adapt original musical ideas 2.CR.2.1 Accompany readings, stories, or dramatizations with corresponding vocal or and works, and those of peers and instrumental sounds. other artists, independently and collaboratively.",
+        "Vision Parser": "2.CR.2 Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 1,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "2.PR.1",
+      "texts": {
+        "Table Parser": "2.PR.1 Perform music from a variety of styles, cultures, and genres.",
+        "Hybrid Parser": "2.PR.1 and half notes, half rests, and tied rhythms in 2/4 and 4/4 meters. variety of styles, cultures, and genres. dynamics.",
+        "Vision Parser": "2.PR.1 Perform music from a variety of styles, cultures, and genres."
+      },
+      "objectives_counts": {
+        "Table Parser": 4,
+        "Hybrid Parser": 4,
+        "Vision Parser": 4
+      }
+    },
+    {
+      "standard_id": "2.PR.2",
+      "texts": {
+        "Table Parser": "2.PR.2 Develop musical presentations.",
+        "Hybrid Parser": "2.PR.2 performances. presentations. 9 May 16, 2024.",
+        "Vision Parser": "2.PR.2 Develop musical presentations."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "2.RE.1",
+      "texts": {
+        "Table Parser": "2.RE.1 Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+        "Hybrid Parser": "2.RE.1 Analyze musical works from 2.RE.1.1 Identify changes in tempos, form, texture, articulations, phrasing, and dynamics in a variety of styles, cultures, and aural and written musical works. genres including response through moving, singing, playing .3 Describe the timbres of a variety of instruments and voices, and the way in which vocabulary. the sound is produced.",
+        "Vision Parser": "2.RE.1 Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary."
+      },
+      "objectives_counts": {
+        "Table Parser": 3,
+        "Hybrid Parser": 1,
+        "Vision Parser": 3
+      }
+    },
+    {
+      "standard_id": "2.RE.2",
+      "texts": {
+        "Table Parser": "2.RE.2 Evaluate musical works using content-specific vocabulary.",
+        "Hybrid Parser": "2.RE.2 and cultures. using content-specific vocabulary. 10 May 16, 2024 NORTH CAROLINA STANDARD COURSE OF STUDY K - 12 General Music North Carolina Arts Education Standards Third Grade General Music Note on Numbering: 3 - Third Grade Note on Strands: CN - Connect, CR - Create, PR - Present, RE - Respond.",
+        "Vision Parser": "2.RE.2 Evaluate musical works using content-specific vocabulary."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "3.CN.1",
+      "texts": {
+        "Table Parser": "3.CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+        "Hybrid Parser": "3.CN.1 Relate musical ideas and works with personal, societal, .2 Compare elements of music with elements of other disciplines. contexts, including diverse and marginalized groups.",
+        "Vision Parser": "3.CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups."
+      },
+      "objectives_counts": {
+        "Table Parser": 3,
+        "Hybrid Parser": 2,
+        "Vision Parser": 3
+      }
+    },
+    {
+      "standard_id": "3.CN.2",
+      "texts": {
+        "Table Parser": "3.CN.2 Explore advancements in the field of music.",
+        "Hybrid Parser": "3.CN.2 the field of music. technology. 11 May 16, 2024.",
+        "Vision Parser": "3.CN.2 Explore advancements in the field of music."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "3.CR.1",
+      "texts": {
+        "Table Parser": "3.CR.1 Create original musical ideas and works, independently and collaboratively.",
+        "Hybrid Parser": "3.CR.1 ideas and works, independently and collaboratively. standard notation that incorporate grade-level appropriate rhythms and pitches.",
+        "Vision Parser": "3.CR.1 Create original musical ideas and works, independently and collaboratively."
+      },
+      "objectives_counts": {
+        "Table Parser": 2,
+        "Hybrid Parser": 2,
+        "Vision Parser": 2
+      }
+    },
+    {
+      "standard_id": "3.PR.1",
+      "texts": {
+        "Table Parser": "3.PR.1 Perform music from a variety of styles, cultures, and genres.",
+        "Hybrid Parser": "3.PR.1 and whole note, dotted half note, whole rest, and beamed sixteenth note rhythms in 2/4, 3/4, and 4/4 meters. variety of styles, cultures, and genres. articulations, forms, and dynamics when performing music.",
+        "Vision Parser": "3.PR.1 Perform music from a variety of styles, cultures, and genres."
+      },
+      "objectives_counts": {
+        "Table Parser": 4,
+        "Hybrid Parser": 4,
+        "Vision Parser": 4
+      }
+    }
+  ]
+}

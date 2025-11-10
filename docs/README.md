@@ -39,12 +39,12 @@ cp .env.example .env
 
 ### 2. Import NC Music Standards
 ```bash
-pocketflow ingest standards "NC Music Standards.pdf"
+pocketmusec ingest standards "NC Music Standards.pdf"
 ```
 
 ### 3. Generate Your First Lesson
 ```bash
-pocketflow generate lesson
+pocketmusec generate lesson
 ```
 
 That's it! You're ready to create standards-aligned music lessons.
@@ -127,33 +127,37 @@ See the [Developer Setup Guide](DEVELOPER_SETUP.md) for complete development ins
 ### Main Commands
 ```bash
 # Show help
-pocketflow --help
+pocketmusec --help
 
 # Ingest NC music standards
-pocketflow ingest standards "standards.pdf"
+pocketmusec ingest standards "standards.pdf"
 
 # Generate interactive lesson
-pocketflow generate lesson
+pocketmusec generate lesson
 
 # Manage embeddings for smart search
-pocketflow embeddings generate
-pocketflow embeddings search "rhythm activities"
-pocketflow embeddings stats
+pocketmusec embeddings generate
+pocketmusec embeddings search "rhythm activities"
+pocketmusec embeddings stats
 ```
 
 ### Advanced Usage
 ```bash
 # Custom database location
-pocketflow ingest standards "standards.pdf" --db-path "/custom/path.db"
+pocketmusec ingest standards "standards.pdf" --db-path "/custom/path.db"
 
 # Save lesson directly to file
-pocketflow generate lesson --output "my_lesson.md"
+pocketmusec generate lesson --output "my_lesson.md"
 
 # Search with filters
-pocketflow embeddings search "composition" --grade "8th Grade" --strand "CN"
+pocketmusec embeddings search "composition" --grade "8th Grade" --strand "CN"
 
 # Force regeneration
-pocketflow embeddings generate --force
+pocketmusec embeddings generate --force
+
+# Review prepared texts for debugging
+pocketmusec embeddings texts
+pocketmusec embeddings show-text 2.CN.1 --type standard
 ```
 
 See the [CLI Commands Documentation](CLI_COMMANDS.md) for complete reference.
@@ -184,6 +188,7 @@ TESTING=False
 
 ### File Locations
 - **Database:** `./data/standards.db` (created automatically)
+- **Prepared Texts:** `./data/prepared_texts/` (saved during embedding generation)
 - **Logs:** `./logs/pocketmusec.log` (configured in .env)
 - **Temporary Files:** System temp directory (cleaned automatically)
 - **Generated Lessons:** Current directory or specified path
@@ -263,12 +268,12 @@ PocketMusec supports all four NC music education strands:
 ### Daily Lesson Planning
 ```bash
 # Morning: Generate today's lesson
-pocketflow generate lesson
+pocketmusec generate lesson
 # Follow prompts for grade, strand, standard
 # Edit and save for your classes
 
 # Afternoon: Plan tomorrow's lesson
-pocketflow generate lesson --output "tomorrow_lesson.md"
+pocketmusec generate lesson --output "tomorrow_lesson.md"
 # Use different standard or strand
 
 # End of day: Review and organize
@@ -278,11 +283,11 @@ pocketflow generate lesson --output "tomorrow_lesson.md"
 ### Unit Planning
 ```bash
 # Search for related standards
-pocketflow embeddings search "rhythm fundamentals" --grade "3rd Grade"
+pocketmusec embeddings search "rhythm fundamentals" --grade "3rd Grade"
 
 # Generate series of lessons
 for strand in "CN" "PR" "RE"; do
-    pocketflow generate lesson --output "unit_${strand}_lesson.md"
+    pocketmusec generate lesson --output "unit_${strand}_lesson.md"
 done
 
 # Create unit overview from generated lessons
@@ -292,14 +297,17 @@ done
 ### Curriculum Mapping
 ```bash
 # Ingest standards (if not already done)
-pocketflow ingest standards "NC Music Standards.pdf"
+pocketmusec ingest standards "NC Music Standards.pdf"
 
 # Generate embeddings for search
-pocketflow embeddings generate
+pocketmusec embeddings generate
 
 # Search curriculum topics
-pocketflow embeddings search "music notation" --limit 20
-pocketflow embeddings search "ensemble skills" --grade "High School"
+pocketmusec embeddings search "music notation" --limit 20
+pocketmusec embeddings search "ensemble skills" --grade "High School"
+
+# Review prepared texts for quality assurance
+pocketmusec embeddings texts
 ```
 
 ---
@@ -374,7 +382,7 @@ ls -la data/standards.db
 
 # Recreate database if corrupted
 rm data/standards.db
-pocketflow ingest standards "NC Music Standards.pdf"
+pocketmusec ingest standards "NC Music Standards.pdf"
 ```
 
 #### Editor Integration Problems
@@ -397,7 +405,7 @@ $EDITOR test_file.txt
 ```bash
 # Enable verbose logging
 export LOG_LEVEL=DEBUG
-pocketflow generate lesson
+pocketmusec generate lesson
 
 # Run with Python debugger
 uv run python -m pdb main.py generate lesson
@@ -417,14 +425,18 @@ uv run python -m pdb main.py generate lesson
 ### System Optimization
 ```bash
 # Increase batch size for faster embedding generation
-pocketflow embeddings generate --batch-size 20
+pocketmusec embeddings generate --batch-size 20
 
 # Use custom database on faster storage
-pocketflow ingest standards "standards.pdf" --db-path "/ssd/standards.db"
+pocketmusec ingest standards "standards.pdf" --db-path "/ssd/standards.db"
 
 # Clear old embeddings to free space
-pocketflow embeddings clear
-pocketflow embeddings generate
+pocketmusec embeddings clear
+pocketmusec embeddings generate
+
+# Review prepared texts for quality debugging
+pocketmusec embeddings texts
+pocketmusec embeddings show-text <ID> --type standard
 ```
 
 ---
@@ -491,6 +503,7 @@ PocketMusec is released under the MIT License. See [LICENSE](../LICENSE) for ful
 - ✅ Four music strands support
 - ✅ Editor integration and draft history
 - ✅ Semantic standards search
+- ✅ Prepared text inspection and debugging
 
 ### Planned Features
 - 🔄 **Multi-state standards support** - Expand beyond NC standards

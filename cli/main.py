@@ -4,7 +4,7 @@ import typer
 from rich.console import Console
 
 app = typer.Typer(
-    name="pocketflow",
+    name="pocketmusec",
     help="AI-powered lesson planning assistant for music teachers",
     no_args_is_help=True,
 )
@@ -14,27 +14,27 @@ console = Console()
 @app.command()
 def version():
     """Show version information"""
-    console.print("pocketflow v0.1.0")
+    console.print("pocketmusec v0.1.0")
 
 
 @app.command()
 def ingest():
     """Ingest standards and other data"""
-    console.print("Use 'pocketflow ingest standards' to ingest NC music standards")
+    console.print("Use 'pocketmusec ingest standards' to ingest NC music standards")
 
 
 @app.command()
 def generate():
     """Generate lesson plans and content"""
-    console.print("Use 'pocketflow generate lesson' to generate lesson plans")
+    console.print("Use 'pocketmusec generate lesson' to generate lesson plans")
 
 
 @app.command()
 def embeddings():
     """Manage embeddings for standards and objectives"""
-    console.print("Use 'pocketflow embeddings generate' to create embeddings")
-    console.print("Use 'pocketflow embeddings search' to search standards")
-    console.print("Use 'pocketflow embeddings stats' to view statistics")
+    console.print("Use 'pocketmusec embeddings generate' to create embeddings")
+    console.print("Use 'pocketmusec embeddings search' to search standards")
+    console.print("Use 'pocketmusec embeddings stats' to view statistics")
 
 
 # Add subcommands

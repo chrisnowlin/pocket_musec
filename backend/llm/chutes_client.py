@@ -231,7 +231,20 @@ class ChutesClient:
             'input': text
         }
         
-        response = self._make_request('POST', '/embeddings', json=payload)
+        # Use dedicated embedding endpoint
+        embedding_url = config.CHUTES_EMBEDDING_BASE_URL.rstrip('/')
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.post(
+            f"{embedding_url}/embeddings",
+            headers=headers,
+            json=payload,
+            timeout=self.timeout
+        )
+        response.raise_for_status()
         data = response.json()
         
         return data['data'][0]['embedding']
@@ -256,7 +269,20 @@ class ChutesClient:
             'input': texts
         }
         
-        response = self._make_request('POST', '/embeddings', json=payload)
+        # Use dedicated embedding endpoint
+        embedding_url = config.CHUTES_EMBEDDING_BASE_URL.rstrip('/')
+        headers = {
+            'Authorization': f'Bearer {self.api_key}',
+            'Content-Type': 'application/json'
+        }
+        
+        response = requests.post(
+            f"{embedding_url}/embeddings",
+            headers=headers,
+            json=payload,
+            timeout=self.timeout
+        )
+        response.raise_for_status()
         data = response.json()
         
         # Sort by index to maintain order

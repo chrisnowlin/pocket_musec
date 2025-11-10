@@ -27,7 +27,8 @@ except ImportError:
     PIL_AVAILABLE = False
     logging.warning("PIL not available. Install with: pip install Pillow")
 
-# Import fallback parser
+# Import fallback parsers
+from .standards_parser_table import NCStandardsParser as TableParser
 from .standards_parser_hybrid import NCStandardsParser as HybridParser
 from .pdf_parser import PDFReader
 from ..repositories.models import Standard, Objective
@@ -53,20 +54,21 @@ class ParsedStandard:
 class NCStandardsParser:
     """Vision-first parser using Chutes Qwen VL model with hybrid fallback"""
     
-    def __init__(self, force_fallback: bool = False):
+    def __init__(self, use_vision: bool = True):
         """
         Initialize parser
         
         Args:
-            force_fallback: If True, skip vision and use hybrid parser directly
+            use_vision: If True, use vision processing (slow but accurate).
+                       Default True uses vision AI for best results.
         """
         self.pdf_reader = PDFReader()
         self.parsed_standards: List[ParsedStandard] = []
-        self.force_fallback = force_fallback
+        self.use_vision = use_vision
         
-        # Check if vision processing is available
+        # Check if vision processing is available and requested
         self.vision_available = (
-            not force_fallback and 
+            use_vision and 
             PDF2IMAGE_AVAILABLE and 
             PIL_AVAILABLE
         )
@@ -81,7 +83,8 @@ class NCStandardsParser:
                 logger.warning(f"Failed to initialize Chutes client: {e}")
                 self.vision_available = False
         
-        # Initialize hybrid parser as fallback
+        # Initialize table-based parser as primary fallback, hybrid as secondary
+        self.table_parser = TableParser()
         self.hybrid_parser = HybridParser()
         
         # NC Standards strand mappings
@@ -107,9 +110,9 @@ class NCStandardsParser:
             List of parsed standards
         """
         logger.info(f"Parsing NC standards document: {pdf_path}")
-        logger.info(f"Vision processing: {'enabled' if self.vision_available else 'disabled (using fallback)'}")
+        logger.info(f"Parser mode: {'vision (slow)' if self.vision_available else 'hybrid (fast)'}")
         
-        # Try vision-first extraction
+        # Use vision extraction only if explicitly requested and available
         if self.vision_available:
             try:
                 start_time = time.time()
@@ -130,8 +133,23 @@ class NCStandardsParser:
             except Exception as e:
                 logger.error(f"Vision extraction failed: {e}, falling back to hybrid parser")
         
-        # Fallback to hybrid parser
-        logger.info("Using hybrid parser (fallback mode)")
+        # Fallback to table-based parser (primary fallback)
+        logger.info("Using table-based parser (primary fallback mode)")
+        try:
+            # Parse General Music standards only (pages 1-34)
+            self.parsed_standards = self.table_parser.parse_standards_document(pdf_path, max_page=34)
+            logger.info(f"Table parser extracted {len(self.parsed_standards)} standards")
+            
+            # Validate table parser results
+            if self._validate_extraction(self.parsed_standards):
+                return self.parsed_standards
+            else:
+                logger.warning("Table parser validation failed, falling back to hybrid parser")
+        except Exception as e:
+            logger.error(f"Table parser failed: {e}, falling back to hybrid parser")
+        
+        # Secondary fallback to hybrid parser
+        logger.info("Using hybrid parser (secondary fallback mode)")
         self.parsed_standards = self.hybrid_parser.parse_standards_document(pdf_path)
         logger.info(f"Hybrid parser extracted {len(self.parsed_standards)} standards")
         

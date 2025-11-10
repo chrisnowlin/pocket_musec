@@ -3,6 +3,8 @@
 import sqlite3
 import json
 import numpy as np
+import os
+from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 import logging
 from dataclasses import dataclass
@@ -41,6 +43,10 @@ class StandardsEmbeddings:
     def __init__(self, client: Optional[ChutesClient] = None):
         self.client = client or ChutesClient()
         self.db_manager = DatabaseManager()
+        self.prepared_texts_dir = Path("data/prepared_texts")
+        self.prepared_texts_dir.mkdir(parents=True, exist_ok=True)
+        (self.prepared_texts_dir / "standards").mkdir(exist_ok=True)
+        (self.prepared_texts_dir / "objectives").mkdir(exist_ok=True)
         self._init_embeddings_table()
     
     def _init_embeddings_table(self):
@@ -104,12 +110,17 @@ class StandardsEmbeddings:
         """Prepare text for embedding by combining standard and objectives"""
         objectives_text = " ".join([obj.objective_text for obj in objectives])
         
-        return f"""
+        prepared_text = f"""
         Grade Level: {standard.grade_level}
         Strand: {standard.strand_name} ({standard.strand_code})
         Standard: {standard.standard_text}
         Objectives: {objectives_text}
         """.strip()
+        
+        # Save prepared text to file
+        self._save_prepared_standard_text(standard.standard_id, prepared_text)
+        
+        return prepared_text
     
     def generate_standard_embedding(self, standard: Standard, objectives: List[Objective]) -> List[float]:
         """Generate embedding for a standard with its objectives"""
@@ -126,6 +137,9 @@ class StandardsEmbeddings:
     def generate_objective_embedding(self, objective: Objective) -> List[float]:
         """Generate embedding for an objective"""
         try:
+            # Save prepared text to file
+            self._save_prepared_objective_text(objective.objective_id, objective.objective_text)
+            
             embedding = self.client.create_embedding(objective.objective_text)
             logger.info(f"Generated embedding for objective {objective.objective_id}")
             return embedding
@@ -374,6 +388,67 @@ class StandardsEmbeddings:
         finally:
             conn.close()
     
+    def _save_prepared_standard_text(self, standard_id: str, prepared_text: str):
+        """Save prepared standard text to file"""
+        try:
+            file_path = self.prepared_texts_dir / "standards" / f"{standard_id}.txt"
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(prepared_text)
+            logger.debug(f"Saved prepared text for standard {standard_id} to {file_path}")
+        except Exception as e:
+            logger.warning(f"Failed to save prepared text for standard {standard_id}: {str(e)}")
+    
+    def _save_prepared_objective_text(self, objective_id: str, prepared_text: str):
+        """Save prepared objective text to file"""
+        try:
+            file_path = self.prepared_texts_dir / "objectives" / f"{objective_id}.txt"
+            with open(file_path, 'w', encoding='utf-8') as f:
+                f.write(prepared_text)
+            logger.debug(f"Saved prepared text for objective {objective_id} to {file_path}")
+        except Exception as e:
+            logger.warning(f"Failed to save prepared text for objective {objective_id}: {str(e)}")
+    
+    def get_prepared_standard_text(self, standard_id: str) -> Optional[str]:
+        """Read prepared standard text from file"""
+        try:
+            file_path = self.prepared_texts_dir / "standards" / f"{standard_id}.txt"
+            if file_path.exists():
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return f.read().strip()
+            return None
+        except Exception as e:
+            logger.error(f"Failed to read prepared text for standard {standard_id}: {str(e)}")
+            return None
+    
+    def get_prepared_objective_text(self, objective_id: str) -> Optional[str]:
+        """Read prepared objective text from file"""
+        try:
+            file_path = self.prepared_texts_dir / "objectives" / f"{objective_id}.txt"
+            if file_path.exists():
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    return f.read().strip()
+            return None
+        except Exception as e:
+            logger.error(f"Failed to read prepared text for objective {objective_id}: {str(e)}")
+            return None
+    
+    def list_prepared_texts(self) -> Dict[str, List[str]]:
+        """List all prepared text files"""
+        result = {"standards": [], "objectives": []}
+        
+        try:
+            standards_dir = self.prepared_texts_dir / "standards"
+            if standards_dir.exists():
+                result["standards"] = [f.stem for f in standards_dir.glob("*.txt")]
+            
+            objectives_dir = self.prepared_texts_dir / "objectives"
+            if objectives_dir.exists():
+                result["objectives"] = [f.stem for f in objectives_dir.glob("*.txt")]
+        except Exception as e:
+            logger.error(f"Failed to list prepared texts: {str(e)}")
+        
+        return result
+    
     def delete_all_embeddings(self):
         """Delete all embeddings from the database"""
         conn = self.db_manager.get_connection()
@@ -384,6 +459,23 @@ class StandardsEmbeddings:
             logger.info("All embeddings deleted from database")
         finally:
             conn.close()
+    
+    def delete_all_prepared_texts(self):
+        """Delete all prepared text files"""
+        try:
+            standards_dir = self.prepared_texts_dir / "standards"
+            objectives_dir = self.prepared_texts_dir / "objectives"
+            
+            for file_path in standards_dir.glob("*.txt"):
+                file_path.unlink()
+            
+            for file_path in objectives_dir.glob("*.txt"):
+                file_path.unlink()
+            
+            logger.info("All prepared text files deleted")
+        except Exception as e:
+            logger.error(f"Failed to delete prepared text files: {str(e)}")
+            raise
 
 
 class StandardsEmbedder:

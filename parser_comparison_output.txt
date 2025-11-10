@@ -1,0 +1,238 @@
+================================================================================
+COMPREHENSIVE PARSER COMPARISON
+================================================================================
+
+PDF: NC Music Standards and Resources/Final Music NCSCOS - Google Docs.pdf
+Target: General Music Standards (pages 1-34)
+
+Parsers to compare:
+  1. Vision Parser (Qwen VL - slow but accurate)
+  2. Table Parser (fast, structure-aware)
+  3. Hybrid Parser (fallback, text-based)
+
+================================================================================
+Running Table Parser
+================================================================================
+
+✓ Completed in 1.22 seconds
+  • Standards: 80
+  • Objectives: 200
+  • Avg objectives/standard: 2.50
+
+  Grade distribution:
+    1: 8
+    2: 8
+    3: 8
+    4: 8
+    5: 8
+    6: 8
+    7: 8
+    8: 8
+    AC: 8
+    K: 8
+
+  Strand distribution:
+    CN: 20
+    CR: 20
+    PR: 20
+    RE: 20
+
+================================================================================
+Running Hybrid Parser
+================================================================================
+
+✓ Completed in 1.83 seconds
+  • Standards: 88
+  • Objectives: 193
+  • Avg objectives/standard: 2.19
+
+  Grade distribution:
+    1: 8
+    2: 8
+    3: 8
+    4: 8
+    5: 8
+    6: 8
+    7: 8
+    8: 8
+    AC: 8
+    AD: 8
+    K: 8
+
+  Strand distribution:
+    CN: 22
+    CR: 22
+    PR: 22
+    RE: 22
+
+⚠️  Vision parser will take 5-10 minutes...
+
+================================================================================
+Running Vision Parser
+================================================================================
+
+✓ Completed in 493.08 seconds
+  • Standards: 103
+  • Objectives: 257
+  • Avg objectives/standard: 2.50
+
+  Grade distribution:
+    1: 8
+    2: 8
+    3: 8
+    4: 8
+    5: 8
+    6: 8
+    7: 8
+    8: 8
+    AC: 8
+    B: 8
+    D: 5
+    K: 10
+    N: 8
+
+  Strand distribution:
+    CN: 28
+    CR: 26
+    PR: 25
+    RE: 24
+
+================================================================================
+COMPARISON ANALYSIS
+================================================================================
+
+📊 Summary:
+  • Total unique standard IDs: 111
+  • Common to all parsers: 80
+  • Standards with text differences: 77
+
+📈 Standards count by parser:
+  • Table Parser: 80
+  • Hybrid Parser: 88
+  • Vision Parser: 103
+
+📈 Objectives count by parser:
+  • Table Parser: 200
+  • Hybrid Parser: 193
+  • Vision Parser: 257
+
+🔍 Unique standards per parser:
+  • Table Parser: 0 unique
+  • Hybrid Parser: 8 unique
+    AD.CN.1, AD.CN.2, AD.CR.1, AD.CR.2, AD.PR.1, AD.PR.2, AD.RE.1, AD.RE.2
+  • Vision Parser: 23 unique
+
+================================================================================
+TEXT QUALITY ANALYSIS
+================================================================================
+
+⚠️  Found 77 standards with differences
+
+Showing first 5 differences:
+
+1. 1.CN.1
+   Objectives count: {'Table Parser': 3, 'Hybrid Parser': 2, 'Vision Parser': 3}
+
+   [Table Parser]
+   1.CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized group...
+   Objectives: 3
+   First objective: 1.CN.1.1 Explain how music can reflect culture, values, and ideas....
+
+   [Hybrid Parser]
+   1.CN.1 Relate musical ideas and 1.CN.1.1 Explain how music can reflect culture, values, and ideas. works with personal, societal, cultural, historical...
+   Objectives: 2
+   First objective: 1.CN.1.2 Identify cross-curricular connections between music and other arts disciplines....
+
+   [Vision Parser]
+   1.CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized group...
+   Objectives: 3
+   First objective: 1.CN.1.1 Explain how music can reflect culture, values, and ideas....
+
+2. 1.CN.2
+   Objectives count: {'Table Parser': 2, 'Hybrid Parser': 2, 'Vision Parser': 2}
+
+   [Table Parser]
+   1.CN.2 Explore advancements in the field of music....
+   Objectives: 2
+   First objective: 1.CN.2.1 Identify the various roles of individuals that contribute to the support and consumption of...
+
+   [Hybrid Parser]
+   1.CN.2 consumption of music. the field of music. 5 May 16, 2024....
+   Objectives: 2
+   First objective: 1.CN.2.1 Identify the various roles of individuals that contribute to the support and...
+
+   [Vision Parser]
+   1.CN.2 Explore advancements in the field of music....
+   Objectives: 2
+   First objective: 1.CN.2.1 Identify the various roles of individuals that contribute to the support and consumption of...
+
+3. 1.CR.1
+   Objectives count: {'Table Parser': 2, 'Hybrid Parser': 2, 'Vision Parser': 2}
+
+   [Table Parser]
+   1.CR.1 Create original musical ideas and works, independently and collaboratively....
+   Objectives: 2
+   First objective: 1.CR.1.1 Improvise 4-8 beat rhythmic patterns and 3-pitch melodic patterns....
+
+   [Hybrid Parser]
+   1.CR.1 ideas and works, independently and collaboratively. incorporate grade-level appropriate rhythms....
+   Objectives: 2
+   First objective: 1.CR.1.1 Improvise 4-8 beat rhythmic patterns and 3-pitch melodic patterns....
+
+   [Vision Parser]
+   1.CR.1 Create original musical ideas and works, independently and collaboratively....
+   Objectives: 2
+   First objective: 1.CR.1.1 Improvise 4-8 beat rhythmic patterns and 3-pitch melodic patterns....
+
+4. 1.CR.2
+   Objectives count: {'Table Parser': 2, 'Hybrid Parser': 2, 'Vision Parser': 2}
+
+   [Table Parser]
+   1.CR.2 Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively....
+   Objectives: 2
+   First objective: 1.CR.2.1 Accompany readings, stories, or dramatizations with corresponding traditional and non-tradi...
+
+   [Hybrid Parser]
+   1.CR.2 non-traditional sound sources. and works, and those of peers and other artists, independently and collaboratively. from other musicians....
+   Objectives: 2
+   First objective: 1.CR.2.1 Accompany readings, stories, or dramatizations with corresponding traditional and...
+
+   [Vision Parser]
+   1.CR.2 Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively....
+   Objectives: 2
+   First objective: 1.CR.2.1 Accompany readings, stories, or dramatizations with corresponding traditional and non-tradi...
+
+5. 1.PR.1
+   Objectives count: {'Table Parser': 4, 'Hybrid Parser': 4, 'Vision Parser': 4}
+
+   [Table Parser]
+   1.PR.1 Perform music from a variety of styles, cultures, and genres....
+   Objectives: 4
+   First objective: 1.PR.1.1 Improve musical skills by incorporating feedback from instructors and peers....
+
+   [Hybrid Parser]
+   1.PR.1 and rhythms with quarter rests in 2/4 and 4/4 meters. variety of styles, cultures, and genres....
+   Objectives: 4
+   First objective: 1.PR.1.1 Improve musical skills by incorporating feedback from instructors and peers....
+
+   [Vision Parser]
+   1.PR.1 Perform music from a variety of styles, cultures, and genres....
+   Objectives: 4
+   First objective: 1.PR.1.1 Improve musical skills by incorporating feedback from instructors and peers....
+
+
+💾 Detailed report saved to: parser_comparison_report.json
+
+================================================================================
+RECOMMENDATIONS
+================================================================================
+
+🏆 Most complete: Vision Parser
+   (103 standards, 257 objectives)
+
+⚡ Fastest: Table Parser
+   (1.22 seconds)
+
+⚠️  Text quality issues detected:
+   77 standards have differing text
+   Review detailed report for analysis
