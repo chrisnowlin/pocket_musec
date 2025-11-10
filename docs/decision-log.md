@@ -13,6 +13,7 @@ _Last updated: 2025-11-09_
 | Python Package Management | uv for dependency management and package tooling | |
 | LLM Framework | PocketFlow (100-line minimalist framework) for agent/RAG implementation | Lightweight graph-based architecture with Node/Flow/Store pattern. Zero dependencies, supports Multi-Agents, Workflow, and RAG. |
 | Embedding Model | Chutes embedding models for vector generation | Consistent with cloud LLM provider choice for v1. |
+| PDF Parsing | pdfplumber for text extraction and structured data | Good for layout analysis and table extraction. OCRmyPDF as fallback for scanned documents. |
 | Data Sources & Formats | Broad ingestion: PDFs, Google Docs/DOCX, web pages/URLs, YouTube links/transcripts, images (e.g., sheet music), standards docs, CSVs. v1 priorities: PDFs, standards documents, images. | |
 | Lesson Plan Output | Core fields: title, grade level, duration, objectives, materials, standards alignment, procedure/steps, assessment, differentiation/accommodations, extensions, references/sources. Output: Markdown. If RAG is used, include citations to source chunks. | CLI-generated Markdown should open in the configured editor for basic tweaks before save/export. |
 | Privacy & Data Posture | v1: Cloud-first for speed/power with explicit toggle for local-only processing. Student/sensitive data should have a local path. Long-term: full local-first capability. | |
