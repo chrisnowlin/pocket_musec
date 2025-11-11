@@ -134,6 +134,17 @@ def _create_lesson_agent(session: Any) -> LessonAgent:
         standards_repo=standard_repo,
     )
 
+    # Try to restore agent state from session if available
+    if session.agent_state:
+        try:
+            agent.restore_state(session.agent_state)
+            return agent
+        except Exception as e:
+            # If restoration fails, continue with fresh agent
+            import logging
+
+            logging.warning(f"Failed to restore agent state: {e}")
+
     # Pre-populate agent with session context if available
     if session.grade_level:
         agent.lesson_requirements["grade_level"] = session.grade_level
@@ -149,6 +160,24 @@ def _create_lesson_agent(session: Any) -> LessonAgent:
             agent.lesson_requirements["objectives"] = objectives
 
     return agent
+
+
+def _save_agent_state(
+    session_id: str, agent: LessonAgent, session_repo: SessionRepository
+) -> None:
+    """Save agent state to session for persistence"""
+    import json as json_module
+
+    agent_state_json = agent.serialize_state()
+    conversation_history = json_module.dumps(agent.get_conversation_history())
+    current_state = agent.get_state()
+
+    session_repo.save_agent_state(
+        session_id=session_id,
+        agent_state=agent_state_json,
+        conversation_history=conversation_history,
+        current_state=current_state,
+    )
 
 
 def _compose_lesson_from_agent(
@@ -228,6 +257,9 @@ async def send_message(
     # Process message through the agent
     response_text = agent.chat(request.message)
 
+    # Save agent state for persistence
+    _save_agent_state(session_id, agent, session_repo)
+
     # Compose lesson from agent's current state
     plan = _compose_lesson_from_agent(agent, current_user)
 
@@ -278,6 +310,9 @@ async def stream_message(
 
     # Process message through the agent
     response_text = agent.chat(request.message)
+
+    # Save agent state for persistence
+    _save_agent_state(session_id, agent, session_repo)
 
     # Compose lesson from agent's current state
     plan = _compose_lesson_from_agent(agent, current_user)

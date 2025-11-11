@@ -43,10 +43,7 @@ class MigrationManager:
         """Set schema version after migration"""
         conn = self.get_connection()
         try:
-            conn.execute(
-                "INSERT INTO schema_version (version) VALUES (?)",
-                (version,)
-            )
+            conn.execute("INSERT INTO schema_version (version) VALUES (?)", (version,))
             conn.commit()
             logger.info(f"Schema upgraded to version {version}")
         finally:
@@ -67,7 +64,9 @@ class MigrationManager:
         current_version = self.get_schema_version()
 
         if current_version >= 3:
-            logger.info(f"Database already at version {current_version}, skipping M3 migration")
+            logger.info(
+                f"Database already at version {current_version}, skipping M3 migration"
+            )
             return
 
         logger.info("Starting Milestone 3 database migration...")
@@ -180,14 +179,30 @@ class MigrationManager:
             # Create indexes for performance
             conn.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_lessons_user ON lessons(user_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_lessons_session ON lessons(session_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_images_user ON images(user_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_citations_lesson ON citations(lesson_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_citations_source ON citations(source_type, source_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON refresh_tokens(token_hash)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_lessons_user ON lessons(user_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_lessons_session ON lessons(session_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_images_user ON images(user_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_citations_lesson ON citations(lesson_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_citations_source ON citations(source_type, source_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON refresh_tokens(token_hash)"
+            )
 
             conn.commit()
 
@@ -203,17 +218,91 @@ class MigrationManager:
         finally:
             conn.close()
 
-    def create_default_admin(self, email: str, password_hash: str, full_name: str = "Admin User") -> str:
+    def migrate_to_v4_session_persistence(self) -> None:
+        """
+        Migrate to version 4: Add session persistence columns
+
+        Adds:
+        - agent_state: JSON column to store serialized agent state
+        - conversation_history: JSON column to store chat history
+        - current_state: Current conversation state
+        """
+        current_version = self.get_schema_version()
+
+        if current_version >= 4:
+            logger.info(
+                f"Database already at version {current_version}, skipping v4 migration"
+            )
+            return
+
+        logger.info("Starting version 4 database migration (session persistence)...")
+
+        conn = self.get_connection()
+        try:
+            # Add new columns to sessions table
+            try:
+                conn.execute("""
+                    ALTER TABLE sessions 
+                    ADD COLUMN agent_state TEXT
+                """)
+                logger.info("Added agent_state column to sessions table")
+            except sqlite3.OperationalError as e:
+                if "duplicate column name" not in str(e).lower():
+                    raise
+                logger.info("agent_state column already exists")
+
+            try:
+                conn.execute("""
+                    ALTER TABLE sessions 
+                    ADD COLUMN conversation_history TEXT
+                """)
+                logger.info("Added conversation_history column to sessions table")
+            except sqlite3.OperationalError as e:
+                if "duplicate column name" not in str(e).lower():
+                    raise
+                logger.info("conversation_history column already exists")
+
+            try:
+                conn.execute("""
+                    ALTER TABLE sessions 
+                    ADD COLUMN current_state TEXT DEFAULT 'welcome'
+                """)
+                logger.info("Added current_state column to sessions table")
+            except sqlite3.OperationalError as e:
+                if "duplicate column name" not in str(e).lower():
+                    raise
+                logger.info("current_state column already exists")
+
+            conn.commit()
+
+            # Update schema version
+            self.set_schema_version(4)
+
+            logger.info("Version 4 migration completed successfully")
+
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Migration v4 failed: {e}")
+            raise
+        finally:
+            conn.close()
+
+    def create_default_admin(
+        self, email: str, password_hash: str, full_name: str = "Admin User"
+    ) -> str:
         """Create default admin user for initial setup"""
         import uuid
 
         admin_id = str(uuid.uuid4())
         conn = self.get_connection()
         try:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO users (id, email, password_hash, full_name, role, is_active)
                 VALUES (?, ?, ?, ?, 'admin', 1)
-            """, (admin_id, email, password_hash, full_name))
+            """,
+                (admin_id, email, password_hash, full_name),
+            )
             conn.commit()
             logger.info(f"Created default admin user: {email}")
             return admin_id

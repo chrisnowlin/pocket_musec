@@ -5,15 +5,16 @@ from pydantic import BaseModel
 from typing import List
 import logging
 
-from ...auth import User, AuthService
+from ...auth import User
 from ...auth.models import ProcessingMode
 from ...llm.model_router import ModelRouter
-from ..dependencies import get_current_user, get_auth_service
+from ..dependencies import get_current_user
 from ..models import MessageResponse
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
+CURRENT_PROCESSING_MODE = ProcessingMode.CLOUD
 
 
 # Pydantic models
@@ -97,7 +98,6 @@ async def get_processing_modes(
 async def update_processing_mode(
     request: UpdateProcessingModeRequest,
     current_user: User = Depends(get_current_user),
-    auth_service: AuthService = Depends(get_auth_service),
     router: ModelRouter = Depends(get_model_router)
 ):
     """
@@ -139,10 +139,11 @@ async def update_processing_mode(
             )
 
     # Update user preference
-    auth_service.user_repo.update_processing_mode(current_user.id, mode)
+    global CURRENT_PROCESSING_MODE
+    CURRENT_PROCESSING_MODE = mode
+    current_user.processing_mode = mode
 
-    logger.info(f"User {current_user.id} changed processing mode to {mode.value}")
-
+    logger.info(f"Processing mode changed to {mode.value}")
     return MessageResponse(
         message=f"Processing mode updated to {mode.value}"
     )

@@ -1,0 +1,541 @@
+
+> pocket-musec-frontend@0.3.0 dev
+> vite
+
+Re-optimizing dependencies because lockfile has changed
+
+  VITE v5.4.21  ready in 107 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+Error:   Failed to scan for dependencies from entries:
+  /Users/cnowlin/Developer/pocket_musec/frontend/index.html
+
+  [31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNo matching export in "src/lib/api.ts" for import "default"[0m
+
+    src/pages/ImagesPage.tsx:3:7:
+[37m      3 │ import [32mapi[37m from '../lib/api';
+        ╵        [32m~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNo matching export in "src/lib/api.ts" for import "default"[0m
+
+    src/pages/SettingsPage.tsx:3:7:
+[37m      3 │ import [32mapi[37m from '../lib/api';
+        ╵        [32m~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNo matching export in "src/lib/api.ts" for import "default"[0m
+
+    src/pages/UsersPage.tsx:3:7:
+[37m      3 │ import [32mapi[37m from '../lib/api';
+        ╵        [32m~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mNo matching export in "src/lib/api.ts" for import "authAPI"[0m
+
+    src/store/authStore.ts:6:9:
+[37m      6 │ import { [32mauthAPI[37m, User } from '../lib/api';
+        ╵          [32m~~~~~~~[0m
+
+
+    at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+    at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:945:25
+    at runOnEndCallbacks (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1315:45)
+    at buildResponseToResult (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:943:7)
+    at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:955:9
+    at new Promise (<anonymous>)
+    at requestCallbacks.on-end (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:954:54)
+    at handleRequest (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:647:17)
+    at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:672:7)
+    at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+5:23:49 PM [vite] hmr update /src/pages/ImagesPage.tsx, /src/index.css, /src/pages/SettingsPage.tsx, /src/pages/UsersPage.tsx, /src/App.tsx, /src/components/Layout.tsx, /src/pages/LoginPage.tsx, /src/pages/DashboardPage.tsx
+5:24:00 PM [vite] hmr update /src/pages/ImagesPage.tsx, /src/index.css, /src/pages/SettingsPage.tsx, /src/pages/UsersPage.tsx, /src/App.tsx, /src/components/Layout.tsx, /src/pages/LoginPage.tsx, /src/pages/DashboardPage.tsx
+5:24:06 PM [vite] hmr update /src/pages/ImagesPage.tsx, /src/index.css, /src/pages/SettingsPage.tsx, /src/pages/UsersPage.tsx, /src/App.tsx, /src/components/Layout.tsx, /src/pages/LoginPage.tsx, /src/pages/DashboardPage.tsx
+5:24:40 PM [vite] hmr update /src/pages/ImagesPage.tsx, /src/index.css, /src/pages/SettingsPage.tsx, /src/pages/UsersPage.tsx, /src/App.tsx, /src/components/Layout.tsx, /src/pages/LoginPage.tsx, /src/pages/DashboardPage.tsx
+5:42:53 PM [vite] page reload index.html
+5:42:53 PM [vite] hmr update /src/App.tsx, /src/index.css
+5:42:53 PM [vite] hmr update /src/components/Layout.tsx, /src/index.css
+5:42:53 PM [vite] hmr update /src/index.css
+5:42:53 PM [vite] page reload src/main.tsx
+5:42:53 PM [vite] hmr update /src/pages/DashboardPage.tsx
+5:42:53 PM [vite] hmr update /src/pages/ImagesPage.tsx
+5:42:53 PM [vite] hmr update /src/pages/LoginPage.tsx
+5:42:53 PM [vite] hmr update /src/pages/SettingsPage.tsx
+5:42:53 PM [vite] hmr update /src/pages/UsersPage.tsx
+5:42:53 PM [vite] page reload src/store/authStore.ts
+5:42:53 PM [vite] page reload tailwind.config.js
+5:42:53 PM [vite] changed tsconfig file detected: /Users/cnowlin/Developer/pocket_musec/frontend/tsconfig.json - Clearing cache and forcing full-reload to ensure TypeScript is compiled with updated config values.
+5:42:53 PM [vite] vite.config.ts changed, restarting server...
+Re-optimizing dependencies because lockfile has changed
+(!) Could not auto-determine entry point from rollupOptions or html files and there are no explicit optimizeDeps.include patterns. Skipping dependency pre-bundling.
+5:42:53 PM [vite] server restarted.
+5:42:58 PM [vite] page reload index.html
+5:54:50 PM [vite] ✨ new dependencies optimized: react/jsx-dev-runtime, react, react-dom/client, react-router-dom, zustand
+6:14:05 PM [vite] page reload src/lib/api.ts
+6:14:05 PM [vite] ✨ new dependencies optimized: axios
+6:14:05 PM [vite] ✨ optimized dependencies changed. reloading
+6:14:13 PM [vite] page reload src/pages/ImagesPage.tsx
+6:14:18 PM [vite] page reload src/pages/ImagesPage.tsx
+6:14:23 PM [vite] page reload src/pages/SettingsPage.tsx
+6:14:28 PM [vite] page reload src/pages/UsersPage.tsx
+6:14:33 PM [vite] page reload src/store/authStore.ts
+6:14:37 PM [vite] page reload src/lib/api.ts
+6:14:41 PM [vite] page reload src/lib/api.ts
+6:14:44 PM [vite] page reload src/lib/api.ts
+6:14:47 PM [vite] page reload src/lib/api.ts
+6:14:50 PM [vite] page reload src/lib/api.ts
+6:14:54 PM [vite] page reload src/lib/api.ts
+6:14:57 PM [vite] page reload src/lib/api.ts
+6:15:05 PM [vite] page reload src/lib/api.ts
+6:15:08 PM [vite] page reload src/lib/api.ts
+6:15:11 PM [vite] page reload src/lib/api.ts
+6:15:15 PM [vite] page reload src/lib/api.ts
+6:15:15 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:15 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:15 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:15 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:15 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:18 PM [vite] page reload src/lib/api.ts
+6:15:18 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:18 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:18 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:18 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:18 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:21 PM [vite] page reload src/lib/api.ts
+6:15:21 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:21 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:21 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:21 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:21 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:24 PM [vite] page reload src/lib/api.ts
+6:15:24 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:24 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:24 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:24 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:24 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:28 PM [vite] page reload src/lib/api.ts
+6:15:28 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:28 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:28 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:28 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:28 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:32 PM [vite] page reload src/lib/api.ts
+6:15:32 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:32 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:32 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:32 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:32 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:37 PM [vite] page reload src/lib/api.ts
+6:15:37 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:37 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:37 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:37 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:37 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:40 PM [vite] page reload src/lib/api.ts
+6:15:41 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:41 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:41 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:41 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:41 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:43 PM [vite] page reload src/lib/api.ts
+6:15:43 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:43 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:43 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:43 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:43 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:45 PM [vite] page reload src/lib/api.ts
+6:15:45 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:45 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:45 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:45 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:45 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:47 PM [vite] page reload src/lib/api.ts
+6:15:48 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:48 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:48 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:48 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:48 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:49 PM [vite] page reload src/lib/api.ts
+6:15:49 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:49 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:49 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:49 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:49 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:51 PM [vite] page reload src/lib/api.ts
+6:15:51 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:51 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:51 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:51 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:51 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:15:53 PM [vite] page reload src/lib/api.ts
+6:15:53 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:53 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:53 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:53 PM [vite] Pre-transform error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+6:15:53 PM [vite] Internal server error: Transform failed with 1 error:
+/Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65: ERROR: Expected ")" but found ":"
+  Plugin: vite:esbuild
+  File: /Users/cnowlin/Developer/pocket_musec/frontend/src/lib/api.ts:126:65
+  
+  Expected ")" but found ":"
+  124|    getImages: () => apiClient.get('/images'),
+  125|    getImageStorageInfo: () => apiClient.get('/images/storage/info'),
+  126|    uploadImages: (formData: FormData, onUploadProgress?: (progress: number) -> void) =>
+     |                                                                   ^
+  127|      apiClient.post('/images/batch', formData, {
+  128|        headers: {
+  
+      at failureErrorWithLog (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:1472:15)
+      at /Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/Users/cnowlin/Developer/pocket_musec/frontend/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:524:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
+6:16:29 PM [vite] page reload src/lib/api.ts

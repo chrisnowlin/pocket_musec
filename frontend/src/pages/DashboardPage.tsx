@@ -18,7 +18,7 @@ export default function DashboardPage() {
       {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Link
-          to="/images"
+          to="/classic/images"
           className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
         >
           <div className="p-6">
@@ -77,7 +77,7 @@ export default function DashboardPage() {
         </div>
 
         <Link
-          to="/settings"
+          to="/classic/settings"
           className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
         >
           <div className="p-6">

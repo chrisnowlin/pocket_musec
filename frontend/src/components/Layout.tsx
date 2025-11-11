@@ -12,25 +12,32 @@ export default function Layout() {
 
               <nav className="flex space-x-4">
                 <Link
-                  to="/"
+                  to="/classic"
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                 >
                   Dashboard
                 </Link>
                 <Link
-                  to="/images"
+                  to="/classic/images"
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                 >
                   Images
                 </Link>
                 <Link
-                  to="/settings"
+                  to="/classic/settings"
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
                 >
                   Settings
                 </Link>
               </nav>
             </div>
+
+            <Link
+              to="/"
+              className="inline-flex items-center rounded-md bg-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-purple-700"
+            >
+              Open Workspace
+            </Link>
           </div>
         </div>
       </header>

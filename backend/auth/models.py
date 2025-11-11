@@ -8,12 +8,14 @@ from enum import Enum
 
 class UserRole(str, Enum):
     """User role enumeration"""
+
     TEACHER = "teacher"
     ADMIN = "admin"
 
 
 class ProcessingMode(str, Enum):
     """Processing mode for LLM"""
+
     CLOUD = "cloud"
     LOCAL = "local"
 
@@ -21,6 +23,7 @@ class ProcessingMode(str, Enum):
 @dataclass
 class User:
     """User account model"""
+
     id: str
     email: str
     password_hash: str
@@ -59,6 +62,7 @@ class User:
 @dataclass
 class RefreshToken:
     """Refresh token model for JWT token rotation"""
+
     id: str
     user_id: str
     token_hash: str
@@ -78,6 +82,7 @@ class RefreshToken:
 @dataclass
 class TokenPair:
     """Access and refresh token pair"""
+
     access_token: str
     refresh_token: str
     token_type: str = "Bearer"
@@ -96,6 +101,7 @@ class TokenPair:
 @dataclass
 class Session:
     """Lesson generation session"""
+
     id: str
     user_id: str
     grade_level: Optional[str] = None
@@ -103,6 +109,9 @@ class Session:
     selected_standards: Optional[str] = None
     selected_objectives: Optional[str] = None
     additional_context: Optional[str] = None
+    agent_state: Optional[str] = None  # JSON serialized agent state
+    conversation_history: Optional[str] = None  # JSON serialized conversation history
+    current_state: Optional[str] = "welcome"  # Current conversation state
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
@@ -110,6 +119,7 @@ class Session:
 @dataclass
 class Lesson:
     """Generated lesson plan"""
+
     id: str
     session_id: str
     user_id: str
@@ -124,6 +134,7 @@ class Lesson:
 @dataclass
 class Citation:
     """Source citation for lesson content"""
+
     id: str
     lesson_id: str
     source_type: str  # 'standard', 'objective', 'document', 'image'
@@ -139,6 +150,7 @@ class Citation:
 @dataclass
 class Image:
     """Uploaded image with OCR and vision analysis"""
+
     id: str
     user_id: str
     filename: str

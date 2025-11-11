@@ -1,0 +1,154 @@
+{
+  "standards": {
+    "Final NCSCOS Arts Education Framework - Google Docs.pdf": {
+      "total_pages": 3,
+      "has_tables": false,
+      "has_multiple_columns": true,
+      "text_density": [
+        2362,
+        1658,
+        3557
+      ],
+      "font_sizes": "{8.0, 9.0, 10.0, 11.0, 12.0, 16.0, 20.0}",
+      "sample_text": [
+        "2024 NCSCOS Arts Education Standards Framework",
+        "Disciplinary differences highlighted pink",
+        "Dance Music Theatre Visual Arts",
+        "CONNECT",
+        "Explore and relate artistic ideas and works to past, present, and future societies and cultures."
+      ]
+    },
+    "Final VIM NCSCOS - Google Docs.pdf": {
+      "total_pages": 15,
+      "has_tables": false,
+      "has_multiple_columns": true,
+      "text_density": [
+        2666,
+        1848,
+        1501
+      ],
+      "font_sizes": "{9.1, 10.1, 11.0, 12.8}",
+      "sample_text": [
+        "NORTH CAROLINA STANDARD COURSE OF STUDY",
+        "K - 12 Vocal and Instrumental Music",
+        "The 2024 NC Standard Course of Study for vocal and instrumental music is intended to provide a Compr",
+        "Education while developing students as musicians. The abilities to create, present, respond to, and ",
+        "with music build competence by expanding foundational knowledge and skills within each grade band an"
+      ]
+    }
+  },
+  "unpacking": {
+    "Horizontal Alignment - Arts Education Unpacking - Google Docs.pdf": {
+      "total_pages": 3,
+      "has_tables": false,
+      "has_multiple_columns": true,
+      "text_density": [
+        1386,
+        506,
+        71
+      ],
+      "font_sizes": "{12.0, 20.0, 14.0}",
+      "sample_text": [
+        "ARTS EDUCATION UNPACKING - HORIZONTAL ALIGNMENT Page 1",
+        "NORTH CAROLINA STANDARD COURSE OF STUDY",
+        "K-12 ARTS EDUCATION HORIZONTAL ALIGNMENT",
+        "Dance, Music, Theatre, Visual Arts",
+        "Purpose"
+      ]
+    },
+    "Vertical Alignment - Arts Education Unpacking - Google Docs.pdf": {
+      "total_pages": 94,
+      "has_tables": false,
+      "has_multiple_columns": true,
+      "text_density": [
+        1310,
+        1565,
+        1841
+      ],
+      "font_sizes": "{19.5, 11.7, 13.7, 15.6}",
+      "sample_text": [
+        "ARTS EDUCATION STANDARDS - VERTICAL ALIGNMENT Page 1",
+        "NORTH CAROLINA STANDARD COURSE OF STUDY",
+        "K-12 ARTS EDUCATION VERTICAL ALIGNMENT",
+        "Dance, Music, Theatre, Visual Arts",
+        "Purpose"
+      ]
+    }
+  },
+  "quick_guides": {
+    "1 PAGE QUICK GUIDES VOCAL & INSTRUMENTAL MUSIC - Google Docs.pdf": {
+      "total_pages": 10,
+      "has_tables": false,
+      "has_multiple_columns": false,
+      "text_density": [
+        2625,
+        656,
+        2429
+      ],
+      "font_sizes": "{16.0, 10.0, 11.0, 12.0}",
+      "sample_text": [
+        "ARTS EDUCATION \u2013 NOVICE VOCAL & INSTRUMENTAL MUSIC",
+        "NORTH CAROLINA STANDARD COURSE OF STUDY",
+        "CONNECT (CN)\u2014Explore and relate artistic ideas and works to past, present, and future",
+        "societies and cultures.",
+        "CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily"
+      ]
+    },
+    "1 PAGE QUICK GUIDES GENERAL MUSIC - Google Docs.pdf": {
+      "total_pages": 22,
+      "has_tables": false,
+      "has_multiple_columns": true,
+      "text_density": [
+        2324,
+        627,
+        2300
+      ],
+      "font_sizes": "{16.0, 10.0, 11.0, 12.0}",
+      "sample_text": [
+        "ARTS EDUCATION \u2013 KINDERGARTEN GENERAL MUSIC",
+        "NORTH CAROLINA STANDARD COURSE OF STUDY",
+        "CONNECT (CN)\u2014Explore and relate artistic ideas and works to past, present, and future",
+        "societies and cultures.",
+        "CN.1 Relate musical ideas and works with personal, societal, cultural, historical, and daily"
+      ]
+    }
+  },
+  "resources": {
+    "VIM Implementation Guide (VIMplementation) - Google Docs.pdf": {
+      "total_pages": 49,
+      "has_tables": false,
+      "has_multiple_columns": true,
+      "text_density": [
+        1301,
+        368,
+        1685
+      ],
+      "font_sizes": "{10.0, 12.0, 20.0, 14.0}",
+      "sample_text": [
+        "ARTS EDUCATION UNPACKING - VIM IMPLEMENTATION GUIDE Page 1",
+        "NORTH CAROLINA STANDARD COURSE OF STUDY",
+        "VOCAL AND INSTRUMENTAL MUSIC IMPLEMENTATION GUIDE",
+        "Purpose",
+        "The Vocal and Instrumental Music (VIM) Implementation Guide gives Public School Units, administrator"
+      ]
+    },
+    "Arts Education Standards Glossary - Google Docs.pdf": {
+      "total_pages": 34,
+      "has_tables": false,
+      "has_multiple_columns": true,
+      "text_density": [
+        1150,
+        1295,
+        1720
+      ],
+      "font_sizes": "{7.2, 10.0, 12.0, 14.0, 15.0}",
+      "sample_text": [
+        "NORTH CAROLINA STANDARD COURSE OF STUDY",
+        "K-12 ARTS EDUCATION GLOSSARIES",
+        "Dance, Music, Theatre, Visual Arts",
+        "Purpose",
+        "The Glossary of Terms seeks to address critical terms and definitions essential in building content"
+      ]
+    }
+  }
+}

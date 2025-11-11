@@ -47,6 +47,62 @@ class StandardsRepository:
             return standards
         finally:
             conn.close()
+
+    def list_standards(
+        self,
+        grade_level: Optional[str] = None,
+        strand_code: Optional[str] = None,
+        limit: int = 50
+    ) -> List[Standard]:
+        """List standards filtered by grade and strand (optional)"""
+        base_query = """
+            SELECT standard_id, grade_level, strand_code, strand_name,
+                   strand_description, standard_text, source_document,
+                   ingestion_date, version
+            FROM standards
+        """
+
+        filters = []
+        params = []
+
+        if grade_level:
+            filters.append("grade_level = ?")
+            params.append(grade_level)
+
+        if strand_code:
+            filters.append("strand_code = ?")
+            params.append(strand_code)
+
+        if filters:
+            base_query += " WHERE " + " AND ".join(filters)
+
+        base_query += " ORDER BY grade_level, strand_code, standard_id LIMIT ?"
+        params.append(limit)
+
+        conn = self.db_manager.get_connection()
+        try:
+            cursor = conn.execute(base_query, tuple(params))
+            return [self._row_to_standard(row) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
+    def get_standard_by_id(self, standard_id: str) -> Optional[Standard]:
+        """Get a single standard by its ID"""
+        conn = self.db_manager.get_connection()
+        try:
+            cursor = conn.execute("""
+                SELECT standard_id, grade_level, strand_code, strand_name,
+                       strand_description, standard_text, source_document,
+                       ingestion_date, version
+                FROM standards
+                WHERE standard_id = ?
+            """, (standard_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+            return self._row_to_standard(row)
+        finally:
+            conn.close()
     
     def get_standards_by_grade(self, grade_level: str) -> List[Standard]:
         """Get standards for a specific grade level"""
@@ -441,3 +497,16 @@ class StandardsRepository:
     def get_embedding_stats(self) -> Dict[str, int]:
         """Get statistics about embeddings in the database"""
         return self.embeddings.get_embedding_stats()
+
+    def _row_to_standard(self, row: sqlite3.Row) -> Standard:
+        return Standard(
+            standard_id=row[0],
+            grade_level=row[1],
+            strand_code=row[2],
+            strand_name=row[3],
+            strand_description=row[4],
+            standard_text=row[5],
+            source_document=row[6],
+            ingestion_date=row[7],
+            version=row[8]
+        )
