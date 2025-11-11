@@ -1,15 +1,6 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
+import { Outlet, Link } from 'react-router-dom';
 
 export default function Layout() {
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
-
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -32,14 +23,12 @@ export default function Layout() {
                 >
                   Images
                 </Link>
-                {user?.role === 'admin' && (
-                  <Link
-                    to="/users"
-                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
-                  >
-                    Users
-                  </Link>
-                )}
+                <Link
+                  to="/users"
+                  className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
+                >
+                  Users
+                </Link>
                 <Link
                   to="/settings"
                   className="px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-100"
@@ -47,21 +36,6 @@ export default function Layout() {
                   Settings
                 </Link>
               </nav>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-700">
-                {user?.email}
-                <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                  {user?.processing_mode}
-                </span>
-              </span>
-              <button
-                onClick={handleLogout}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md"
-              >
-                Logout
-              </button>
             </div>
           </div>
         </div>

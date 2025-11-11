@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '../store/authStore';
 import api from '../lib/api';
 
 interface ProcessingModeInfo {
@@ -18,10 +17,14 @@ interface LocalModelStatus {
   error?: string;
 }
 
+interface ProcessingModesResponse {
+  modes: ProcessingModeInfo[];
+}
+
 export default function SettingsPage() {
-  const { user, loadUser } = useAuthStore();
   const [modes, setModes] = useState<ProcessingModeInfo[]>([]);
   const [localModelStatus, setLocalModelStatus] = useState<LocalModelStatus | null>(null);
+  const [currentProcessingMode, setCurrentProcessingMode] = useState<string>('cloud');
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDownloading, setIsDownloading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,8 +37,13 @@ export default function SettingsPage() {
 
   const loadModes = async () => {
     try {
-      const response = await api.get('/api/settings/processing-modes');
-      setModes(response.data.modes);
+      const result = await api.getProcessingModes();
+      if (result.ok) {
+        const data = result.data as ProcessingModesResponse;
+        setModes(data.modes);
+      } else {
+        setError(result.message || 'Failed to load processing modes');
+      }
     } catch (err) {
       console.error('Failed to load modes:', err);
       setError('Failed to load processing modes');
@@ -44,8 +52,10 @@ export default function SettingsPage() {
 
   const loadLocalModelStatus = async () => {
     try {
-      const response = await api.get('/api/settings/local-model-status');
-      setLocalModelStatus(response.data);
+      const result = await api.getLocalModelStatus();
+      if (result.ok) {
+        setLocalModelStatus(result.data as LocalModelStatus);
+      }
     } catch (err) {
       console.error('Failed to load local model status:', err);
     }
@@ -57,15 +67,16 @@ export default function SettingsPage() {
     setSuccess(null);
 
     try {
-      await api.post('/api/settings/processing-mode', {
-        processing_mode: newMode,
-      });
-
-      await loadUser();
-      setSuccess(`Processing mode updated to ${newMode}`);
+      const result = await api.updateProcessingMode(newMode);
+      if (result.ok) {
+        setCurrentProcessingMode(newMode);
+        setSuccess(`Processing mode updated to ${newMode}`);
+      } else {
+        setError(result.message || 'Failed to update processing mode');
+      }
     } catch (err: any) {
       console.error('Failed to update mode:', err);
-      setError(err.response?.data?.detail || 'Failed to update processing mode');
+      setError(err.message || 'Failed to update processing mode');
     } finally {
       setIsUpdating(false);
     }
@@ -77,22 +88,27 @@ export default function SettingsPage() {
     setSuccess(null);
 
     try {
-      await api.post('/api/settings/download-local-model');
-      setSuccess('Local model download initiated. This may take several minutes.');
+      const result = await api.downloadLocalModel();
+      if (result.ok) {
+        setSuccess('Local model download initiated. This may take several minutes.');
 
-      // Poll for status updates
-      const pollInterval = setInterval(async () => {
-        await loadLocalModelStatus();
-      }, 5000);
+        // Poll for status updates
+        const pollInterval = setInterval(async () => {
+          await loadLocalModelStatus();
+        }, 5000);
 
-      // Stop polling after 5 minutes
-      setTimeout(() => {
-        clearInterval(pollInterval);
+        // Stop polling after 5 minutes
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          setIsDownloading(false);
+        }, 300000);
+      } else {
+        setError(result.message || 'Failed to download local model');
         setIsDownloading(false);
-      }, 300000);
+      }
     } catch (err: any) {
       console.error('Failed to download model:', err);
-      setError(err.response?.data?.detail || 'Failed to download local model');
+      setError(err.message || 'Failed to download local model');
       setIsDownloading(false);
     }
   };
@@ -112,16 +128,16 @@ export default function SettingsPage() {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Name:</span>
-            <span className="font-medium">{user?.full_name || 'Not set'}</span>
+            <span className="font-medium">Demo User</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Email:</span>
-            <span className="font-medium">{user?.email}</span>
+            <span className="font-medium">demo@example.com</span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Role:</span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 capitalize">
-              {user?.role}
+              Admin
             </span>
           </div>
         </div>
@@ -139,7 +155,7 @@ export default function SettingsPage() {
             <div
               key={mode.mode}
               className={`border-2 rounded-lg p-4 transition-all ${
-                user?.processing_mode === mode.mode
+                currentProcessingMode === mode.mode
                   ? 'border-blue-500 bg-blue-50'
                   : mode.is_available
                   ? 'border-gray-300 hover:border-gray-400'
@@ -152,7 +168,7 @@ export default function SettingsPage() {
                     <input
                       type="radio"
                       name="processing_mode"
-                      checked={user?.processing_mode === mode.mode}
+                      checked={currentProcessingMode === mode.mode}
                       onChange={() => mode.is_available && handleModeChange(mode.mode)}
                       disabled={!mode.is_available || isUpdating}
                       className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
@@ -161,7 +177,7 @@ export default function SettingsPage() {
                       <span className="text-lg font-medium text-gray-900">
                         {mode.display_name}
                       </span>
-                      {user?.processing_mode === mode.mode && (
+                      {currentProcessingMode === mode.mode && (
                         <span className="ml-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white">
                           Current
                         </span>

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useAuthStore } from '../store/authStore';
 import api from '../lib/api';
 
 interface User {
@@ -11,8 +10,11 @@ interface User {
   created_at: string;
 }
 
+interface UsersResponse {
+  users: User[];
+}
+
 export default function UsersPage() {
-  const { user: currentUser } = useAuthStore();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,16 +30,7 @@ export default function UsersPage() {
     processing_mode: 'cloud' as 'cloud' | 'local',
   });
 
-  // Check if current user is admin
-  if (currentUser?.role !== 'admin') {
-    return (
-      <div className="text-center py-12">
-        <h1 className="text-2xl font-bold text-red-600">Access Denied</h1>
-        <p className="mt-2 text-gray-600">You must be an administrator to access this page.</p>
-      </div>
-    );
-  }
-
+  
   useEffect(() => {
     loadUsers();
   }, []);
@@ -45,11 +38,16 @@ export default function UsersPage() {
   const loadUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await api.get('/api/users');
-      setUsers(response.data.users);
+      const result = await api.listUsers();
+      if (result.ok) {
+        const data = result.data as UsersResponse;
+        setUsers(data.users);
+      } else {
+        setError(result.message || 'Failed to load users');
+      }
     } catch (err: any) {
       console.error('Failed to load users:', err);
-      setError(err.response?.data?.detail || 'Failed to load users');
+      setError(err.message || 'Failed to load users');
     } finally {
       setIsLoading(false);
     }
@@ -61,20 +59,24 @@ export default function UsersPage() {
     setSuccess(null);
 
     try {
-      await api.post('/api/auth/register', newUser);
-      setSuccess(`User ${newUser.email} created successfully`);
-      setShowCreateForm(false);
-      setNewUser({
-        email: '',
-        password: '',
-        full_name: '',
-        role: 'teacher',
-        processing_mode: 'cloud',
-      });
-      await loadUsers();
+      const result = await api.createUser(newUser);
+      if (result.ok) {
+        setSuccess(`User ${newUser.email} created successfully`);
+        setShowCreateForm(false);
+        setNewUser({
+          email: '',
+          password: '',
+          full_name: '',
+          role: 'teacher',
+          processing_mode: 'cloud',
+        });
+        await loadUsers();
+      } else {
+        setError(result.message || 'Failed to create user');
+      }
     } catch (err: any) {
       console.error('Failed to create user:', err);
-      setError(err.response?.data?.detail || 'Failed to create user');
+      setError(err.message || 'Failed to create user');
     }
   };
 
@@ -83,18 +85,18 @@ export default function UsersPage() {
       return;
     }
 
-    if (userId === currentUser?.id) {
-      setError('You cannot delete your own account');
-      return;
-    }
-
+    
     try {
-      await api.delete(`/api/users/${userId}`);
-      setSuccess(`User ${userEmail} deleted successfully`);
-      await loadUsers();
+      const result = await api.deleteUser(userId);
+      if (result.ok) {
+        setSuccess(`User ${userEmail} deleted successfully`);
+        await loadUsers();
+      } else {
+        setError(result.message || 'Failed to delete user');
+      }
     } catch (err: any) {
       console.error('Failed to delete user:', err);
-      setError(err.response?.data?.detail || 'Failed to delete user');
+      setError(err.message || 'Failed to delete user');
     }
   };
 
@@ -283,16 +285,12 @@ export default function UsersPage() {
                   {new Date(user.created_at).toLocaleDateString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  {user.id === currentUser?.id ? (
-                    <span className="text-gray-400">Current User</span>
-                  ) : (
-                    <button
+                  <button
                       onClick={() => handleDeleteUser(user.id, user.email)}
                       className="text-red-600 hover:text-red-900"
                     >
                       Delete
                     </button>
-                  )}
                 </td>
               </tr>
             ))}

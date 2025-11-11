@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useAuthStore } from '../store/authStore';
 import api from '../lib/api';
 
 interface ImageData {
@@ -20,8 +19,26 @@ interface StorageInfo {
   used_percentage: number;
 }
 
+interface ImagesResponse {
+  images: ImageData[];
+}
+
+interface StorageInfoResponse {
+  image_count: number;
+  usage_mb: number;
+  limit_mb: number;
+  percentage: number;
+}
+
+interface UploadResponse {
+  results: Array<{
+    success: boolean;
+    filename?: string;
+    error?: string;
+  }>;
+}
+
 export default function ImagesPage() {
-  const { user } = useAuthStore();
   const [images, setImages] = useState<ImageData[]>([]);
   const [storageInfo, setStorageInfo] = useState<StorageInfo | null>(null);
   const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
@@ -34,8 +51,13 @@ export default function ImagesPage() {
 
   const loadImages = useCallback(async () => {
     try {
-      const response = await api.get('/api/images');
-      setImages(response.data.images);
+      const result = await api.getImages();
+      if (result.ok) {
+        const data = result.data as ImagesResponse;
+        setImages(data.images);
+      } else {
+        setError(result.message || 'Failed to load images');
+      }
     } catch (err) {
       console.error('Failed to load images:', err);
       setError('Failed to load images');
@@ -44,8 +66,17 @@ export default function ImagesPage() {
 
   const loadStorageInfo = useCallback(async () => {
     try {
-      const response = await api.get('/api/images/storage/info');
-      setStorageInfo(response.data);
+      const result = await api.getImageStorageInfo();
+      if (result.ok) {
+        const data = result.data as StorageInfoResponse;
+        setStorageInfo({
+          total_images: data.image_count,
+          total_size_bytes: data.usage_mb * 1024 * 1024,
+          total_size_mb: data.usage_mb,
+          quota_mb: data.limit_mb,
+          used_percentage: data.percentage,
+        });
+      }
     } catch (err) {
       console.error('Failed to load storage info:', err);
     }
@@ -96,35 +127,30 @@ export default function ImagesPage() {
       files.forEach(file => {
         formData.append('files', file);
       });
-      formData.append('processing_mode', user?.processing_mode || 'cloud');
+      formData.append('processing_mode', 'cloud');
 
-      const response = await api.post('/api/images/batch', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-        },
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            setUploadProgress(progress);
-          }
-        },
+      const result = await api.uploadImages(formData, (progress) => {
+        setUploadProgress(progress);
       });
 
-      if (response.data.results) {
-        const successCount = response.data.results.filter((r: any) => r.success).length;
+      if (result.ok) {
+        const data = result.data as UploadResponse;
+        const successCount = data.results?.filter((r) => r.success).length || 0;
         if (successCount > 0) {
           await loadImages();
           await loadStorageInfo();
         }
 
-        const failedCount = response.data.results.filter((r: any) => !r.success).length;
+        const failedCount = data.results?.filter((r) => !r.success).length || 0;
         if (failedCount > 0) {
           setError(`${failedCount} file(s) failed to upload`);
         }
+      } else {
+        setError(result.message || 'Failed to upload images');
       }
     } catch (err: any) {
       console.error('Upload failed:', err);
-      setError(err.response?.data?.detail || 'Failed to upload images');
+      setError(err.message || 'Failed to upload images');
     } finally {
       setIsUploading(false);
       setUploadProgress(0);
@@ -140,15 +166,19 @@ export default function ImagesPage() {
     }
 
     try {
-      await api.delete(`/api/images/${imageId}`);
-      await loadImages();
-      await loadStorageInfo();
-      if (selectedImage?.id === imageId) {
-        setSelectedImage(null);
+      const result = await api.deleteImage(imageId);
+      if (result.ok) {
+        await loadImages();
+        await loadStorageInfo();
+        if (selectedImage?.id === imageId) {
+          setSelectedImage(null);
+        }
+      } else {
+        setError(result.message || 'Failed to delete image');
       }
     } catch (err: any) {
       console.error('Delete failed:', err);
-      setError(err.response?.data?.detail || 'Failed to delete image');
+      setError(err.message || 'Failed to delete image');
     }
   };
 

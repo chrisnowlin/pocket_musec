@@ -1,13 +1,10 @@
 import { Link } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 
 export default function DashboardPage() {
-  const { user } = useAuthStore();
-
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900">Welcome, {user?.full_name || user?.email}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">Welcome to PocketMusec</h1>
         <p className="mt-2 text-gray-600">
           AI-powered lesson planning assistant for music teachers
         </p>
@@ -119,13 +116,13 @@ export default function DashboardPage() {
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Processing Mode:</span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800 capitalize">
-              {user?.processing_mode}
+              Cloud
             </span>
           </div>
           <div className="flex justify-between items-center">
             <span className="text-gray-600">Role:</span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 capitalize">
-              {user?.role}
+              Admin
             </span>
           </div>
           <div className="flex justify-between items-center">
