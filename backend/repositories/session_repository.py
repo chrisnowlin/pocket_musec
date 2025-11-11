@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from .database import DatabaseManager
-from ..auth.models import Session
+from ..auth import Session
 
 
 class SessionRepository:

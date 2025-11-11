@@ -398,6 +398,38 @@ export default function WorkspacePage() {
     [appendMessage, loadStandards, selectedGrade, session?.id]
   );
 
+  const handleBrowseGradeSelection = useCallback(
+    async (grade: string) => {
+      setSelectedGrade(grade);
+
+      if (session?.id) {
+        const result = await api.updateSession(session.id, { grade_level: grade });
+        if (result.ok) {
+          setSession(result.data);
+        }
+      }
+
+      await loadStandards(grade, selectedStrand);
+    },
+    [loadStandards, selectedStrand, session?.id]
+  );
+
+  const handleBrowseStrandSelection = useCallback(
+    async (strand: string) => {
+      setSelectedStrand(strand);
+
+      if (session?.id) {
+        const result = await api.updateSession(session.id, { strand_code: strand });
+        if (result.ok) {
+          setSession(result.data);
+        }
+      }
+
+      await loadStandards(selectedGrade, strand);
+    },
+    [loadStandards, selectedGrade, session?.id]
+  );
+
   const handleStandardSelection = useCallback(
     async (standard: StandardRecord) => {
       setSelectedStandard(standard);
@@ -1032,28 +1064,74 @@ export default function WorkspacePage() {
                   </div>
                   <div className="flex gap-2 flex-wrap">
                     <button
-                      onClick={() => setSelectedGrade('Grade 3')}
-                      className="px-3 py-1 text-xs font-medium rounded-full bg-purple-100 text-purple-700 border border-purple-200"
+                      onClick={() => handleBrowseGradeSelection('Grade 3')}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                        selectedGrade === 'Grade 3'
+                          ? 'bg-purple-100 text-purple-700 border-purple-200'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
                     >
                       Grade 3
                     </button>
-                    <button className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                    <button
+                      onClick={() => handleBrowseGradeSelection('Kindergarten')}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                        selectedGrade === 'Kindergarten'
+                          ? 'bg-purple-100 text-purple-700 border-purple-200'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
                       Kindergarten
                     </button>
-                    <button className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                    <button
+                      onClick={() => handleBrowseGradeSelection('Grade 5')}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                        selectedGrade === 'Grade 5'
+                          ? 'bg-purple-100 text-purple-700 border-purple-200'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
                       Grade 5
                     </button>
                     <div className="border-l border-gray-300 mx-2" />
-                    <button className="px-3 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                    <button
+                      onClick={() => handleBrowseStrandSelection('Connect')}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                        selectedStrand === 'Connect'
+                          ? 'bg-blue-100 text-blue-700 border-blue-200'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
                       Connect
                     </button>
-                    <button className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                    <button
+                      onClick={() => handleBrowseStrandSelection('Create')}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                        selectedStrand === 'Create'
+                          ? 'bg-blue-100 text-blue-700 border-blue-200'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
                       Create
                     </button>
-                    <button className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                    <button
+                      onClick={() => handleBrowseStrandSelection('Present')}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                        selectedStrand === 'Present'
+                          ? 'bg-blue-100 text-blue-700 border-blue-200'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
                       Present
                     </button>
-                    <button className="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 border border-gray-200 hover:bg-gray-200">
+                    <button
+                      onClick={() => handleBrowseStrandSelection('Respond')}
+                      className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                        selectedStrand === 'Respond'
+                          ? 'bg-blue-100 text-blue-700 border-blue-200'
+                          : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                      }`}
+                    >
                       Respond
                     </button>
                   </div>

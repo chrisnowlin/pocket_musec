@@ -6,9 +6,11 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 import os
 import logging
+import signal
+import sys
 from pathlib import Path
 
-from .routes import images, settings, sessions, standards
+from .routes import images, settings, sessions, standards, ingestion
 from .middleware import (
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
@@ -58,6 +60,7 @@ app.include_router(images.router)
 app.include_router(settings.router)
 app.include_router(sessions.router)
 app.include_router(standards.router)
+app.include_router(ingestion.router)
 
 
 # Exception handlers

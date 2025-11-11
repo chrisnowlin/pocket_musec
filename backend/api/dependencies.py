@@ -21,7 +21,7 @@ DEFAULT_USER = User(
 async def get_current_user() -> User:
     """
     Return the default demo user (authentication disabled).
-    
+
     In this demo mode, all API requests use the same demo user context.
     This simplifies the system by removing authentication complexity while
     maintaining the expected user-based data flow in the repositories.

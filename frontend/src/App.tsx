@@ -3,6 +3,7 @@ import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import ImagesPage from './pages/ImagesPage';
 import SettingsPage from './pages/SettingsPage';
+import IngestionPage from './pages/IngestionPage';
 import WorkspaceShell from './workspace/WorkspaceShell';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
         <Route index element={<DashboardPage />} />
         <Route path="images" element={<ImagesPage />} />
         <Route path="settings" element={<SettingsPage />} />
+        <Route path="ingestion" element={<IngestionPage />} />
       </Route>
 
       <Route path="workspace" element={<Navigate to="/" replace />} />

@@ -6,7 +6,7 @@ from fastapi import APIRouter, Query, Depends, HTTPException, status
 from ...repositories.standards_repository import StandardsRepository
 from ..models import StandardResponse
 from ..dependencies import get_current_user
-from ...auth.models import User
+from ...auth import User
 
 router = APIRouter(prefix="/api/standards", tags=["standards"])
 

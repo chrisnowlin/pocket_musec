@@ -5,8 +5,7 @@ from pydantic import BaseModel
 from typing import List
 import logging
 
-from ...auth import User
-from ...auth.models import ProcessingMode
+from ...auth import User, ProcessingMode
 from ...llm.model_router import ModelRouter
 from ..dependencies import get_current_user
 from ..models import MessageResponse
@@ -20,6 +19,7 @@ CURRENT_PROCESSING_MODE = ProcessingMode.CLOUD
 # Pydantic models
 class ProcessingModeInfo(BaseModel):
     """Processing mode information"""
+
     id: str
     name: str
     description: str
@@ -32,17 +32,20 @@ class ProcessingModeInfo(BaseModel):
 
 class ProcessingModeResponse(BaseModel):
     """Processing mode response"""
+
     modes: List[ProcessingModeInfo]
     current: str
 
 
 class UpdateProcessingModeRequest(BaseModel):
     """Request to update processing mode"""
+
     mode: str  # "cloud" or "local"
 
 
 class ModelInfoResponse(BaseModel):
     """Local model information"""
+
     available: bool
     installed: bool
     model: str
@@ -60,7 +63,7 @@ def get_model_router() -> ModelRouter:
 @router.get("/processing-modes", response_model=ProcessingModeResponse)
 async def get_processing_modes(
     current_user: User = Depends(get_current_user),
-    router: ModelRouter = Depends(get_model_router)
+    router: ModelRouter = Depends(get_model_router),
 ):
     """
     Get available processing modes
@@ -77,20 +80,21 @@ async def get_processing_modes(
     # Convert to ProcessingModeInfo
     mode_infos = []
     for mode in modes:
-        mode_infos.append(ProcessingModeInfo(
-            id=mode['id'],
-            name=mode['name'],
-            description=mode['description'],
-            available=mode['available'],
-            estimated_speed=mode.get('estimated_speed', ''),
-            provider=mode.get('provider', ''),
-            model=mode.get('model', ''),
-            error=mode.get('error', '')
-        ))
+        mode_infos.append(
+            ProcessingModeInfo(
+                id=mode["id"],
+                name=mode["name"],
+                description=mode["description"],
+                available=mode["available"],
+                estimated_speed=mode.get("estimated_speed", ""),
+                provider=mode.get("provider", ""),
+                model=mode.get("model", ""),
+                error=mode.get("error", ""),
+            )
+        )
 
     return ProcessingModeResponse(
-        modes=mode_infos,
-        current=current_user.processing_mode.value
+        modes=mode_infos, current=current_user.processing_mode.value
     )
 
 
@@ -98,7 +102,7 @@ async def get_processing_modes(
 async def update_processing_mode(
     request: UpdateProcessingModeRequest,
     current_user: User = Depends(get_current_user),
-    router: ModelRouter = Depends(get_model_router)
+    router: ModelRouter = Depends(get_model_router),
 ):
     """
     Update user's processing mode preference
@@ -121,7 +125,7 @@ async def update_processing_mode(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid mode: {request.mode}. Must be 'cloud' or 'local'."
+            detail=f"Invalid mode: {request.mode}. Must be 'cloud' or 'local'.",
         )
 
     # Check if mode is available
@@ -129,13 +133,13 @@ async def update_processing_mode(
         if not router.is_cloud_available():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Cloud mode not available. Check CHUTES_API_KEY configuration."
+                detail="Cloud mode not available. Check CHUTES_API_KEY configuration.",
             )
     elif mode == ProcessingMode.LOCAL:
         if not router.is_local_available():
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Local mode not available. Ensure Ollama is running and model is installed."
+                detail="Local mode not available. Ensure Ollama is running and model is installed.",
             )
 
     # Update user preference
@@ -144,15 +148,13 @@ async def update_processing_mode(
     current_user.processing_mode = mode
 
     logger.info(f"Processing mode changed to {mode.value}")
-    return MessageResponse(
-        message=f"Processing mode updated to {mode.value}"
-    )
+    return MessageResponse(message=f"Processing mode updated to {mode.value}")
 
 
 @router.get("/models/local/status", response_model=ModelInfoResponse)
 async def get_local_model_status(
     current_user: User = Depends(get_current_user),
-    router: ModelRouter = Depends(get_model_router)
+    router: ModelRouter = Depends(get_model_router),
 ):
     """
     Get local model status
@@ -170,7 +172,7 @@ async def get_local_model_status(
             installed=False,
             model="",
             health="not_configured",
-            models_list=[]
+            models_list=[],
         )
 
     available = router.local_provider.is_available()
@@ -184,7 +186,7 @@ async def get_local_model_status(
         model_info = router.local_provider.get_model_info()
         if model_info:
             # Extract size from model info
-            size_bytes = model_info.get('size', 0)
+            size_bytes = model_info.get("size", 0)
             size = f"{size_bytes / (1024**3):.1f} GB"
 
     health = "healthy" if (available and installed) else "unavailable"
@@ -195,14 +197,14 @@ async def get_local_model_status(
         model=router.local_provider.model,
         size=size,
         health=health,
-        models_list=models_list
+        models_list=models_list,
     )
 
 
 @router.post("/models/local/download", response_model=MessageResponse)
 async def download_local_model(
     current_user: User = Depends(get_current_user),
-    router: ModelRouter = Depends(get_model_router)
+    router: ModelRouter = Depends(get_model_router),
 ):
     """
     Download/pull local model (blocking operation)
@@ -223,16 +225,18 @@ async def download_local_model(
     if not router.local_provider:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Local provider not configured"
+            detail="Local provider not configured",
         )
 
     if not router.local_provider.is_available():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Ollama not running. Start Ollama first."
+            detail="Ollama not running. Start Ollama first.",
         )
 
-    logger.info(f"User {current_user.id} initiating model download: {router.local_provider.model}")
+    logger.info(
+        f"User {current_user.id} initiating model download: {router.local_provider.model}"
+    )
 
     # Pull model (this is blocking)
     success = router.pull_local_model()
@@ -240,7 +244,7 @@ async def download_local_model(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to download model. Check logs for details."
+            detail="Failed to download model. Check logs for details.",
         )
 
     return MessageResponse(
