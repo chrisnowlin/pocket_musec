@@ -161,36 +161,50 @@ def _compose_lesson_from_agent(
     standard_label = standard.standard_id if standard else "Selected standard"
     grade_label = requirements.get("grade_level", "the chosen grade level")
 
-    # Build lesson content from agent requirements
-    activities = [
-        "Warm-up: Short rhythm clapping inspired by the strand's motif.",
-        "Main activity: Guided practice connecting movement, text, and sound.",
-        "Closure: Reflective journaling or share-out with peer feedback.",
-    ]
+    # Check if an LLM-generated lesson is available
+    generated_lesson = requirements.get("generated_lesson")
 
-    assessment = "Use quick performance checks, exit tickets, or recordings to capture mastery of the targeted objective."
+    if generated_lesson:
+        # Use the LLM-generated lesson content
+        content = generated_lesson
+        title = standard_label
+        summary = f"AI-generated lesson for {grade_label} - {standard_label}"
+    else:
+        # Build lesson content from template
+        activities = [
+            "Warm-up: Short rhythm clapping inspired by the strand's motif.",
+            "Main activity: Guided practice connecting movement, text, and sound.",
+            "Closure: Reflective journaling or share-out with peer feedback.",
+        ]
 
-    content_lines = [
-        f"Title: {standard_label} Focus",
-        f"Overview: Lesson connects {grade_label} learners to {standard_label}.",
-        "Activities:",
-    ]
-    content_lines.extend([f"- {activity}" for activity in activities])
-    content_lines.append(f"Assessment: {assessment}")
-    content_lines.append(
-        "Extensions: Invite students to share cultural connections or create visuals."
-    )
+        assessment = "Use quick performance checks, exit tickets, or recordings to capture mastery of the targeted objective."
+
+        content_lines = [
+            f"Title: {standard_label} Focus",
+            f"Overview: Lesson connects {grade_label} learners to {standard_label}.",
+            "Activities:",
+        ]
+        content_lines.extend([f"- {activity}" for activity in activities])
+        content_lines.append(f"Assessment: {assessment}")
+        content_lines.append(
+            "Extensions: Invite students to share cultural connections or create visuals."
+        )
+
+        content = "\n".join(content_lines)
+        title = standard_label
+        summary = f"Lesson connects {grade_label} learners to {standard_label}."
 
     return {
-        "title": standard_label,
-        "summary": f"Lesson connects {grade_label} learners to {standard_label}.",
-        "content": "\n".join(content_lines),
+        "title": title,
+        "summary": summary,
+        "content": content,
         "metadata": {
             "grade_level": requirements.get("grade_level"),
             "strand_code": requirements.get("strand_code"),
             "standard_id": standard.standard_id if standard else None,
             "duration": requirements.get("duration"),
             "class_size": requirements.get("class_size"),
+            "generated_by": "llm" if generated_lesson else "template",
         },
         "citations": [standard.standard_id] if standard else [],
     }
