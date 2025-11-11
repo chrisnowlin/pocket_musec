@@ -134,30 +134,7 @@ python -c "from backend.repositories.migrations import DatabaseMigrator; m = Dat
 
 This creates the database with all required tables for Milestone 3.
 
-### 4. Create Initial Admin User
-
-Create the first admin account:
-```bash
-python scripts/create_admin.py
-```
-
-Or manually using Python:
-```python
-from backend.auth.user_repository import UserRepository
-from backend.auth.models import UserRole
-
-repo = UserRepository('./data/pocket_musec.db')
-user = repo.create_user(
-    email='admin@example.com',
-    password='Admin123',  # Change this!
-    role=UserRole.ADMIN,
-    full_name='Admin User',
-    processing_mode='cloud'
-)
-print(f"Created user: {user.email}")
-```
-
-### 5. Start Backend Server
+### 4. Start Backend Server
 
 Run the API server:
 ```bash
@@ -249,20 +226,9 @@ You should see the dashboard.
    - Verify model status shows "Installed"
    - If not installed, click "Download Local Model"
 
-### 4. Test User Management (Admin Only)
+### 4. Demo Mode
 
-Admin users can create additional users via API:
-```bash
-curl -X POST http://localhost:8000/api/auth/register \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "teacher@example.com",
-    "password": "Teacher123",
-    "role": "teacher",
-    "full_name": "Test Teacher"
-  }'
-```
+PocketMusec runs in single-user demo mode with no authentication required. All features are available immediately without login or user management.
 
 ## Troubleshooting
 
@@ -385,9 +351,8 @@ Error: Invalid token signature
 
 1. **Read the API documentation**: See `docs/API.md` for endpoint details
 2. **Explore features**: Try image upload, citations, mode switching
-3. **Create users**: Set up accounts for your teachers
-4. **Configure preferences**: Adjust storage quotas, models, etc.
-5. **Integrate with lesson generation**: Use images and citations in lessons
+3. **Configure preferences**: Adjust storage quotas, models, etc.
+4. **Integrate with lesson generation**: Use images and citations in lessons
 
 ## Support
 

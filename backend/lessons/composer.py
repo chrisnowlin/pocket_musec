@@ -3,7 +3,7 @@
 from typing import Optional, Dict, Any
 
 from backend.repositories.standards_repository import StandardsRepository
-from backend.auth.models import Session
+from backend.auth import Session
 
 
 class LessonComposer:

@@ -1,4 +1,4 @@
-"""Data models for authentication"""
+"""Data models for PocketMusec (non-auth models)"""
 
 from dataclasses import dataclass
 from datetime import datetime
@@ -57,45 +57,6 @@ class User:
         if include_sensitive:
             data["password_hash"] = self.password_hash
         return data
-
-
-@dataclass
-class RefreshToken:
-    """Refresh token model for JWT token rotation"""
-
-    id: str
-    user_id: str
-    token_hash: str
-    expires_at: datetime
-    revoked: bool = False
-    created_at: Optional[datetime] = None
-
-    def is_expired(self) -> bool:
-        """Check if token is expired"""
-        return datetime.utcnow() >= self.expires_at
-
-    def is_valid(self) -> bool:
-        """Check if token is valid (not expired and not revoked)"""
-        return not self.is_expired() and not self.revoked
-
-
-@dataclass
-class TokenPair:
-    """Access and refresh token pair"""
-
-    access_token: str
-    refresh_token: str
-    token_type: str = "Bearer"
-    expires_in: int = 900  # 15 minutes in seconds
-
-    def to_dict(self) -> dict:
-        """Convert to dictionary for API response"""
-        return {
-            "access_token": self.access_token,
-            "refresh_token": self.refresh_token,
-            "token_type": self.token_type,
-            "expires_in": self.expires_in,
-        }
 
 
 @dataclass

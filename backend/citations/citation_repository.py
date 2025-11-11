@@ -6,7 +6,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import List, Optional
 
-from ..auth.models import Citation
+from ..auth import Citation
 
 
 class CitationRepository:
@@ -30,7 +30,7 @@ class CitationRepository:
         citation_number: int,
         page_number: Optional[int] = None,
         excerpt: Optional[str] = None,
-        citation_text: str = ""
+        citation_text: str = "",
     ) -> Citation:
         """
         Save citation to database
@@ -53,16 +53,27 @@ class CitationRepository:
 
         conn = self.get_connection()
         try:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO citations (
                     id, lesson_id, source_type, source_id, source_title,
                     page_number, excerpt, citation_text, citation_number, created_at
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                citation_id, lesson_id, source_type, source_id, source_title,
-                page_number, excerpt, citation_text, citation_number, now
-            ))
+            """,
+                (
+                    citation_id,
+                    lesson_id,
+                    source_type,
+                    source_id,
+                    source_title,
+                    page_number,
+                    excerpt,
+                    citation_text,
+                    citation_number,
+                    now,
+                ),
+            )
             conn.commit()
 
             return self.get_citation_by_id(citation_id)
@@ -71,9 +82,7 @@ class CitationRepository:
             conn.close()
 
     def save_citations_batch(
-        self,
-        lesson_id: str,
-        citations: List[dict]
+        self, lesson_id: str, citations: List[dict]
     ) -> List[Citation]:
         """
         Save multiple citations in batch
@@ -94,24 +103,27 @@ class CitationRepository:
                 citation_id = str(uuid.uuid4())
                 citation_ids.append(citation_id)
 
-                conn.execute("""
+                conn.execute(
+                    """
                     INSERT INTO citations (
                         id, lesson_id, source_type, source_id, source_title,
                         page_number, excerpt, citation_text, citation_number, created_at
                     )
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    citation_id,
-                    lesson_id,
-                    citation_data['source_type'],
-                    citation_data['source_id'],
-                    citation_data['source_title'],
-                    citation_data.get('page_number'),
-                    citation_data.get('excerpt'),
-                    citation_data['citation_text'],
-                    citation_data['citation_number'],
-                    now
-                ))
+                """,
+                    (
+                        citation_id,
+                        lesson_id,
+                        citation_data["source_type"],
+                        citation_data["source_id"],
+                        citation_data["source_title"],
+                        citation_data.get("page_number"),
+                        citation_data.get("excerpt"),
+                        citation_data["citation_text"],
+                        citation_data["citation_number"],
+                        now,
+                    ),
+                )
 
             conn.commit()
 
@@ -126,8 +138,7 @@ class CitationRepository:
         conn = self.get_connection()
         try:
             cursor = conn.execute(
-                "SELECT * FROM citations WHERE id = ?",
-                (citation_id,)
+                "SELECT * FROM citations WHERE id = ?", (citation_id,)
             )
             row = cursor.fetchone()
 
@@ -151,11 +162,14 @@ class CitationRepository:
         """
         conn = self.get_connection()
         try:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT * FROM citations
                 WHERE lesson_id = ?
                 ORDER BY citation_number ASC
-            """, (lesson_id,))
+            """,
+                (lesson_id,),
+            )
 
             rows = cursor.fetchall()
             return [self._row_to_citation(row) for row in rows]
@@ -164,9 +178,7 @@ class CitationRepository:
             conn.close()
 
     def get_citations_by_source(
-        self,
-        source_type: str,
-        source_id: str
+        self, source_type: str, source_id: str
     ) -> List[Citation]:
         """
         Get all citations for a specific source
@@ -180,11 +192,14 @@ class CitationRepository:
         """
         conn = self.get_connection()
         try:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT * FROM citations
                 WHERE source_type = ? AND source_id = ?
                 ORDER BY created_at DESC
-            """, (source_type, source_id))
+            """,
+                (source_type, source_id),
+            )
 
             rows = cursor.fetchall()
             return [self._row_to_citation(row) for row in rows]
@@ -205,8 +220,7 @@ class CitationRepository:
         conn = self.get_connection()
         try:
             cursor = conn.execute(
-                "DELETE FROM citations WHERE lesson_id = ?",
-                (lesson_id,)
+                "DELETE FROM citations WHERE lesson_id = ?", (lesson_id,)
             )
             conn.commit()
             return cursor.rowcount
@@ -220,10 +234,10 @@ class CitationRepository:
         try:
             cursor = conn.execute(
                 "SELECT COUNT(*) as count FROM citations WHERE lesson_id = ?",
-                (lesson_id,)
+                (lesson_id,),
             )
             row = cursor.fetchone()
-            return row['count']
+            return row["count"]
 
         finally:
             conn.close()
@@ -231,14 +245,16 @@ class CitationRepository:
     def _row_to_citation(self, row: sqlite3.Row) -> Citation:
         """Convert database row to Citation model"""
         return Citation(
-            id=row['id'],
-            lesson_id=row['lesson_id'],
-            source_type=row['source_type'],
-            source_id=row['source_id'],
-            source_title=row['source_title'],
-            page_number=row['page_number'],
-            excerpt=row['excerpt'],
-            citation_text=row['citation_text'],
-            citation_number=row['citation_number'],
-            created_at=datetime.fromisoformat(row['created_at']) if row['created_at'] else None
+            id=row["id"],
+            lesson_id=row["lesson_id"],
+            source_type=row["source_type"],
+            source_id=row["source_id"],
+            source_title=row["source_title"],
+            page_number=row["page_number"],
+            excerpt=row["excerpt"],
+            citation_text=row["citation_text"],
+            citation_number=row["citation_number"],
+            created_at=datetime.fromisoformat(row["created_at"])
+            if row["created_at"]
+            else None,
         )

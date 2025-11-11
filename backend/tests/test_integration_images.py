@@ -19,18 +19,18 @@ from fastapi.testclient import TestClient
 # Add backend to path
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from backend.api.main import app
 from backend.repositories.migrations import DatabaseMigrator
-from backend.auth.user_repository import UserRepository
 from backend.auth.models import UserRole, ProcessingMode
 
 
 @pytest.fixture
 def test_db():
     """Create a temporary test database."""
-    fd, db_path = tempfile.mkstemp(suffix='.db')
+    fd, db_path = tempfile.mkstemp(suffix=".db")
     os.close(fd)
 
     # Migrate database
@@ -39,6 +39,7 @@ def test_db():
 
     # Update app to use test database
     from backend.api import dependencies
+
     dependencies.DATABASE_PATH = db_path
 
     yield db_path
@@ -51,16 +52,19 @@ def test_db():
 def temp_image_dir():
     """Create temporary directory for image storage."""
     import tempfile
+
     temp_dir = tempfile.mkdtemp()
 
     # Update image storage path
     from backend.image_processing import image_storage
+
     image_storage.STORAGE_PATH = temp_dir
 
     yield temp_dir
 
     # Cleanup
     import shutil
+
     shutil.rmtree(temp_dir, ignore_errors=True)
 
 
@@ -79,7 +83,7 @@ def admin_user(test_db):
         password="Admin123",
         role=UserRole.ADMIN,
         full_name="Test Admin",
-        processing_mode=ProcessingMode.CLOUD
+        processing_mode=ProcessingMode.CLOUD,
     )
     return user
 
@@ -88,8 +92,7 @@ def admin_user(test_db):
 def admin_token(client, admin_user):
     """Get admin access token."""
     response = client.post(
-        "/api/auth/login",
-        json={"email": "admin@test.com", "password": "Admin123"}
+        "/api/auth/login", json={"email": "admin@test.com", "password": "Admin123"}
     )
     return response.json()["access_token"]
 
@@ -98,11 +101,11 @@ def admin_token(client, admin_user):
 def test_image():
     """Create a simple test image."""
     # Create a simple PNG image with text
-    img = Image.new('RGB', (200, 100), color='white')
+    img = Image.new("RGB", (200, 100), color="white")
 
     # Save to bytes
     img_bytes = io.BytesIO()
-    img.save(img_bytes, format='PNG')
+    img.save(img_bytes, format="PNG")
     img_bytes.seek(0)
 
     return img_bytes
@@ -117,7 +120,7 @@ class TestImageUpload:
             "/api/images",
             headers={"Authorization": f"Bearer {admin_token}"},
             files={"file": ("test.png", test_image, "image/png")},
-            data={"processing_mode": "cloud"}
+            data={"processing_mode": "cloud"},
         )
 
         # May return 200 or 500 depending on whether Tesseract/Chutes API is available
@@ -133,8 +136,7 @@ class TestImageUpload:
     def test_upload_requires_auth(self, client, test_image):
         """Test image upload requires authentication."""
         response = client.post(
-            "/api/images",
-            files={"file": ("test.png", test_image, "image/png")}
+            "/api/images", files={"file": ("test.png", test_image, "image/png")}
         )
 
         assert response.status_code == 401
@@ -147,7 +149,7 @@ class TestImageUpload:
         response = client.post(
             "/api/images",
             headers={"Authorization": f"Bearer {admin_token}"},
-            files={"file": ("test.txt", text_file, "text/plain")}
+            files={"file": ("test.txt", text_file, "text/plain")},
         )
 
         assert response.status_code in [400, 422]  # Bad request or validation error
@@ -157,8 +159,8 @@ class TestImageUpload:
         # Create two test images
         test_image.seek(0)
         img2 = io.BytesIO()
-        img = Image.new('RGB', (200, 100), color='blue')
-        img.save(img2, format='PNG')
+        img = Image.new("RGB", (200, 100), color="blue")
+        img.save(img2, format="PNG")
         img2.seek(0)
 
         response = client.post(
@@ -166,9 +168,9 @@ class TestImageUpload:
             headers={"Authorization": f"Bearer {admin_token}"},
             files=[
                 ("files", ("test1.png", test_image, "image/png")),
-                ("files", ("test2.png", img2, "image/png"))
+                ("files", ("test2.png", img2, "image/png")),
             ],
-            data={"processing_mode": "cloud"}
+            data={"processing_mode": "cloud"},
         )
 
         # May fail if external services unavailable
@@ -189,7 +191,7 @@ class TestImageRetrieval:
         response = client.post(
             "/api/images",
             headers={"Authorization": f"Bearer {admin_token}"},
-            files={"file": ("test.png", test_image, "image/png")}
+            files={"file": ("test.png", test_image, "image/png")},
         )
 
         if response.status_code == 200:
@@ -199,8 +201,7 @@ class TestImageRetrieval:
     def test_list_images(self, client, admin_token, uploaded_image):
         """Test listing user's images."""
         response = client.get(
-            "/api/images",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            "/api/images", headers={"Authorization": f"Bearer {admin_token}"}
         )
 
         assert response.status_code == 200
@@ -218,7 +219,7 @@ class TestImageRetrieval:
 
         response = client.get(
             f"/api/images/{uploaded_image['id']}",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
 
         assert response.status_code == 200
@@ -229,7 +230,7 @@ class TestImageRetrieval:
         """Test retrieving non-existent image."""
         response = client.get(
             "/api/images/nonexistent_id",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
 
         assert response.status_code == 404
@@ -239,7 +240,7 @@ class TestImageRetrieval:
         response = client.get(
             "/api/images/search",
             headers={"Authorization": f"Bearer {admin_token}"},
-            params={"query": "test", "limit": 10}
+            params={"query": "test", "limit": 10},
         )
 
         assert response.status_code == 200
@@ -257,7 +258,7 @@ class TestImageDeletion:
         response = client.post(
             "/api/images",
             headers={"Authorization": f"Bearer {admin_token}"},
-            files={"file": ("test.png", test_image, "image/png")}
+            files={"file": ("test.png", test_image, "image/png")},
         )
 
         if response.status_code == 200:
@@ -271,7 +272,7 @@ class TestImageDeletion:
 
         response = client.delete(
             f"/api/images/{uploaded_image['id']}",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
 
         assert response.status_code == 200
@@ -279,7 +280,7 @@ class TestImageDeletion:
         # Verify image is gone
         get_response = client.get(
             f"/api/images/{uploaded_image['id']}",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
         assert get_response.status_code == 404
 
@@ -287,7 +288,7 @@ class TestImageDeletion:
         """Test deleting non-existent image."""
         response = client.delete(
             "/api/images/nonexistent_id",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
 
         assert response.status_code == 404
@@ -300,7 +301,7 @@ class TestStorageManagement:
         """Test getting storage information."""
         response = client.get(
             "/api/images/storage/info",
-            headers={"Authorization": f"Bearer {admin_token}"}
+            headers={"Authorization": f"Bearer {admin_token}"},
         )
 
         assert response.status_code == 200
@@ -323,7 +324,7 @@ class TestImageIsolation:
             password="Teacher123",
             role=UserRole.TEACHER,
             full_name="Test Teacher",
-            processing_mode=ProcessingMode.CLOUD
+            processing_mode=ProcessingMode.CLOUD,
         )
         return user
 
@@ -332,7 +333,7 @@ class TestImageIsolation:
         """Get teacher access token."""
         response = client.post(
             "/api/auth/login",
-            json={"email": "teacher@test.com", "password": "Teacher123"}
+            json={"email": "teacher@test.com", "password": "Teacher123"},
         )
         return response.json()["access_token"]
 
@@ -342,7 +343,7 @@ class TestImageIsolation:
         response = client.post(
             "/api/images",
             headers={"Authorization": f"Bearer {admin_token}"},
-            files={"file": ("admin_image.png", test_image, "image/png")}
+            files={"file": ("admin_image.png", test_image, "image/png")},
         )
 
         if response.status_code == 200:
@@ -356,26 +357,27 @@ class TestImageIsolation:
 
         response = client.get(
             f"/api/images/{admin_image['id']}",
-            headers={"Authorization": f"Bearer {teacher_token}"}
+            headers={"Authorization": f"Bearer {teacher_token}"},
         )
 
         # Should be 404 (not found) or 403 (forbidden)
         assert response.status_code in [403, 404]
 
-    def test_teacher_sees_only_own_images(self, client, teacher_token, admin_token, admin_image, test_image):
+    def test_teacher_sees_only_own_images(
+        self, client, teacher_token, admin_token, admin_image, test_image
+    ):
         """Test teacher only sees their own images in list."""
         # Upload image as teacher
         test_image.seek(0)
         teacher_upload = client.post(
             "/api/images",
             headers={"Authorization": f"Bearer {teacher_token}"},
-            files={"file": ("teacher_image.png", test_image, "image/png")}
+            files={"file": ("teacher_image.png", test_image, "image/png")},
         )
 
         # List images as teacher
         response = client.get(
-            "/api/images",
-            headers={"Authorization": f"Bearer {teacher_token}"}
+            "/api/images", headers={"Authorization": f"Bearer {teacher_token}"}
         )
 
         assert response.status_code == 200

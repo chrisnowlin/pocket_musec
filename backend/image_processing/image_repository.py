@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, List
 
-from ..auth.models import Image as ImageModel
+from ..auth import Image as ImageModel
 
 
 class ImageRepository:
@@ -32,7 +32,7 @@ class ImageRepository:
         extracted_text: Optional[str] = None,
         vision_summary: Optional[str] = None,
         ocr_confidence: Optional[float] = None,
-        metadata: Optional[dict] = None
+        metadata: Optional[dict] = None,
     ) -> ImageModel:
         """
         Save image metadata to database
@@ -58,18 +58,30 @@ class ImageRepository:
 
         conn = self.get_connection()
         try:
-            conn.execute("""
+            conn.execute(
+                """
                 INSERT INTO images (
                     id, user_id, filename, file_path, file_size, mime_type,
                     extracted_text, vision_summary, ocr_confidence, metadata,
                     created_at, last_accessed
                 )
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                image_id, user_id, filename, file_path, file_size, mime_type,
-                extracted_text, vision_summary, ocr_confidence, metadata_json,
-                now, now
-            ))
+            """,
+                (
+                    image_id,
+                    user_id,
+                    filename,
+                    file_path,
+                    file_size,
+                    mime_type,
+                    extracted_text,
+                    vision_summary,
+                    ocr_confidence,
+                    metadata_json,
+                    now,
+                    now,
+                ),
+            )
             conn.commit()
 
             return self.get_image_by_id(image_id)
@@ -81,10 +93,7 @@ class ImageRepository:
         """Get image by ID"""
         conn = self.get_connection()
         try:
-            cursor = conn.execute(
-                "SELECT * FROM images WHERE id = ?",
-                (image_id,)
-            )
+            cursor = conn.execute("SELECT * FROM images WHERE id = ?", (image_id,))
             row = cursor.fetchone()
 
             if not row:
@@ -96,10 +105,7 @@ class ImageRepository:
             conn.close()
 
     def get_user_images(
-        self,
-        user_id: str,
-        limit: int = 50,
-        offset: int = 0
+        self, user_id: str, limit: int = 50, offset: int = 0
     ) -> List[ImageModel]:
         """
         Get images for a user
@@ -114,12 +120,15 @@ class ImageRepository:
         """
         conn = self.get_connection()
         try:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT * FROM images
                 WHERE user_id = ?
                 ORDER BY created_at DESC
                 LIMIT ? OFFSET ?
-            """, (user_id, limit, offset))
+            """,
+                (user_id, limit, offset),
+            )
 
             rows = cursor.fetchall()
             return [self._row_to_image(row) for row in rows]
@@ -128,10 +137,7 @@ class ImageRepository:
             conn.close()
 
     def search_images(
-        self,
-        user_id: str,
-        query: str,
-        limit: int = 20
+        self, user_id: str, query: str, limit: int = 20
     ) -> List[ImageModel]:
         """
         Search images by text content
@@ -146,7 +152,8 @@ class ImageRepository:
         """
         conn = self.get_connection()
         try:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT * FROM images
                 WHERE user_id = ?
                 AND (
@@ -156,7 +163,9 @@ class ImageRepository:
                 )
                 ORDER BY created_at DESC
                 LIMIT ?
-            """, (user_id, f"%{query}%", f"%{query}%", f"%{query}%", limit))
+            """,
+                (user_id, f"%{query}%", f"%{query}%", f"%{query}%", limit),
+            )
 
             rows = cursor.fetchall()
             return [self._row_to_image(row) for row in rows]
@@ -170,8 +179,7 @@ class ImageRepository:
         conn = self.get_connection()
         try:
             conn.execute(
-                "UPDATE images SET last_accessed = ? WHERE id = ?",
-                (now, image_id)
+                "UPDATE images SET last_accessed = ? WHERE id = ?", (now, image_id)
             )
             conn.commit()
         finally:
@@ -181,10 +189,7 @@ class ImageRepository:
         """Delete image from database"""
         conn = self.get_connection()
         try:
-            cursor = conn.execute(
-                "DELETE FROM images WHERE id = ?",
-                (image_id,)
-            )
+            cursor = conn.execute("DELETE FROM images WHERE id = ?", (image_id,))
             conn.commit()
             return cursor.rowcount > 0
         finally:
@@ -196,10 +201,10 @@ class ImageRepository:
         try:
             cursor = conn.execute(
                 "SELECT SUM(file_size) as total FROM images WHERE user_id = ?",
-                (user_id,)
+                (user_id,),
             )
             row = cursor.fetchone()
-            return row['total'] if row['total'] else 0
+            return row["total"] if row["total"] else 0
         finally:
             conn.close()
 
@@ -208,11 +213,10 @@ class ImageRepository:
         conn = self.get_connection()
         try:
             cursor = conn.execute(
-                "SELECT COUNT(*) as count FROM images WHERE user_id = ?",
-                (user_id,)
+                "SELECT COUNT(*) as count FROM images WHERE user_id = ?", (user_id,)
             )
             row = cursor.fetchone()
-            return row['count']
+            return row["count"]
         finally:
             conn.close()
 
@@ -220,11 +224,14 @@ class ImageRepository:
         """Get oldest images by last access time (for LRU eviction)"""
         conn = self.get_connection()
         try:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT * FROM images
                 ORDER BY last_accessed ASC
                 LIMIT ?
-            """, (limit,))
+            """,
+                (limit,),
+            )
 
             rows = cursor.fetchall()
             return [self._row_to_image(row) for row in rows]
@@ -234,19 +241,23 @@ class ImageRepository:
 
     def _row_to_image(self, row: sqlite3.Row) -> ImageModel:
         """Convert database row to ImageModel"""
-        metadata = json.loads(row['metadata']) if row['metadata'] else None
+        metadata = json.loads(row["metadata"]) if row["metadata"] else None
 
         return ImageModel(
-            id=row['id'],
-            user_id=row['user_id'],
-            filename=row['filename'],
-            file_path=row['file_path'],
-            file_size=row['file_size'],
-            mime_type=row['mime_type'],
-            extracted_text=row['extracted_text'],
-            vision_summary=row['vision_summary'],
-            ocr_confidence=row['ocr_confidence'],
+            id=row["id"],
+            user_id=row["user_id"],
+            filename=row["filename"],
+            file_path=row["file_path"],
+            file_size=row["file_size"],
+            mime_type=row["mime_type"],
+            extracted_text=row["extracted_text"],
+            vision_summary=row["vision_summary"],
+            ocr_confidence=row["ocr_confidence"],
             metadata=json.dumps(metadata) if metadata else None,
-            created_at=datetime.fromisoformat(row['created_at']) if row['created_at'] else None,
-            last_accessed=datetime.fromisoformat(row['last_accessed']) if row['last_accessed'] else None
+            created_at=datetime.fromisoformat(row["created_at"])
+            if row["created_at"]
+            else None,
+            last_accessed=datetime.fromisoformat(row["last_accessed"])
+            if row["last_accessed"]
+            else None,
         )

@@ -23,7 +23,7 @@ from ..models import (
     StandardResponse,
 )
 from ..dependencies import get_current_user
-from ...auth.models import User
+from ...auth import User
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
