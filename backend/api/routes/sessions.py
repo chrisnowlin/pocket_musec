@@ -207,12 +207,6 @@ async def send_message(
     if not session or session.user_id != current_user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
 
-    if not session.selected_standards:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            detail="Select a standard before chatting with the AI",
-        )
-
     standard_repo = StandardsRepository()
     agent = _create_lesson_agent(session)
     lesson_repo = LessonRepository()
@@ -263,12 +257,6 @@ async def stream_message(
     session = session_repo.get_session(session_id)
     if not session or session.user_id != current_user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
-
-    if not session.selected_standards:
-        raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            detail="Select a standard before chatting with the AI",
-        )
 
     standard_repo = StandardsRepository()
     agent = _create_lesson_agent(session)
