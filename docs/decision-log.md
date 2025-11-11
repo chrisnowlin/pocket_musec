@@ -2,7 +2,7 @@
 
 Tracks the current agreement for key aspects of the project. Update entries when the team makes or revises a decision.
 
-_Last updated: 2025-11-10_
+_Last updated: 2025-11-11_
 
 | Area | Current Decision | Notes |
 | --- | --- | --- |
@@ -38,6 +38,7 @@ _Last updated: 2025-11-10_
 | Milestone 2 Drafts & Auto-save | Hybrid: continuous auto-save + explicit “Save revision” snapshots; keep last 10 snapshots per lesson. | Store snapshots in a per-lesson .revisions folder; show a simple revisions panel in the editor. |
 | Open Questions | 1. RESOLVED (2025-11-10): Objectives are first-class entities with unique IDs (e.g., K.CN.1.1) and a foreign key to their parent Standard; finalize remaining schema fields/relationships consistent with this decision for ingestion, CLI filtering, and export flows.<br>2. RESOLVED (2025-11-10): Local LLM for M2 = Qwen3 8B Instruct; Minimum macOS baseline = Apple Silicon (M1/M2/M3) with 16 GB unified memory using MPS; Default quantization = GGUF Q4_K_M. Document brief install/run steps (Ollama) and a CPU-only fallback note.<br>3. RESOLVED (2025-11-10): Local-only privacy policy = Offline with explicit exceptions; by default block external network I/O in local-only mode; allow per-action prompts for exceptions (e.g., model download/update, license checks); no background telemetry while offline. Storage limits: default on-disk cap = 5 GB with oldest-first eviction for caches (embeddings, prepared texts, logs). Sensitive data handling: No automatic scrubbing by default; show clear warnings before save/export and in Settings; user responsible for content safety.<br>4. RESOLVED (2025-11-10): No in-app teacher feedback collection in M2; Success metrics: (B) At least 1 full lesson exported to PDF and Markdown in a single session; (C) Zero crashes during standard workflow (generate → edit → export); (D) Standards search returns a relevant match in the top 3 for a typical query. | |
 | Parser System Status | COMPLETED (2025-11-10): Parser refactoring complete with 12 specialized parsers for 6 document types. Auto-classification achieves 100% accuracy on core document types. All parsers validated and production-ready. | See Future Enhancements section for optional improvements. |
+| Architecture Simplification | COMPLETED (2025-11-11): Major refactoring to simplify codebase architecture and improve maintainability. | See Architecture Simplification section below for details. |
 | Milestone 2 Standards Search | Semantic search (sqlite-vec embeddings) | Combine grade/strand filters with natural-language query over embeddings; provide text-search fallback when embeddings unavailable. |
 
 | Milestone 2 OS Targets | macOS only | Package with Electron Builder for macOS; internal alpha distribution (no App Store); ad-hoc signing for dev builds; revisit notarization if sharing beyond trusted testers. |
@@ -206,6 +207,143 @@ _Last updated: 2025-11-10_
 - Export recap: After saving, show the file path and aligned standard metadata for teacher confirmation.
 - Session wrap-up: Provide a session summary table before exit with columns `Draft #`, `Timestamp` (local, ISO-like), `Status` (Saved/Discarded/Regenerated), `Standards` (IDs), and `File` (saved path or `(temp only)` if still in workspace). Example:
   ```
+  
+  ---
+  
+  ## Architecture Simplification (2025-11-11)
+  
+  ### Overview
+  
+  Major refactoring completed to simplify codebase architecture, improve maintainability, and enhance developer experience. The changes focused on removing unused components, consolidating systems, and organizing code more effectively.
+  
+  ### Key Decisions
+  
+  #### 1. Unified Configuration System
+  **Decision:** Consolidate all configuration into a single, organized system in [`backend/config.py`](../backend/config.py)
+  
+  **Rationale:**
+  - Configuration was scattered across multiple files and approaches
+  - Difficult to maintain and understand settings relationships
+  - No type safety or validation
+  
+  **Implementation:**
+  - Created 10 configuration classes with dataclass decorators
+  - Organized settings by functionality (API, Database, LLM, etc.)
+  - Added automatic validation and sensible defaults
+  - Maintained backward compatibility with exported variables
+  
+  **Benefits:**
+  - Single source of truth for all configuration
+  - Type safety with full type hints
+  - Automatic validation and error reporting
+  - Self-documenting structure
+  - Easy to extend with new configuration sections
+  
+  #### 2. Database Migration Consolidation
+  **Decision:** Merge separate migration systems into a unified [`MigrationManager`](../backend/repositories/migrations.py)
+  
+  **Rationale:**
+  - Multiple migration managers were causing confusion
+  - Difficult to track overall database state
+  - Inconsistent migration approaches
+  
+  **Implementation:**
+  - Single `MigrationManager` class handles all migrations
+  - Version tracking with automatic schema versioning
+  - Support for both core and extended functionality
+  - Migration status reporting and validation
+  
+  **Benefits:**
+  - Single migration command for all database changes
+  - Clear migration history and status
+  - Consistent migration approach
+  - Better rollback capabilities
+  
+  #### 3. Frontend Component Refactoring
+  **Decision:** Break down 1,630-line [`UnifiedPage.tsx`](../frontend/src/pages/UnifiedPage.tsx) into focused components
+  
+  **Rationale:**
+  - Monolithic component was difficult to maintain
+  - Poor separation of concerns
+  - Hard to test individual features
+  - Difficult for multiple developers to work on
+  
+  **Implementation:**
+  - Created 17 focused components with clear responsibilities
+  - Extracted 4 custom hooks for reusable logic
+  - Organized state into logical groups (UI, Chat, LessonSettings, etc.)
+  - Centralized TypeScript interfaces in [`frontend/src/types/unified.ts`](../frontend/src/types/unified.ts)
+  
+  **Benefits:**
+  - 87% reduction in main component file size (1,630 → 205 lines)
+  - Improved maintainability with single-responsibility components
+  - Better testability with isolated components
+  - Enhanced reusability across application
+  - Easier collaboration with clear component boundaries
+  
+  #### 4. State Management Organization
+  **Decision:** Reorganize 18 separate state variables into logical groups
+  
+  **Rationale:**
+  - Flat state structure was hard to manage
+  - No clear relationships between related state
+  - Difficult to understand state flow
+  
+  **Implementation:**
+  - Created grouped interfaces: `UIState`, `ChatState`, `LessonSettings`, `BrowseState`, `SettingsState`
+  - Combined into `UnifiedPageState` interface
+  - Added update functions for each state group with proper immutability
+  
+  **Benefits:**
+  - Clear state organization and relationships
+  - Easier state management and debugging
+  - Better type safety with grouped interfaces
+  - Simplified state updates with dedicated functions
+  
+  #### 5. Component Removal
+  **Decision:** Remove unused components to simplify architecture
+  
+  **Rationale:**
+  - Unused components add complexity and maintenance burden
+  - Confusing for new developers
+  - Potential source of bugs and security issues
+  
+  **Implementation:**
+  - Removed unused Zustand store
+  - Removed unused websocket client
+  - Cleaned up related imports and dependencies
+  
+  **Benefits:**
+  - Cleaner, more focused codebase
+  - Reduced bundle size
+  - Easier to understand actual architecture
+  - Lower maintenance burden
+  
+  ### Breaking Changes
+  
+  None - all changes maintained backward compatibility.
+  
+  ### Migration Path
+  
+  1. **Configuration**: Existing environment variables continue to work
+  2. **Database**: Automatic migration handles schema updates
+  3. **Frontend**: Component interfaces maintained for compatibility
+  4. **State**: Legacy interface provided for backward compatibility
+  
+  ### Success Metrics
+  
+  - **87% reduction** in main component file size
+  - **10 configuration sections** organized by functionality
+  - **17 focused components** with clear responsibilities
+  - **4 custom hooks** for reusable logic
+  - **Zero breaking changes** for backward compatibility
+  
+  ### Future Considerations
+  
+  1. **Performance**: Monitor for any performance impacts from component splitting
+  2. **Bundle Size**: Track frontend bundle size changes
+  3. **Developer Experience**: Gather feedback on new architecture
+  4. **Documentation**: Keep documentation updated with new patterns
   Draft   Timestamp             Status      Standards         File
   -----   -------------------   ----------  ----------------  ----------------------------
   #1      2025-11-09 21:12:04   Saved       K.CN.1            ~/Lessons/kindergarten-cn1.md

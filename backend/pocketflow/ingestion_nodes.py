@@ -5,7 +5,7 @@ from pathlib import Path
 
 from .node import Node
 from ..ingestion.document_classifier import DocumentClassifier, DocumentType
-from ..ingestion.nc_standards_formal_parser import NCStandardsParser
+from ..ingestion.nc_standards_unified_parser import NCStandardsParser, ParsingStrategy
 from ..ingestion.unpacking_narrative_parser import UnpackingNarrativeParser
 from ..ingestion.reference_resource_parser import ReferenceResourceParser
 from ..ingestion.alignment_matrix_parser import AlignmentMatrixParser
@@ -255,9 +255,9 @@ class UnpackingIngestionNode(Node):
 
     def _ensure_extended_schema(self) -> None:
         """Ensure extended database schema exists"""
-        from ..repositories.migrations_extended import ExtendedDatabaseMigrator
+        from ..repositories.migrations import MigrationManager
 
-        migrator = ExtendedDatabaseMigrator(str(self.db_manager.db_path))
+        migrator = MigrationManager(str(self.db_manager.db_path))
         migrator.migrate_to_extended_schema()
 
     def _normalize_to_models(
@@ -505,9 +505,9 @@ class AlignmentIngestionNode(Node):
 
     def _ensure_extended_schema(self) -> None:
         """Ensure extended database schema exists"""
-        from backend.repositories.migrations_extended import ExtendedDatabaseMigrator
+        from backend.repositories.migrations_extended import MigrationManager
 
-        migrator = ExtendedDatabaseMigrator(str(self.db_manager.db_path))
+        migrator = MigrationManager(str(self.db_manager.db_path))
         migrator.migrate_to_extended_schema()
 
     def _detect_alignment_type(self, file_name: str) -> str:
@@ -720,9 +720,9 @@ class ReferenceIngestionNode(Node):
 
     def _ensure_extended_schema(self) -> None:
         """Ensure extended database schema exists"""
-        from backend.repositories.migrations_extended import ExtendedDatabaseMigrator
+        from backend.repositories.migrations_extended import MigrationManager
 
-        migrator = ExtendedDatabaseMigrator(str(self.db_manager.db_path))
+        migrator = MigrationManager(str(self.db_manager.db_path))
         migrator.migrate_to_extended_schema()
 
     def _detect_reference_type(self, file_name: str) -> str:

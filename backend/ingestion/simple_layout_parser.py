@@ -18,61 +18,29 @@ except ImportError:
     PDF2IMAGE_AVAILABLE = False
     logging.warning("pdf2image not available. Install with: pip install pdf2image")
 
-from .nc_standards_structured_parser import NCStandardsParser as StructuredParser
+from .nc_standards_unified_parser import NCStandardsParser, ParsingStrategy, ParsedStandard
 from .pdf_parser import PDFReader
 from ..repositories.models import Standard, Objective
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class ParsedStandard:
-    """Represents a parsed standard before normalization"""
-
-    grade_level: str
-    strand_code: str
-    strand_name: str
-    strand_description: str
-    standard_id: str
-    standard_text: str
-    objectives: List[str]
-    source_document: str
-    page_number: int
-
-
-class NCStandardsParser:
+class SimpleLayoutParser:
     """Vision-enhanced parser for critical pages"""
 
     def __init__(self, use_vision: bool = True):
-        self.structured_parser = StructuredParser()
+        self.unified_parser = NCStandardsParser(ParsingStrategy.STRUCTURED)
         self.pdf_reader = PDFReader()
-        self.parsed_standards: List[ParsedStandard] = []
         self.use_vision = use_vision and PDF2IMAGE_AVAILABLE
-
-        # NC Standards strand mappings
-        self.strand_mappings = {
-            "CN": (
-                "Connect",
-                "Connect music with other arts, other disciplines, and diverse contexts",
-            ),
-            "CR": ("Create", "Conceive and develop new artistic ideas and work"),
-            "PR": (
-                "Present",
-                "Analyze, interpret, and select artistic work for presentation",
-            ),
-            "RE": ("Respond", "Interpret and intent and meaning in artistic work"),
-        }
 
     def parse_standards_document(self, pdf_path: str) -> List[ParsedStandard]:
         """Parse with vision enhancement for critical pages"""
         logger.info(f"Parsing NC standards document: {pdf_path}")
 
         # Start with structured extraction
-        self.parsed_standards = self.structured_parser.parse_standards_document(
-            pdf_path
-        )
+        parsed_standards = self.unified_parser.parse_standards_document(pdf_path)
         logger.info(
-            f"Structured parser extracted {len(self.parsed_standards)} standards"
+            f"Structured parser extracted {len(parsed_standards)} standards"
         )
 
         # If vision is enabled, enhance critical pages
@@ -85,17 +53,17 @@ class NCStandardsParser:
                 )
 
                 # Merge vision results
-                self.parsed_standards = self._merge_vision_results(
-                    self.parsed_standards, vision_standards
+                parsed_standards = self._merge_vision_results(
+                    parsed_standards, vision_standards
                 )
                 logger.info(
-                    f"Vision enhancement complete - {len(self.parsed_standards)} standards"
+                    f"Vision enhancement complete - {len(parsed_standards)} standards"
                 )
 
             except Exception as e:
                 logger.error(f"Vision enhancement failed: {e}")
 
-        return self.parsed_standards
+        return parsed_standards
 
     def _extract_critical_pages_with_vision(
         self, pdf_path: str, page_numbers: List[int]
@@ -287,31 +255,10 @@ Return extraction as JSON with:
         self, source_document: str
     ) -> Tuple[List[Standard], List[Objective]]:
         """Convert parsed standards to database models"""
-        return self.structured_parser.normalize_to_models(source_document)
+        return self.unified_parser.normalize_to_models(source_document)
 
     def get_statistics(self) -> Dict[str, Any]:
         """Get statistics about parsed standards"""
-
-        if not self.parsed_standards:
-            return {}
-
-        grade_dist = {}
-        strand_dist = {}
-
-        for std in self.parsed_standards:
-            grade_dist[std.grade_level] = grade_dist.get(std.grade_level, 0) + 1
-            strand_dist[std.strand_code] = strand_dist.get(std.strand_code, 0) + 1
-
-        return {
-            "total_standards": len(self.parsed_standards),
-            "total_objectives": sum(len(s.objectives) for s in self.parsed_standards),
-            "average_objectives_per_standard": sum(
-                len(s.objectives) for s in self.parsed_standards
-            )
-            / len(self.parsed_standards)
-            if self.parsed_standards
-            else 0,
-            "grade_distribution": grade_dist,
-            "strand_distribution": strand_dist,
-            "vision_enhanced": self.use_vision,
-        }
+        stats = self.unified_parser.get_statistics()
+        stats["vision_enhanced"] = self.use_vision
+        return stats

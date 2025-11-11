@@ -56,10 +56,10 @@ class ChutesClient:
         timeout: int = 120,
         max_retries: int = 3,
     ):
-        self.api_key = api_key or config.CHUTES_API_KEY
-        self.base_url = (base_url or config.CHUTES_API_BASE_URL).rstrip('/')
-        self.default_model = default_model or config.DEFAULT_MODEL
-        self.embedding_model = config.EMBEDDING_MODEL
+        self.api_key = api_key or config.chutes.api_key
+        self.base_url = (base_url or config.chutes.base_url).rstrip('/')
+        self.default_model = default_model or config.llm.default_model
+        self.embedding_model = config.llm.embedding_model
         self.timeout = timeout
         self.max_retries = max_retries
         self.rate_limit_delay = 1.0  # Base delay for rate limiting
@@ -146,8 +146,8 @@ class ChutesClient:
         payload = {
             'model': model or self.default_model,
             'messages': [{'role': msg.role, 'content': msg.content} for msg in messages],
-            'temperature': temperature or config.DEFAULT_TEMPERATURE,
-            'max_tokens': max_tokens or config.DEFAULT_MAX_TOKENS,
+            'temperature': temperature or config.llm.default_temperature,
+            'max_tokens': max_tokens or config.llm.default_max_tokens,
             **kwargs
         }
         
@@ -186,8 +186,8 @@ class ChutesClient:
         payload = {
             'model': model or self.default_model,
             'messages': [{'role': msg.role, 'content': msg.content} for msg in messages],
-            'temperature': temperature or config.DEFAULT_TEMPERATURE,
-            'max_tokens': max_tokens or config.DEFAULT_MAX_TOKENS,
+            'temperature': temperature or config.llm.default_temperature,
+            'max_tokens': max_tokens or config.llm.default_max_tokens,
             'stream': True,
             **kwargs
         }
@@ -227,12 +227,12 @@ class ChutesClient:
             List of floats representing the embedding vector
         """
         payload = {
-            'model': model or config.EMBEDDING_MODEL,
+            'model': model or config.llm.embedding_model,
             'input': text
         }
         
         # Use dedicated embedding endpoint
-        embedding_url = config.CHUTES_EMBEDDING_BASE_URL.rstrip('/')
+        embedding_url = config.chutes.embedding_base_url.rstrip('/')
         headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json'
@@ -265,12 +265,12 @@ class ChutesClient:
             List of embedding vectors
         """
         payload = {
-            'model': model or config.EMBEDDING_MODEL,
+            'model': model or config.llm.embedding_model,
             'input': texts
         }
         
         # Use dedicated embedding endpoint
-        embedding_url = config.CHUTES_EMBEDDING_BASE_URL.rstrip('/')
+        embedding_url = config.chutes.embedding_base_url.rstrip('/')
         headers = {
             'Authorization': f'Bearer {self.api_key}',
             'Content-Type': 'application/json'

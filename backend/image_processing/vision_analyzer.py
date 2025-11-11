@@ -29,11 +29,8 @@ class VisionAnalyzer:
             api_key: Chutes API key (or from env)
             api_base_url: Chutes API base URL (or from env)
         """
-        self.api_key = api_key or os.getenv("CHUTES_API_KEY")
-        self.api_base_url = api_base_url or os.getenv(
-            "CHUTES_API_BASE_URL",
-            "https://api.chutes.ai/v1"
-        )
+        self.api_key = api_key or config.chutes.api_key
+        self.api_base_url = api_base_url or config.chutes.base_url
 
         if not self.api_key:
             logger.warning("CHUTES_API_KEY not set, vision analysis will be disabled")

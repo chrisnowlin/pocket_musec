@@ -100,50 +100,56 @@ class PocketMusecLogger:
     
     def _setup_logger(self):
         """Setup logger with handlers"""
+        # Import config to get centralized settings
+        from ..config import config
+        
         # Clear existing handlers
         self.logger.handlers.clear()
         
-        # Set log level
-        self.logger.setLevel(logging.DEBUG)
+        # Set log level based on config
+        log_level = getattr(logging, config.logging.level.upper(), logging.INFO)
+        self.logger.setLevel(log_level)
         
         # Console handler with Rich formatting
-        console_handler = RichHandler(
-            console=self.console,
-            show_time=True,
-            show_path=True,
-            markup=True,
-            rich_tracebacks=True
-        )
-        console_handler.setLevel(logging.INFO)
-        console_formatter = ColoredConsoleFormatter()
-        console_handler.setFormatter(console_formatter)
-        self.logger.addHandler(console_handler)
+        if config.logging.console_format:
+            console_handler = RichHandler(
+                console=self.console,
+                show_time=True,
+                show_path=True,
+                markup=True,
+                rich_tracebacks=True
+            )
+            console_handler.setLevel(logging.DEBUG if config.logging.debug_mode else logging.INFO)
+            console_formatter = ColoredConsoleFormatter()
+            console_handler.setFormatter(console_formatter)
+            self.logger.addHandler(console_handler)
         
         # File handler for structured logs
-        log_dir = Path("logs")
-        log_dir.mkdir(exist_ok=True)
-        
-        file_handler = logging.handlers.RotatingFileHandler(
-            log_dir / f"{self.name}.log",
-            maxBytes=10 * 1024 * 1024,  # 10MB
-            backupCount=5,
-            encoding='utf-8'
-        )
-        file_handler.setLevel(logging.DEBUG)
-        file_formatter = StructuredFormatter()
-        file_handler.setFormatter(file_formatter)
-        self.logger.addHandler(file_handler)
-        
-        # Error file handler
-        error_handler = logging.handlers.RotatingFileHandler(
-            log_dir / f"{self.name}_errors.log",
-            maxBytes=5 * 1024 * 1024,  # 5MB
-            backupCount=3,
-            encoding='utf-8'
-        )
-        error_handler.setLevel(logging.ERROR)
-        error_handler.setFormatter(file_formatter)
-        self.logger.addHandler(error_handler)
+        if config.logging.structured_format:
+            log_dir = Path(config.logging.log_dir)
+            log_dir.mkdir(exist_ok=True)
+            
+            file_handler = logging.handlers.RotatingFileHandler(
+                log_dir / f"{self.name}.log",
+                maxBytes=config.logging.max_file_size,
+                backupCount=config.logging.backup_count,
+                encoding='utf-8'
+            )
+            file_handler.setLevel(logging.DEBUG)
+            file_formatter = StructuredFormatter()
+            file_handler.setFormatter(file_formatter)
+            self.logger.addHandler(file_handler)
+            
+            # Error file handler
+            error_handler = logging.handlers.RotatingFileHandler(
+                log_dir / f"{self.name}_errors.log",
+                maxBytes=config.logging.error_max_file_size,
+                backupCount=config.logging.error_backup_count,
+                encoding='utf-8'
+            )
+            error_handler.setLevel(logging.ERROR)
+            error_handler.setFormatter(file_formatter)
+            self.logger.addHandler(error_handler)
     
     def debug(self, message: str, **kwargs):
         """Log debug message"""
@@ -312,7 +318,8 @@ class PocketMusecLogger:
     
     def get_log_summary(self, hours: int = 24) -> Dict[str, Any]:
         """Get summary of recent log entries"""
-        log_file = Path("logs") / f"{self.name}.log"
+        from ..config import config
+        log_file = Path(config.logging.log_dir) / f"{self.name}.log"
         
         if not log_file.exists():
             return {"error": "No log file found"}
@@ -357,7 +364,8 @@ class PocketMusecLogger:
     
     def cleanup_old_logs(self, days: int = 30):
         """Clean up old log files"""
-        log_dir = Path("logs")
+        from ..config import config
+        log_dir = Path(config.logging.log_dir)
         if not log_dir.exists():
             return
         

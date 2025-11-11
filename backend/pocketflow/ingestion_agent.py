@@ -8,7 +8,7 @@ from .agent import Agent
 from .flow import Flow
 from .store import Store
 from ..ingestion.document_classifier import DocumentClassifier, DocumentType
-from ..ingestion.nc_standards_formal_parser import NCStandardsParser
+from ..ingestion.nc_standards_unified_parser import NCStandardsParser, ParsingStrategy
 from ..ingestion.unpacking_narrative_parser import UnpackingNarrativeParser
 from ..ingestion.reference_resource_parser import ReferenceResourceParser
 from ..ingestion.alignment_matrix_parser import AlignmentMatrixParser
@@ -669,9 +669,9 @@ class IngestionAgent(Agent):
 
     def _ensure_extended_schema(self) -> None:
         """Ensure extended database schema exists"""
-        from backend.repositories.migrations_extended import ExtendedDatabaseMigrator
+        from backend.repositories.migrations import MigrationManager
 
-        migrator = ExtendedDatabaseMigrator(str(self.db_manager.db_path))
+        migrator = MigrationManager(str(self.db_manager.db_path))
         migrator.migrate_to_extended_schema()
 
     def reset_ingestion(self) -> None:

@@ -79,21 +79,47 @@ That's it! You're ready to create standards-aligned music lessons.
 ## 💻 For Developers
 
 ### Architecture Overview
+
+PocketMusec features a **simplified, modular architecture** designed for maintainability and developer experience:
+
 ```
 pocket_musec/
 ├── backend/                 # Core application logic
-│   ├── ingestion/          # PDF parsing and standards ingestion
-│   ├── llm/               # AI/LLM integration (Chutes API)
-│   ├── pocketflow/        # Conversation flow framework
-│   ├── repositories/      # Database layer (SQLite)
-│   └── utils/             # Utility functions
-├── cli/                   # Command-line interface (Typer)
-│   ├── commands/         # CLI command implementations
-│   └── main.py          # CLI entry point
-├── tests/                # Comprehensive test suite
-├── docs/                 # Documentation
-└── data/                 # SQLite database and files
+│   ├── api/               # FastAPI server and routes
+│   ├── auth/              # Authentication system (simplified)
+│   ├── citations/         # Citation tracking
+│   ├── config.py          # Unified configuration management
+│   ├── image_processing/  # Image OCR and vision analysis
+│   ├── ingestion/         # Document parsing and standards ingestion
+│   ├── llm/              # AI/LLM integration (Chutes API + Ollama)
+│   ├── pocketflow/       # Conversation flow framework
+│   ├── repositories/     # Database layer with unified migrations
+│   └── utils/            # Utility functions
+├── cli/                  # Command-line interface (Typer)
+│   ├── commands/        # CLI command implementations
+│   └── main.py         # CLI entry point
+├── frontend/             # React TypeScript application
+│   ├── src/
+│   │   ├── components/  # Modular React components
+│   │   ├── hooks/      # Custom React hooks
+│   │   ├── pages/      # Page components
+│   │   ├── types/      # TypeScript type definitions
+│   │   └── constants/  # Static data and constants
+├── electron/            # Electron desktop application
+├── tests/              # Comprehensive test suite
+├── docs/               # Documentation
+└── data/              # SQLite database and files
 ```
+
+### Recent Simplifications (v0.3.0)
+
+The codebase has undergone significant simplification to improve maintainability:
+
+- **Unified Configuration**: Centralized all configuration in [`backend/config.py`](../backend/config.py) with organized sections
+- **Database Migration Consolidation**: Merged separate migration systems into a single [`MigrationManager`](../backend/repositories/migrations.py)
+- **Frontend Component Refactoring**: Broke down the 1,630-line [`UnifiedPage.tsx`](../frontend/src/pages/UnifiedPage.tsx) into 17 focused components
+- **State Management Organization**: Reorganized 18 separate state variables into logical groups (UI, Chat, LessonSettings, etc.)
+- **Removed Unused Components**: Eliminated unused Zustand store and websocket client for cleaner architecture
 
 ### Technology Stack
 - **Language:** Python 3.9+
@@ -166,25 +192,60 @@ See the [CLI Commands Documentation](CLI_COMMANDS.md) for complete reference.
 
 ## 🔧 Configuration
 
+PocketMusec uses a **unified configuration system** that centralizes all settings in [`backend/config.py`](../backend/config.py). This system provides organized configuration sections with sensible defaults.
+
 ### Environment Variables
 Create a `.env` file in the project root:
 
 ```bash
 # Required: Chutes API Configuration
 CHUTES_API_KEY=your_chutes_api_key_here
-CHUTES_BASE_URL=https://api.chutes.ai
+CHUTES_API_BASE_URL=https://llm.chutes.ai/v1
+CHUTES_EMBEDDING_BASE_URL=https://chutes-qwen-qwen3-embedding-8b.chutes.ai/v1
+
+# Optional: API Server Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
+API_RELOAD=true
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 # Optional: Database Configuration
-DATABASE_PATH=./data/standards.db
+DATABASE_PATH=./data/standards/standards.db
+
+# Optional: LLM Configuration
+DEFAULT_MODEL=Qwen/Qwen3-VL-235B-A22B-Instruct
+EMBEDDING_MODEL=Qwen/Qwen3-Embedding-8B
+DEFAULT_TEMPERATURE=0.7
+DEFAULT_MAX_TOKENS=2000
+
+# Optional: Ollama Local Configuration
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=qwen3:8b
+
+# Optional: Image Processing Configuration
+IMAGE_STORAGE_PATH=./data/images
 
 # Optional: Logging Configuration
 LOG_LEVEL=INFO
-LOG_FILE=./logs/pocketmusec.log
+DEBUG_MODE=false
 
-# Optional: Development Settings
-DEBUG=False
-TESTING=False
+# Optional: Security Configuration
+JWT_SECRET_KEY=your_jwt_secret_key_here
 ```
+
+### Configuration Sections
+
+The unified configuration system organizes settings into logical sections:
+
+- **APIConfig**: Server settings, CORS, API documentation
+- **DatabaseConfig**: Database path and connection settings
+- **ChutesConfig**: Cloud AI provider configuration
+- **LLMConfig**: Language model parameters and defaults
+- **OllamaConfig**: Local AI provider settings
+- **ImageProcessingConfig**: File handling and storage limits
+- **LoggingConfig**: Log levels, rotation, and formatting
+- **SecurityConfig**: Authentication and demo mode settings
+- **PathConfig**: Directory paths and file locations
 
 ### File Locations
 - **Database:** `./data/standards.db` (created automatically)
@@ -538,6 +599,40 @@ PocketMusec is released under the MIT License. See [LICENSE](../LICENSE) for ful
 - [Typer CLI Framework](https://typer.tiangolo.com/)
 - [Rich Terminal Library](https://rich.readthedocs.io/)
 - [SQLite Database](https://sqlite.org/docs.html)
+
+---
+
+## 📋 Changelog
+
+For detailed version history and changes, see the [CHANGELOG.md](CHANGELOG.md).
+
+### Version 0.3.0 - Architecture Simplification (November 2025)
+
+#### Major Changes
+- **Unified Configuration System**: Centralized all configuration in [`backend/config.py`](../backend/config.py) with organized sections for better maintainability
+- **Database Migration Consolidation**: Merged separate migration systems into a single [`MigrationManager`](../backend/repositories/migrations.py) that handles both core and extended functionality
+- **Frontend Component Refactoring**: Broke down the 1,630-line [`UnifiedPage.tsx`](../frontend/src/pages/UnifiedPage.tsx) into 17 focused components with clear responsibilities
+- **State Management Organization**: Reorganized 18 separate state variables into logical groups (UI, Chat, LessonSettings, Browse, Settings)
+
+#### Removed Components
+- **Unused Zustand Store**: Eliminated unused state management library for cleaner architecture
+- **WebSocket Client**: Removed unused websocket client that was not being utilized
+
+#### Benefits Achieved
+- **87% reduction** in main component file size (1,630 → 205 lines)
+- **Improved maintainability** through modular component architecture
+- **Better type safety** with centralized TypeScript interfaces
+- **Enhanced developer experience** with organized configuration sections
+- **Simplified database management** with unified migration system
+
+#### Breaking Changes
+- None - backward compatibility has been maintained throughout the refactoring
+
+#### Technical Details
+- **Frontend**: Created 4 custom hooks ([`useChat.ts`](../frontend/src/hooks/useChat.ts), [`useSession.ts`](../frontend/src/hooks/useSession.ts), [`useImages.ts`](../frontend/src/hooks/useImages.ts), [`useResizing.ts`](../frontend/src/hooks/useResizing.ts))
+- **Types**: Centralized all TypeScript interfaces in [`frontend/src/types/unified.ts`](../frontend/src/types/unified.ts)
+- **Components**: Split into logical groups (Layout, Chat, View Modes, Modals)
+- **Configuration**: Organized into 10 configuration classes with automatic validation
 
 ---
 

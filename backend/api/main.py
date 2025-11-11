@@ -99,7 +99,7 @@ async def startup_event():
 
     # Run migrations
     try:
-        migration_manager.migrate_to_milestone3()
+        migration_manager.migrate()
         logger.info("Database migrations completed")
     except Exception as e:
         logger.error(f"Migration failed: {e}")

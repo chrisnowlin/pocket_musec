@@ -98,24 +98,93 @@ pip install -r requirements-dev.txt
 
 ### Environment Configuration
 
+PocketMusec uses a **unified configuration system** that centralizes all settings in [`backend/config.py`](../backend/config.py). This system provides organized configuration sections with sensible defaults and automatic validation.
+
 Create `.env` file in project root:
 
 ```bash
 # Required: Chutes API Configuration
 CHUTES_API_KEY=your_chutes_api_key_here
-CHUTES_BASE_URL=https://api.chutes.ai
+CHUTES_API_BASE_URL=https://llm.chutes.ai/v1
+CHUTES_EMBEDDING_BASE_URL=https://chutes-qwen-qwen3-embedding-8b.chutes.ai/v1
+
+# Optional: API Server Configuration
+API_HOST=0.0.0.0
+API_PORT=8000
+API_RELOAD=true
+CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 # Optional: Database Configuration
-DATABASE_PATH=./data/standards.db
+DATABASE_PATH=./data/standards/standards.db
+
+# Optional: LLM Configuration
+DEFAULT_MODEL=Qwen/Qwen3-VL-235B-A22B-Instruct
+EMBEDDING_MODEL=Qwen/Qwen3-Embedding-8B
+DEFAULT_TEMPERATURE=0.7
+DEFAULT_MAX_TOKENS=2000
+
+# Optional: Ollama Local Configuration
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_MODEL=qwen3:8b
+
+# Optional: Image Processing Configuration
+IMAGE_STORAGE_PATH=./data/images
 
 # Optional: Logging Configuration
 LOG_LEVEL=INFO
-LOG_FILE=./logs/pocketmusec.log
+DEBUG_MODE=false
 
-# Optional: Development Settings
-DEBUG=False
-TESTING=False
+# Optional: Security Configuration
+JWT_SECRET_KEY=your_jwt_secret_key_here
 ```
+
+### Configuration Sections
+
+The unified configuration system organizes settings into logical sections:
+
+#### APIConfig
+- Server settings (host, port, reload)
+- CORS configuration
+- API documentation URLs
+
+#### DatabaseConfig
+- Database path and connection settings
+- Automatic directory creation
+
+#### ChutesConfig
+- Cloud AI provider configuration
+- API endpoints and authentication
+- Timeout and retry settings
+
+#### LLMConfig
+- Language model parameters
+- Temperature and token limits
+- Default model selection
+
+#### OllamaConfig
+- Local AI provider settings
+- Model configuration
+- Connection parameters
+
+#### ImageProcessingConfig
+- File handling and storage limits
+- Allowed formats and compression
+- Thumbnail generation settings
+
+#### LoggingConfig
+- Log levels and rotation
+- File and console formatting
+- Debug mode settings
+
+#### SecurityConfig
+- Authentication settings
+- Demo mode configuration
+- Rate limiting and security options
+
+#### PathConfig
+- Directory paths and file locations
+- Automatic directory creation
+- Data organization
 
 #### Getting API Keys
 
@@ -501,16 +570,49 @@ class DatabaseManager:
 ```
 
 #### Migration Strategy
-```bash
-# Version 1: Initial schema
-# backend/repositories/migrations/001_initial_schema.sql
 
-# Version 2: Add embeddings table  
-# backend/repositories/migrations/002_add_embeddings.sql
+PocketMusec uses a **unified migration system** that consolidates all database schema changes into a single [`MigrationManager`](../backend/repositories/migrations.py) class.
 
-# Migration script
-python -m backend.repositories.migrations migrate
+```python
+# backend/repositories/migrations.py
+class MigrationManager:
+    """Manages database schema migrations for all PocketMusec functionality"""
+
+    def migrate(self) -> None:
+        """Run all necessary migrations in order"""
+        # Run core migrations
+        self.migrate_to_milestone3()
+        self.migrate_to_v4_session_persistence()
+        
+        # Run extended migrations
+        self.migrate_to_extended_schema()
 ```
+
+#### Migration Features
+
+1. **Unified Management**: Single class handles all migrations
+2. **Version Tracking**: Automatic schema version tracking
+3. **Rollback Support**: Migration status and rollback capabilities
+4. **Extended Schema**: Support for multiple document types
+5. **Validation**: Migration status checking and reporting
+
+#### Running Migrations
+
+```bash
+# Run all migrations
+python -c "from backend.repositories.migrations import MigrationManager; MigrationManager('data/standards/standards.db').migrate()"
+
+# Check migration status
+python -c "from backend.repositories.migrations import MigrationManager; print(MigrationManager('data/standards/standards.db').get_migration_status())"
+```
+
+#### Migration History
+
+- **v1**: Initial schema with standards and objectives
+- **v2**: Added embeddings support
+- **v3**: Milestone 3 features (users, sessions, lessons, images, citations)
+- **v4**: Session persistence (agent_state, conversation_history)
+- **Extended**: Support for unpacking, alignment, and reference documents
 
 ### Testing Database Code
 
@@ -553,22 +655,62 @@ def create_test_standards(db_connection):
 ### Working with External APIs
 
 #### Configuration Management
+
+PocketMusec uses a **unified configuration system** with organized sections:
+
 ```python
 # backend/config.py
-import os
-from typing import Optional
+from dataclasses import dataclass, field
+from typing import Optional, Dict, Any, List
+
+@dataclass
+class APIConfig:
+    """API server configuration"""
+    host: str = field(default_factory=lambda: os.getenv("API_HOST", "0.0.0.0"))
+    port: int = field(default_factory=lambda: int(os.getenv("API_PORT", "8000")))
+    reload: bool = field(default_factory=lambda: os.getenv("API_RELOAD", "true").lower() == "true")
+    cors_origins: List[str] = field(default_factory=lambda: [
+        origin.strip() for origin in os.getenv(
+            "CORS_ORIGINS",
+            "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173"
+        ).split(",")
+    ])
 
 class Config:
-    CHUTES_API_KEY: str = os.getenv("CHUTES_API_KEY", "")
-    CHUTES_BASE_URL: str = os.getenv("CHUTES_BASE_URL", "https://api.chutes.ai")
-    MAX_RETRIES: int = int(os.getenv("MAX_RETRIES", "3"))
-    TIMEOUT: int = int(os.getenv("TIMEOUT", "30"))
+    """Unified application configuration"""
     
-    @classmethod
-    def validate(cls) -> bool:
+    def __init__(self):
+        """Initialize all configuration sections"""
+        self.api = APIConfig()
+        self.database = DatabaseConfig()
+        self.chutes = ChutesConfig()
+        self.llm = LLMConfig()
+        self.ollama = OllamaConfig()
+        self.image_processing = ImageProcessingConfig()
+        self.logging = LoggingConfig()
+        self.processing = ProcessingConfig()
+        self.security = SecurityConfig()
+        self.paths = PathConfig()
+        
+        # Validate configuration
+        self.validate()
+    
+    def validate(self) -> None:
         """Validate required configuration"""
-        return bool(cls.CHUTES_API_KEY)
+        if self.is_cloud_enabled() and not self.chutes.api_key:
+            raise ValueError(
+                "CHUTES_API_KEY not found. Please set it in .env file or environment variables."
+            )
 ```
+
+#### Benefits of Unified Configuration
+
+1. **Organization**: Settings grouped by functionality
+2. **Type Safety**: Full type hints and validation
+3. **Defaults**: Sensible defaults for all settings
+4. **Validation**: Automatic configuration validation
+5. **Documentation**: Self-documenting structure
+6. **Extensibility**: Easy to add new configuration sections
 
 #### API Client Pattern
 ```python

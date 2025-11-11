@@ -21,19 +21,22 @@ class ImageProcessor:
 
     def __init__(
         self,
-        storage_path: str = "data/images",
+        storage_path: Optional[str] = None,
         api_key: Optional[str] = None
     ):
         """
         Initialize image processor
 
         Args:
-            storage_path: Directory for image storage
-            api_key: Chutes API key for vision analysis
+            storage_path: Directory for image storage (defaults to config)
+            api_key: Chutes API key for vision analysis (defaults to config)
         """
+        # Use centralized config if no overrides provided
+        from ..config import config
+        
         self.ocr_engine = OCREngine()
-        self.vision_analyzer = VisionAnalyzer(api_key=api_key)
-        self.storage = ImageStorage(storage_path=storage_path)
+        self.vision_analyzer = VisionAnalyzer(api_key=api_key or config.chutes.api_key)
+        self.storage = ImageStorage(storage_path=storage_path or config.image_processing.storage_path)
 
     def process_image(
         self,

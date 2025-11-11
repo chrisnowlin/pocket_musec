@@ -4,7 +4,6 @@ import requests
 import json
 from typing import Optional, Dict, AsyncIterator
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -18,21 +17,23 @@ class OllamaProvider:
 
     def __init__(
         self,
-        base_url: str = "http://localhost:11434",
-        model: str = "qwen3:8b",
-        timeout: int = 120
+        base_url: Optional[str] = None,
+        model: Optional[str] = None,
+        timeout: Optional[int] = None
     ):
         """
         Initialize Ollama provider
 
         Args:
-            base_url: Ollama API URL
-            model: Model name (default: qwen3:8b)
-            timeout: Request timeout in seconds
+            base_url: Ollama API URL (defaults to config)
+            model: Model name (defaults to config)
+            timeout: Request timeout in seconds (defaults to config)
         """
-        self.base_url = base_url
-        self.model = model
-        self.timeout = timeout
+        # Use centralized config if no overrides provided
+        from ..config import config
+        self.base_url = base_url or config.ollama.base_url
+        self.model = model or config.ollama.model
+        self.timeout = timeout or config.ollama.timeout
 
     def is_available(self) -> bool:
         """

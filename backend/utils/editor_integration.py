@@ -27,7 +27,7 @@ class EditorIntegration:
         # Check environment variables first
         editor_vars = ['EDITOR', 'VISUAL']
         for var in editor_vars:
-            editor = os.environ.get(var)
+            editor = os.environ.get(var)  # Keep this for editor detection
             if editor:
                 if self._verify_editor_available(editor):
                     logger.info(f"Using editor from {var}: {editor}")
@@ -105,7 +105,7 @@ class EditorIntegration:
         available = [editor for editor in all_editors if self._verify_editor_available(editor)]
         
         # Add environment editor if set and not in list
-        env_editor = os.environ.get('EDITOR') or os.environ.get('VISUAL')
+        env_editor = os.environ.get('EDITOR') or os.environ.get('VISUAL')  # Keep for editor detection
         if env_editor and env_editor not in available:
             if self._verify_editor_available(env_editor):
                 available.insert(0, env_editor)
@@ -225,5 +225,5 @@ class EditorIntegration:
             'detected_editor': self.detected_editor,
             'available_editors': self.get_available_editors(),
             'platform': sys.platform,
-            'editor_env_var': os.environ.get('EDITOR') or os.environ.get('VISUAL')
+            'editor_env_var': os.environ.get('EDITOR') or os.environ.get('VISUAL')  # Keep for editor detection
         }

@@ -3,7 +3,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Form
 from fastapi.responses import FileResponse
 from typing import List, Optional
-import os
 import tempfile
 from pathlib import Path
 import logging
@@ -12,6 +11,7 @@ from ...auth import User
 from ...image_processing import ImageProcessor, ImageRepository
 from ..dependencies import get_current_user
 from ..models import MessageResponse
+from ...config import config
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +21,16 @@ router = APIRouter(prefix="/api/images", tags=["images"])
 # Helper to get image processor
 def get_image_processor() -> ImageProcessor:
     """Get ImageProcessor instance"""
-    storage_path = os.getenv("IMAGE_STORAGE_PATH", "data/images")
-    api_key = os.getenv("CHUTES_API_KEY")
-    return ImageProcessor(storage_path=storage_path, api_key=api_key)
+    return ImageProcessor(
+        storage_path=config.image_processing.storage_path,
+        api_key=config.chutes.api_key
+    )
 
 
 # Helper to get image repository
 def get_image_repository() -> ImageRepository:
     """Get ImageRepository instance"""
-    db_path = os.getenv("DATABASE_PATH", "data/standards/standards.db")
-    return ImageRepository(db_path=db_path)
+    return ImageRepository(db_path=config.database.path)
 
 
 # Pydantic models for responses

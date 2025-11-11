@@ -1,9 +1,10 @@
 """Database connection and initialization for pocket_musec"""
 
 import sqlite3
-import os
 from pathlib import Path
 from typing import Optional
+
+from ..config import config
 
 
 class DatabaseManager:
@@ -11,9 +12,8 @@ class DatabaseManager:
 
     def __init__(self, db_path: Optional[str] = None):
         if db_path is None:
-            # Default to data/standards/standards.db
-            project_root = Path(__file__).parent.parent.parent
-            db_path = str(project_root / "data" / "standards" / "standards.db")
+            # Use centralized configuration
+            db_path = config.database.path
 
         self.db_path = Path(db_path)
         self.db_path.parent.mkdir(parents=True, exist_ok=True)

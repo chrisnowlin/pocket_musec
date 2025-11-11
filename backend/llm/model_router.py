@@ -3,10 +3,10 @@
 from typing import Optional, Literal
 from enum import Enum
 import logging
-import os
 
 from .chutes_client import ChutesClient
 from .local_provider import OllamaProvider
+from ..config import config
 
 logger = logging.getLogger(__name__)
 
@@ -30,21 +30,19 @@ class ModelRouter:
         self.local_provider = None
 
         # Initialize cloud provider if API key available
-        chutes_api_key = os.getenv("CHUTES_API_KEY")
-        if chutes_api_key:
+        if config.is_cloud_enabled():
             try:
-                self.cloud_provider = ChutesClient(api_key=chutes_api_key)
+                self.cloud_provider = ChutesClient(api_key=config.chutes.api_key)
                 logger.info("Cloud provider (Chutes) initialized")
             except Exception as e:
                 logger.error(f"Failed to initialize cloud provider: {e}")
 
         # Initialize local provider
         try:
-            ollama_url = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-            ollama_model = os.getenv("OLLAMA_MODEL", "qwen3:8b")
             self.local_provider = OllamaProvider(
-                base_url=ollama_url,
-                model=ollama_model
+                base_url=config.ollama.base_url,
+                model=config.ollama.model,
+                timeout=config.ollama.timeout
             )
             logger.info("Local provider (Ollama) initialized")
         except Exception as e:
@@ -140,7 +138,7 @@ class ModelRouter:
 
     def is_cloud_available(self) -> bool:
         """Check if cloud provider is available"""
-        return self.cloud_provider is not None and bool(os.getenv("CHUTES_API_KEY"))
+        return self.cloud_provider is not None and config.is_cloud_enabled()
 
     def is_local_available(self) -> bool:
         """Check if local provider is available"""
