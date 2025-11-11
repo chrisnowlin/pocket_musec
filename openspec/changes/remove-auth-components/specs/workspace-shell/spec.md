@@ -1,6 +1,6 @@
 # Capability: Demo Mode Workspace Shell
 
-## MODIFIED Requirements
+## ADDED Requirements
 
 ### Requirement: Unrestricted Demo Access
 The SPA SHALL assume a demo user and render the main workspace without requiring authentication flows.
