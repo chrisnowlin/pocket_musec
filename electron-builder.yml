@@ -1,0 +1,61 @@
+appId: com.pocketmusec.app
+productName: PocketMusec
+copyright: Copyright © 2024 PocketMusec Team
+
+directories:
+  output: dist-electron
+  buildResources: build
+
+files:
+  - electron/dist/**/*
+  - frontend/dist/**/*
+  - backend/**/*
+  - "!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}"
+  - "!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}"
+  - "!**/node_modules/*.d.ts"
+  - "!**/node_modules/.bin"
+  - "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}"
+  - "!.editorconfig"
+  - "!**/._*"
+  - "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}"
+  - "!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}"
+  - "!**/{appveyor.yml,.travis.yml,circle.yml}"
+  - "!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}"
+
+extraResources:
+  - from: backend
+    to: backend
+    filter:
+      - "!**/__pycache__"
+      - "!**/*.pyc"
+      - "!**/tests/**"
+
+mac:
+  category: public.app-category.education
+  icon: build/icon.icns
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  target:
+    - target: dmg
+      arch:
+        - x64
+        - arm64
+
+dmg:
+  title: ${productName} ${version}
+  icon: build/volume.icns
+  background: build/dmg-background.png
+  contents:
+    - x: 130
+      y: 220
+    - x: 410
+      y: 220
+      type: link
+      path: /Applications
+
+publish:
+  provider: github
+  owner: pocketmusec
+  repo: pocket-musec

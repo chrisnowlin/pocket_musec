@@ -1,0 +1,27 @@
+{
+  "name": "pocket-musec",
+  "version": "1.0.0",
+  "description": "PocketMusec - AI-powered lesson planning assistant for music teachers",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "python run_api.py",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:desktop": "cd electron && npm run dev",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd . && pyinstaller --onefile --name=pocketmusec-backend run_api.py",
+    "build:desktop": "cd electron && npm run build",
+    "dist:desktop": "cd electron && npm run dist",
+    "dist:desktop:mac": "cd electron && npm run dist:mac",
+    "pack:desktop": "cd electron && npm run pack",
+    "install:desktop": "cd electron && npm install",
+    "postinstall:desktop": "cd electron && npm run postinstall"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  },
+  "workspaces": [
+    "frontend",
+    "electron"
+  ]
+}
