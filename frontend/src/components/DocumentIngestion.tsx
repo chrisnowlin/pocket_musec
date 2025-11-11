@@ -360,7 +360,7 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
               Ingest Another Document
             </button>
             <button
-              onClick={() => window.location.href = '/workspace'}
+              onClick={() => window.location.href = '/'}
               className="px-6 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
             >
               Go to Workspace

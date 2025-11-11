@@ -523,7 +523,6 @@ export default function UnifiedPage() {
     ? 'bg-rose-100 text-rose-900 border-rose-200'
     : 'bg-amber-100 text-amber-900 border-amber-200';
   const sessionStatusDetail = session ? 'Live' : sessionError ? 'Retry' : 'Loading';
-  const chatProgress = Math.min(messages.length * 5, 100);
 
   return (
     <>
