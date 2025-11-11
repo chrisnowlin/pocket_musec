@@ -2,6 +2,23 @@
 
 Complete installation and configuration guide for PocketMusec with all Milestone 3 features.
 
+## Quick Setup with Make
+
+The project includes a comprehensive Makefile that simplifies common development tasks. If you have Make installed, you can use these commands:
+
+```bash
+# Complete setup (installs dependencies + initializes database)
+make setup
+
+# Start development servers (backend + frontend)
+make dev
+
+# View all available commands
+make help
+```
+
+For a full list of Make commands, see the [Makefile](../Makefile) or run `make help`.
+
 ## Prerequisites
 
 ### System Requirements
@@ -72,7 +89,12 @@ Navigate to the project root:
 cd pocket_musec
 ```
 
-Install backend dependencies:
+**Using Make:**
+```bash
+make install-backend
+```
+
+**Manual installation:**
 ```bash
 pip install -e .
 ```
@@ -82,9 +104,20 @@ Or using poetry:
 poetry install
 ```
 
+Or using uv:
+```bash
+uv pip install -e .
+```
+
 ### 2. Configure Environment Variables
 
-Copy the example environment file:
+**Using Make:**
+```bash
+make check-env
+```
+This will automatically copy `.env.example` to `.env` if it doesn't exist.
+
+**Manual setup:**
 ```bash
 cp .env.example .env
 ```
@@ -127,16 +160,31 @@ DATABASE_PATH=./data/pocket_musec.db
 
 ### 3. Initialize Database
 
-Run database migrations:
+**Using Make:**
+```bash
+make db-init
+```
+
+**Manual setup:**
 ```bash
 python -c "from backend.repositories.migrations import DatabaseMigrator; m = DatabaseMigrator('./data/pocket_musec.db'); m.migrate()"
 ```
 
 This creates the database with all required tables for Milestone 3.
 
+**Reset database (WARNING: deletes all data):**
+```bash
+make db-reset
+```
+
 ### 4. Start Backend Server
 
-Run the API server:
+**Using Make:**
+```bash
+make dev-backend
+```
+
+**Manual start:**
 ```bash
 python run_api.py
 ```
@@ -152,13 +200,14 @@ curl http://localhost:8000/health
 
 ### 1. Install Node Dependencies
 
-Navigate to the frontend directory:
+**Using Make:**
 ```bash
-cd frontend
+make install-frontend
 ```
 
-Install dependencies:
+**Manual installation:**
 ```bash
+cd frontend
 npm install
 ```
 
@@ -180,6 +229,17 @@ server: {
 
 ### 3. Start Development Server
 
+**Using Make:**
+```bash
+make dev-frontend
+```
+
+Or start both backend and frontend together:
+```bash
+make dev
+```
+
+**Manual start:**
 ```bash
 npm run dev
 ```
@@ -188,6 +248,12 @@ The frontend will start on `http://localhost:5173`
 
 ### 4. Build for Production
 
+**Using Make:**
+```bash
+make build-frontend
+```
+
+**Manual build:**
 ```bash
 npm run build
 ```
@@ -286,6 +352,13 @@ Error: Table already exists
 ```
 
 **Solution:** This usually means the database is already migrated. To start fresh:
+
+**Using Make:**
+```bash
+make db-reset
+```
+
+**Manual reset:**
 ```bash
 rm ./data/pocket_musec.db
 python -c "from backend.repositories.migrations import DatabaseMigrator; m = DatabaseMigrator('./data/pocket_musec.db'); m.migrate()"
@@ -346,6 +419,52 @@ Error: Invalid token signature
 - Error tracking (Sentry, etc.)
 - Performance monitoring
 - Storage quota monitoring
+
+## Development Commands
+
+The project includes a Makefile with convenient commands for common tasks:
+
+### Installation & Setup
+- `make setup` - Complete project setup (install deps + init DB)
+- `make install` - Install all dependencies
+- `make install-backend` - Install Python dependencies
+- `make install-frontend` - Install frontend dependencies
+- `make check-env` - Check/create .env file
+
+### Development
+- `make dev` - Start both backend and frontend servers
+- `make dev-backend` - Start backend API server only
+- `make dev-frontend` - Start frontend dev server only
+- `make dev-desktop` - Run Electron desktop app
+
+### Building
+- `make build` - Build both backend and frontend
+- `make build-backend` - Build backend executable
+- `make build-frontend` - Build frontend for production
+- `make dist-desktop` - Create distributable desktop package
+
+### Testing & Quality
+- `make test` - Run all tests
+- `make test-backend` - Run backend tests
+- `make test-integration` - Run integration tests
+- `make lint` - Lint all code
+- `make format` - Format all code
+- `make type-check` - Run type checking
+- `make check` - Run all checks (lint + type-check + test)
+
+### Database
+- `make db-init` - Initialize database
+- `make db-reset` - Reset database (with confirmation)
+
+### Cleanup
+- `make clean` - Clean build artifacts
+- `make clean-all` - Clean everything including node_modules
+
+### Utilities
+- `make logs` - Show recent log files
+- `make help` - Show all available commands
+
+See the [Makefile](../Makefile) for the complete list of commands.
 
 ## Next Steps
 
