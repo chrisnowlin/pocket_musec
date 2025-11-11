@@ -1,0 +1,1 @@
+{"timestamp": "2025-11-11T10:22:48.053631", "level": "ERROR", "message": "File validation failed: File not found: /Users/cnowlin/Developer/pocket_musec/NC Music Standards.pdf", "module": "logging_config", "function": "_log", "line_number": 196, "context": null, "error_details": null, "user_id": null, "session_id": "46399d24"}
