@@ -4,12 +4,13 @@ import DashboardPage from './pages/DashboardPage';
 import ImagesPage from './pages/ImagesPage';
 import SettingsPage from './pages/SettingsPage';
 import IngestionPage from './pages/IngestionPage';
+import UnifiedPage from './pages/UnifiedPage';
 import WorkspaceShell from './workspace/WorkspaceShell';
 
 function App() {
   return (
     <Routes>
-      <Route path="/" element={<WorkspaceShell />} />
+      <Route path="/" element={<UnifiedPage />} />
 
       {/* Legacy interface moved under /classic */}
       <Route path="classic" element={<Layout />}>
