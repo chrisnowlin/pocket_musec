@@ -3,11 +3,11 @@
 @tailwind utilities;
 
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
+  font-family: 'Georgia', 'Times New Roman', serif;
+  line-height: 1.6;
   font-weight: 400;
-  color: #0f172a;
-  background-color: #f8fafc;
+  color: #3d2817;
+  background-color: #f4e8d0;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -17,11 +17,28 @@
 body {
   margin: 0;
   min-height: 100vh;
-  background-color: #0f172a;
+  background-color: #e8dcc0;
   background-image:
-    radial-gradient(circle at top, rgba(99, 102, 241, 0.25), transparent 55%),
-    radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.25), transparent 45%),
-    linear-gradient(180deg, #f8fafc, #e0e7ff);
+    /* Subtle paper texture */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(139, 115, 85, 0.03) 2px,
+      rgba(139, 115, 85, 0.03) 4px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 2px,
+      rgba(139, 115, 85, 0.03) 2px,
+      rgba(139, 115, 85, 0.03) 4px
+    ),
+    /* Aged paper gradient */
+    linear-gradient(135deg, #f4e8d0 0%, #e8dcc0 50%, #ddd4b8 100%),
+    /* Subtle vignette */
+    radial-gradient(ellipse at center, transparent 0%, rgba(139, 115, 85, 0.1) 100%);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%;
 }
 
 #root {
@@ -46,11 +63,28 @@ body {
 }
 
 .resizer:hover {
-  background: #9ca3af;
+  background: #8b7355;
 }
 
 .resizer.resizing {
-  background: #6366f1;
+  background: #6b5639;
+}
+
+.resizer-horizontal {
+  height: 4px;
+  cursor: row-resize;
+  background: transparent;
+  position: relative;
+  flex-shrink: 0;
+  width: 100%;
+}
+
+.resizer-horizontal:hover {
+  background: #8b7355;
+}
+
+.resizer-horizontal.resizing {
+  background: #6b5639;
 }
 
 .no-select {
@@ -66,7 +100,7 @@ body {
   height: 6px;
   border-radius: 9999px;
   display: inline-block;
-  background-color: #9ca3af;
+  background-color: #8b7355;
 }
 
 .typing-indicator span:nth-child(2) {
@@ -78,20 +112,39 @@ body {
 }
 
 .workspace-card {
-  border-radius: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.35);
-  background-color: #ffffff;
-  box-shadow: 0 15px 45px rgba(15, 23, 42, 0.08);
+  border-radius: 0.5rem;
+  border: 1px solid rgba(139, 115, 85, 0.3);
+  background-color: #faf7f0;
+  background-image:
+    /* Paper texture */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 1px,
+      rgba(139, 115, 85, 0.05) 1px,
+      rgba(139, 115, 85, 0.05) 2px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 1px,
+      rgba(139, 115, 85, 0.05) 1px,
+      rgba(139, 115, 85, 0.05) 2px
+    );
+  box-shadow: 
+    0 2px 8px rgba(107, 86, 57, 0.15),
+    0 1px 3px rgba(107, 86, 57, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 .workspace-panel-glass {
-  background: rgba(248, 250, 252, 0.88);
-  backdrop-filter: saturate(200%) blur(18px);
+  background: rgba(244, 232, 208, 0.95);
+  backdrop-filter: saturate(150%) blur(8px);
 }
 
 .workspace-shell {
   min-height: 100vh;
-  background: radial-gradient(circle at top, rgba(99, 102, 241, 0.05), transparent 55%);
+  background: radial-gradient(circle at top, rgba(139, 115, 85, 0.08), transparent 55%);
 }
 
 .workspace-shell__classic-link {
@@ -99,6 +152,50 @@ body {
   top: 1rem;
   right: 1rem;
   z-index: 60;
+}
+
+/* Parchment-themed scrollbar styling */
+/* Firefox scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #8b7355 #e8dcc0;
+}
+
+/* Webkit scrollbar (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #e8dcc0;
+  border-radius: 5px;
+  border: 1px solid rgba(139, 115, 85, 0.2);
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #8b7355;
+  border-radius: 5px;
+  border: 1px solid rgba(107, 86, 57, 0.3);
+  box-shadow: inset 0 1px 2px rgba(107, 86, 57, 0.2);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #6b5639;
+  border-color: rgba(107, 86, 57, 0.4);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: #4a3d28;
+}
+
+/* Special styling for .scrollable class with lighter parchment background */
+.scrollable {
+  scrollbar-color: #8b7355 #f4e8d0;
+}
+
+.scrollable::-webkit-scrollbar-track {
+  background: #f4e8d0;
 }
 
 @keyframes blink {

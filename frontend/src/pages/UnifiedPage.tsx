@@ -17,6 +17,7 @@ import type {
 } from '../lib/types';
 import DocumentIngestion from '../components/DocumentIngestion';
 import IngestionStatus from '../components/IngestionStatus';
+import MarkdownRenderer from '../components/MarkdownRenderer';
 
 type PanelSide = 'sidebar' | 'right';
 type ChatSender = 'user' | 'ai';
@@ -150,6 +151,7 @@ export default function UnifiedPage() {
   const [chatError, setChatError] = useState<string | null>(null);
   const [selectedGrade, setSelectedGrade] = useState('Grade 3');
   const [selectedStrand, setSelectedStrand] = useState('Connect');
+  const [selectedObjective, setSelectedObjective] = useState<string | null>(null);
   const [lessonContext, setLessonContext] = useState('Class has recorders and a 30-minute block with mixed instruments.');
   const [lessonDuration, setLessonDuration] = useState('30 minutes');
   const [classSize, setClassSize] = useState('25');
@@ -159,6 +161,10 @@ export default function UnifiedPage() {
   const [resizingPanel, setResizingPanel] = useState<PanelSide | null>(null);
   const [startX, setStartX] = useState(0);
   const [startWidth, setStartWidth] = useState(0);
+  const [messageContainerHeight, setMessageContainerHeight] = useState<number | null>(null);
+  const [resizingMessageContainer, setResizingMessageContainer] = useState(false);
+  const [startY, setStartY] = useState(0);
+  const [startHeight, setStartHeight] = useState(0);
   
   // Image processing states
   const [images, setImages] = useState<ImageData[]>([]);
@@ -440,22 +446,35 @@ export default function UnifiedPage() {
     event.preventDefault();
   };
 
+  const handleMessageContainerResizerMouseDown = (event: ReactMouseEvent<HTMLDivElement>) => {
+    setResizingMessageContainer(true);
+    setStartY(event.clientY);
+    setStartHeight(messageContainerHeight || (messageContainerRef.current?.offsetHeight ?? 400));
+    event.preventDefault();
+  };
+
   useEffect(() => {
     const handleMouseMove = (event: MouseEvent) => {
-      if (!resizingPanel) return;
-      if (resizingPanel === 'sidebar') {
-        const delta = event.clientX - startX;
-        const width = Math.min(Math.max(startWidth + delta, 200), 400);
-        setSidebarWidth(width);
-      } else if (resizingPanel === 'right') {
-        const delta = event.clientX - startX;
-        const width = Math.min(Math.max(startWidth - delta, 300), 600);
-        setRightPanelWidth(width);
+      if (resizingMessageContainer) {
+        const delta = event.clientY - startY;
+        const height = Math.min(Math.max(startHeight - delta, 200), window.innerHeight - 300);
+        setMessageContainerHeight(height);
+      } else if (resizingPanel) {
+        if (resizingPanel === 'sidebar') {
+          const delta = event.clientX - startX;
+          const width = Math.min(Math.max(startWidth + delta, 200), 400);
+          setSidebarWidth(width);
+        } else if (resizingPanel === 'right') {
+          const delta = event.clientX - startX;
+          const width = Math.min(Math.max(startWidth - delta, 300), 600);
+          setRightPanelWidth(width);
+        }
       }
     };
 
     const handleMouseUp = () => {
       setResizingPanel(null);
+      setResizingMessageContainer(false);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
@@ -464,11 +483,11 @@ export default function UnifiedPage() {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
     };
-  }, [resizingPanel, startX, startWidth]);
+  }, [resizingPanel, resizingMessageContainer, startX, startWidth, startY, startHeight]);
 
   useEffect(() => {
-    document.body.classList.toggle('no-select', Boolean(resizingPanel));
-  }, [resizingPanel]);
+    document.body.classList.toggle('no-select', Boolean(resizingPanel) || resizingMessageContainer);
+  }, [resizingPanel, resizingMessageContainer]);
 
   useEffect(() => {
     loadImages();
@@ -518,10 +537,10 @@ export default function UnifiedPage() {
     ? 'Session not responding'
     : 'Waking up the AI';
   const sessionStatusTone = session
-    ? 'bg-emerald-100 text-emerald-900 border-emerald-200'
+    ? 'bg-parchment-200 text-ink-700 border-ink-300'
     : sessionError
-    ? 'bg-rose-100 text-rose-900 border-rose-200'
-    : 'bg-amber-100 text-amber-900 border-amber-200';
+    ? 'bg-parchment-300 text-ink-800 border-ink-400'
+    : 'bg-parchment-200 text-ink-700 border-ink-300';
   const sessionStatusDetail = session ? 'Live' : sessionError ? 'Retry' : 'Loading';
 
   return (
@@ -530,13 +549,13 @@ export default function UnifiedPage() {
         {/* Sidebar */}
         <aside
           id="sidebar"
-          className="bg-gray-900 text-white flex flex-col panel overflow-hidden"
+          className="bg-ink-800 text-parchment-100 flex flex-col panel overflow-hidden"
           style={{ width: `${sidebarWidth}px`, minWidth: '200px', maxWidth: '400px' }}
         >
-          <div className="p-4 border-b border-gray-700">
+          <div className="p-4 border-b border-ink-700">
             <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
-                <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <div className="w-10 h-10 bg-gradient-to-br from-ink-600 to-ink-700 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-parchment-100" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -547,7 +566,7 @@ export default function UnifiedPage() {
               </div>
               <div>
                 <h1 className="font-bold">PocketMusec</h1>
-                <p className="text-xs text-gray-400">AI Assistant</p>
+                <p className="text-xs text-parchment-300">AI Assistant</p>
               </div>
             </div>
             <button
@@ -563,9 +582,10 @@ export default function UnifiedPage() {
                 setSelectedGrade('Grade 3');
                 setSelectedStandard(standards[0] ?? standardLibrary[0]);
                 setSelectedStrand('Connect');
+                setSelectedObjective(null);
                 setMode('chat');
               }}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-4 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2"
+              className="w-full bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2"
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -574,16 +594,16 @@ export default function UnifiedPage() {
             </button>
           </div>
 
-          <div className="p-3 border-b border-gray-700">
-            <div className="bg-gray-800 rounded-lg p-1 flex flex-wrap gap-1">
+          <div className="p-3 border-b border-ink-700">
+            <div className="bg-ink-700 rounded-lg p-1 flex flex-wrap gap-1">
               {(['chat', 'browse', 'ingestion', 'images', 'settings'] as ViewMode[]).map((viewMode) => (
                 <button
                   key={viewMode}
                   onClick={() => setMode(viewMode)}
                   className={`flex-1 px-2 py-1.5 text-xs font-medium rounded capitalize ${
                     mode === viewMode
-                      ? 'bg-gray-700 text-white'
-                      : 'text-gray-400 hover:text-white transition-colors'
+                      ? 'bg-ink-600 text-parchment-100'
+                      : 'text-parchment-300 hover:text-parchment-100 transition-colors'
                   }`}
                 >
                   {viewMode}
@@ -595,7 +615,7 @@ export default function UnifiedPage() {
           <nav className="flex-1 scrollable p-3 space-y-1">
             {mode === 'chat' && conversationGroups.map((group) => (
               <div key={group.label} className="mb-4">
-                <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">
+                <h3 className="px-3 text-xs font-semibold text-parchment-300 uppercase mb-2">
                   {group.label}
                 </h3>
                 <div className="space-y-1">
@@ -603,35 +623,57 @@ export default function UnifiedPage() {
                     <button
                       key={item.title}
                       className={`w-full text-left px-3 py-2 rounded-lg ${
-                        item.active ? 'bg-gray-800 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'
+                        item.active ? 'bg-ink-700 text-parchment-100' : 'text-parchment-200 hover:bg-ink-700 hover:text-parchment-100'
                       }`}
                     >
                       <div className="text-sm font-medium truncate">{item.title}</div>
-                      <div className="text-xs text-gray-500">{item.hint}</div>
+                      <div className="text-xs text-parchment-400">{item.hint}</div>
                     </button>
                   ))}
                 </div>
               </div>
             ))}
 
-            <div className="pt-4 mt-4 border-t border-gray-700">
-              <h3 className="px-3 text-xs font-semibold text-gray-400 uppercase mb-2">Quick Access</h3>
-              <div className="space-y-1">
+            <div className="pt-4 mt-4 border-t border-ink-700">
+              <h3 className="px-3 text-xs font-semibold text-parchment-300 uppercase mb-2">Quick Access</h3>
+              <div className="space-y-1 mb-4">
                 {quickAccessLinks.map((link) => (
                   <button
                     key={link.label}
-                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-300 hover:bg-gray-800 hover:text-white w-full"
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100 w-full"
                   >
                     <span className="text-sm">{link.label}</span>
-                    <span className="ml-auto text-xs text-gray-500">{link.hint}</span>
+                    <span className="ml-auto text-xs text-parchment-400">{link.hint}</span>
                   </button>
                 ))}
+              </div>
+              
+              <h3 className="px-3 text-xs font-semibold text-parchment-300 uppercase mb-2 mt-4">Quick Actions</h3>
+              <div className="space-y-1">
+                <button
+                  onClick={() => setMode('ingestion')}
+                  className="w-full text-left px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100"
+                >
+                  <span className="text-sm">📄 Upload Documents</span>
+                </button>
+                <button
+                  onClick={() => setImageModalOpen(true)}
+                  className="w-full text-left px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100"
+                >
+                  <span className="text-sm">🖼️ Upload Images</span>
+                </button>
+                <button
+                  onClick={() => setMode('settings')}
+                  className="w-full text-left px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100"
+                >
+                  <span className="text-sm">⚙️ Settings</span>
+                </button>
               </div>
             </div>
           </nav>
 
-          <div className="p-3 border-t border-gray-700">
-            <div className="text-xs text-gray-400 px-3 py-2">
+          <div className="p-3 border-t border-ink-700">
+            <div className="text-xs text-parchment-300 px-3 py-2">
               <p>Demo Environment</p>
               <p>Single-user mode</p>
             </div>
@@ -647,20 +689,39 @@ export default function UnifiedPage() {
         {/* Main Content */}
         <section className="flex-1 flex flex-col panel workspace-panel-glass">
           <div className="px-6 pt-6 pb-4">
-            <div className="grid gap-5 lg:grid-cols-[2fr_1fr]">
-              <div className="rounded-2xl bg-gradient-to-r from-purple-600 to-sky-500 p-6 text-white shadow-2xl overflow-hidden">
-                <p className="text-xs uppercase tracking-[0.4em] text-white/80">Current Focus</p>
+            <div className="flex flex-col gap-5">
+              <div className="rounded-2xl bg-gradient-to-r from-ink-700 to-ink-800 p-6 text-parchment-100 shadow-2xl overflow-hidden border border-ink-600">
+                <p className="text-xs uppercase tracking-[0.4em] text-parchment-200">Current Focus</p>
                 <h3 className="mt-3 text-xl font-semibold leading-tight">{heroFocusTitle}</h3>
-                <p className="mt-2 text-sm text-white/90">{heroFocusSubtitle}</p>
+                <p className="mt-2 text-sm text-parchment-200">{heroFocusSubtitle}</p>
                 <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
                   {heroBadges.map((badge) => (
-                    <span key={badge.id} className="rounded-full border border-white/40 bg-white/15 px-3 py-1">
+                    <span key={badge.id} className="rounded-full border border-parchment-300/40 bg-parchment-200/20 px-3 py-1 text-parchment-100">
                       {badge.label}
                     </span>
                   ))}
                 </div>
-                <div className="mt-4 flex items-center gap-2 text-xs text-white/70">
-                  <span className="inline-flex h-3 w-3 rounded-full bg-white animate-pulse" />
+                {selectedStandard && selectedStandard.learningObjectives && selectedStandard.learningObjectives.length > 0 && (
+                  <div className="mt-6 pt-4 border-t border-parchment-200/20">
+                    <h4 className="text-xs font-semibold text-parchment-200 uppercase mb-3 tracking-wider">Learning Objectives</h4>
+                    <ul className="space-y-2 text-sm text-parchment-200">
+                      {selectedStandard.learningObjectives.map((objective, index) => (
+                        <li className="flex items-start gap-2" key={index}>
+                          <svg className="w-4 h-4 text-parchment-100 mt-0.5 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                            <path
+                              fillRule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                              clipRule="evenodd"
+                            />
+                          </svg>
+                          <span>{objective}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <div className="mt-4 flex items-center gap-2 text-xs text-parchment-200">
+                  <span className="inline-flex h-3 w-3 rounded-full bg-parchment-100 animate-pulse" />
                   <span>
                     {session
                       ? 'Learning session live'
@@ -670,43 +731,6 @@ export default function UnifiedPage() {
                   </span>
                 </div>
               </div>
-              <div className="space-y-3">
-                <div className="workspace-card p-4">
-                  <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Session Pulse</p>
-                  <div className="mt-4 flex items-center justify-between gap-4">
-                    <div>
-                      <p className="text-lg font-semibold text-gray-900">{sessionStatusLabel}</p>
-                      <p className="text-xs text-gray-500">
-                        {session
-                          ? 'Ready to receive your next prompt'
-                          : sessionError
-                          ? 'This workspace needs attention'
-                          : 'AI is initializing'}
-                      </p>
-                    </div>
-                    <span className={`text-xs font-semibold px-3 py-1 rounded-full border ${sessionStatusTone}`}>
-                      {sessionStatusDetail}
-                    </span>
-                  </div>
-                  <div className="mt-3 flex items-center justify-between text-xs text-gray-500">
-                    <span>Mode</span>
-                    <span className="capitalize">{mode}</span>
-                  </div>
-                </div>
-                <div className="workspace-card p-4">
-                  <p className="text-xs uppercase tracking-[0.4em] text-gray-500">Activity</p>
-                  <div className="mt-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-2xl font-semibold text-gray-900">{messages.length}</p>
-                      <p className="text-xs text-gray-500">Messages this session</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xl font-semibold text-purple-600">{quickStats.lessonsCreated}</p>
-                      <p className="text-xs text-gray-500">Lessons created</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -714,56 +738,21 @@ export default function UnifiedPage() {
           <div className="flex-1 overflow-hidden">
             {mode === 'chat' && (
               <div className="h-full flex flex-col">
-                <div className="border-b border-gray-200 bg-white px-6 py-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h2 className="text-lg font-semibold text-gray-900">Lesson Planning Chat</h2>
-                      <p className="text-sm text-gray-500">Conversational AI guidance</p>
+                <div className="flex flex-col flex-1 min-h-0">
+                  <div
+                    className={`resizer-horizontal ${resizingMessageContainer ? 'resizing' : ''}`}
+                    onMouseDown={handleMessageContainerResizerMouseDown}
+                  />
+                  <div
+                    ref={messageContainerRef}
+                    className="flex-1 scrollable px-6 py-4 space-y-4 workspace-card"
+                    style={messageContainerHeight ? { height: `${messageContainerHeight}px`, flexShrink: 0 } : {}}
+                  >
+                    <div className="border-b border-ink-300 pb-4 mb-4">
+                      <h2 className="text-lg font-semibold text-ink-800">Lesson Planning Chat</h2>
+                      <p className="text-sm text-ink-600">Conversational AI guidance</p>
                     </div>
-                  </div>
-                </div>
-
-                <div className="px-6 pb-4">
-                  <div className="workspace-card p-4 space-y-3">
-                    <p className="text-xs uppercase tracking-wider text-gray-500">Quick grade entry</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {gradeOptions.map((grade) => (
-                        <button
-                          key={grade}
-                          onClick={() => setSelectedGrade(grade)}
-                          className={`text-xs font-medium px-3 py-2 rounded-lg border transition ${
-                            selectedGrade === grade
-                              ? 'border-purple-500 bg-purple-50 text-purple-700'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-purple-300 hover:bg-purple-50'
-                          }`}
-                        >
-                          {grade}
-                        </button>
-                      ))}
-                    </div>
-                    <div className="flex gap-2 flex-wrap">
-                      {strandOptions.map((strand) => (
-                        <button
-                          key={strand}
-                          onClick={() => setSelectedStrand(strand)}
-                          className={`px-3 py-1.5 text-xs font-semibold rounded-full border ${
-                            selectedStrand === strand
-                              ? 'border-blue-500 bg-blue-50 text-blue-700'
-                              : 'border-gray-200 text-gray-600 hover:border-blue-300'
-                          }`}
-                        >
-                          {strand}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <div
-                  ref={messageContainerRef}
-                  className="flex-1 scrollable px-6 py-4 space-y-4 workspace-card"
-                >
-                  {messages.map((message) => (
+                    {messages.map((message) => (
                     <div
                       key={message.id}
                       className={`flex gap-3 items-start ${
@@ -771,8 +760,8 @@ export default function UnifiedPage() {
                       }`}
                     >
                       {message.sender === 'ai' && (
-                        <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
-                          <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <div className="w-8 h-8 bg-ink-600 rounded-lg flex items-center justify-center flex-shrink-0 shadow-sm">
+                          <svg className="w-5 h-5 text-parchment-100" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
@@ -782,26 +771,35 @@ export default function UnifiedPage() {
                           </svg>
                         </div>
                       )}
-                      <div className="flex-1 max-w-3xl">
-                        <div
-                          className={`flex items-center gap-2 mb-2 ${
-                            message.sender === 'user' ? 'justify-end' : ''
-                          }`}
-                        >
-                          <span className="text-xs font-semibold text-gray-700">
-                            {message.sender === 'ai' ? 'PocketMusec AI' : 'You'}
-                          </span>
-                          <span className="text-xs text-gray-400">•</span>
-                          <span className="text-xs text-gray-500">Just now</span>
-                        </div>
-                        <div
-                          className={`rounded-lg shadow-sm border px-4 py-3 ${
-                            message.sender === 'ai'
-                              ? 'bg-white border-gray-200 text-gray-700'
-                              : 'bg-purple-600 text-white'
-                          }`}
-                        >
-                          <p className="text-sm leading-relaxed">{message.text}</p>
+                      <div className={message.sender === 'user' ? 'flex justify-end w-full' : 'flex-1 max-w-3xl'}>
+                        <div className={message.sender === 'user' ? 'flex flex-col items-end max-w-[80%]' : 'w-full'}>
+                          <div
+                            className={`flex items-center gap-2 mb-2 ${
+                              message.sender === 'user' ? 'justify-end' : ''
+                            }`}
+                          >
+                            <span className="text-xs font-semibold text-ink-700">
+                              {message.sender === 'ai' ? 'PocketMusec AI' : 'You'}
+                            </span>
+                            <span className="text-xs text-ink-400">•</span>
+                            <span className="text-xs text-ink-600">Just now</span>
+                          </div>
+                          <div
+                            className={`rounded-lg shadow-sm border px-4 py-3 ${
+                              message.sender === 'ai'
+                                ? 'bg-parchment-50 border-ink-300 text-ink-800'
+                                : 'bg-ink-700 text-parchment-100'
+                            } ${message.sender === 'user' ? 'w-fit max-w-full' : ''}`}
+                          >
+                            {message.sender === 'ai' ? (
+                              <MarkdownRenderer 
+                                content={message.text}
+                                className="text-sm leading-relaxed"
+                              />
+                            ) : (
+                              <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{message.text}</p>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -810,17 +808,15 @@ export default function UnifiedPage() {
                   {isTyping && (
                     <div className="flex items-center gap-2">
                       <div className="typing-indicator flex items-center gap-1">
-                        <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
-                        <span className="w-2.5 h-2.5 rounded-full bg-gray-400" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+                        <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
                       </div>
-                      <span className="text-xs text-gray-500">PocketMusec is typing...</span>
+                      <span className="text-xs text-ink-600">PocketMusec is typing...</span>
                     </div>
                   )}
-                </div>
 
-                <div className="border-t border-gray-200 px-6 py-4">
-                  <div className="workspace-card p-4 space-y-3">
+                  <div className="border-t border-ink-300 pt-4 mt-4">
                     <div className="flex gap-3 items-end">
                       <div className="flex-1 relative">
                         <textarea
@@ -834,11 +830,11 @@ export default function UnifiedPage() {
                               sendMessage();
                             }
                           }}
-                          className="w-full border border-gray-200 rounded-xl px-4 py-3 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-sm"
+                          className="w-full border border-ink-300 rounded-xl px-4 py-3 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent text-sm bg-parchment-50 text-ink-800"
                           rows={1}
                           placeholder="Type a message or use the buttons above..."
                         />
-                        <button className="absolute right-3 bottom-3 text-gray-400 hover:text-gray-600 transition-colors">
+                        <button className="absolute right-3 bottom-3 text-ink-500 hover:text-ink-700 transition-colors">
                           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                             <path
                               strokeLinecap="round"
@@ -851,21 +847,22 @@ export default function UnifiedPage() {
                       </div>
                       <button
                         onClick={sendMessage}
-                        className="bg-purple-600 hover:bg-purple-700 text-white rounded-xl px-6 py-3 font-medium transition-colors shadow-sm"
+                        className="bg-ink-700 hover:bg-ink-800 text-parchment-100 rounded-xl px-6 py-3 font-medium transition-colors shadow-sm"
                       >
                         Send
                       </button>
                     </div>
                     {sessionError && (
-                      <div className="mt-2 rounded-md bg-yellow-50 px-3 py-2 text-xs text-yellow-800">
+                      <div className="mt-2 rounded-md bg-parchment-300 px-3 py-2 text-xs text-ink-800 border border-ink-400">
                         {sessionError}
                       </div>
                     )}
                     {chatError && (
-                      <div className="mt-2 rounded-md bg-red-50 px-3 py-2 text-xs text-red-700">
+                      <div className="mt-2 rounded-md bg-parchment-300 px-3 py-2 text-xs text-ink-800 border border-ink-500">
                         {chatError}
                       </div>
                     )}
+                  </div>
                   </div>
                 </div>
               </div>
@@ -882,9 +879,9 @@ export default function UnifiedPage() {
                           placeholder="Search standards, objectives, or topics..."
                           value={browseQuery}
                           onChange={(event) => setBrowseQuery(event.target.value)}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          className="w-full border border-ink-300 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent bg-parchment-50 text-ink-800"
                         />
-                        <svg className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <svg className="w-5 h-5 text-ink-500 absolute left-3 top-2.5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                         </svg>
                       </div>
@@ -896,22 +893,22 @@ export default function UnifiedPage() {
                           onClick={() => setSelectedGrade(grade)}
                           className={`px-3 py-1 text-xs font-medium rounded-full border ${
                             selectedGrade === grade
-                              ? 'bg-purple-100 text-purple-700 border-purple-200'
-                              : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                              ? 'bg-parchment-200 text-ink-700 border-ink-300'
+                              : 'bg-parchment-100 text-ink-600 border-ink-300 hover:bg-parchment-200'
                           }`}
                         >
                           {grade}
                         </button>
                       ))}
-                      <div className="border-l border-gray-300 mx-2" />
+                      <div className="border-l border-ink-300 mx-2" />
                       {strandOptions.map((strand) => (
                         <button
                           key={strand}
                           onClick={() => setSelectedStrand(strand)}
                           className={`px-3 py-1 text-xs font-medium rounded-full border ${
                             selectedStrand === strand
-                              ? 'bg-blue-100 text-blue-700 border-blue-200'
-                              : 'bg-gray-100 text-gray-600 border-gray-200 hover:bg-gray-200'
+                              ? 'bg-parchment-200 text-ink-700 border-ink-300'
+                              : 'bg-parchment-100 text-ink-600 border-ink-300 hover:bg-parchment-200'
                           }`}
                         >
                           {strand}
@@ -924,10 +921,10 @@ export default function UnifiedPage() {
                 <div className="flex-1 scrollable px-6 pb-6">
                   <div className="space-y-4">
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold text-gray-900">
+                      <h2 className="text-lg font-semibold text-ink-800">
                         Standards for {selectedGrade} · {selectedStrand}
                       </h2>
-                      <span className="text-sm text-gray-500">{filteredStandards.length} standards found</span>
+                      <span className="text-sm text-ink-600">{filteredStandards.length} standards found</span>
                     </div>
                     <div className="space-y-3">
                       {filteredStandards.map((standard) => (
@@ -935,21 +932,21 @@ export default function UnifiedPage() {
                           key={standard.id}
                           className={`border ${
                             selectedStandard?.id === standard.id
-                              ? 'border-blue-300 bg-blue-50'
-                              : 'border-gray-200 bg-white'
-                          } rounded-lg p-4 hover:bg-gray-50 cursor-pointer transition-colors`}
+                              ? 'border-ink-400 bg-parchment-200'
+                              : 'border-ink-300 bg-parchment-50'
+                          } rounded-lg p-4 hover:bg-parchment-100 cursor-pointer transition-colors`}
                           onClick={() => setSelectedStandard(standard)}
                         >
                           <div className="flex items-start justify-between">
                             <div className="flex-1">
                               <div className="flex items-center gap-2 mb-2">
-                                <span className="text-xs font-mono font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded">
+                                <span className="text-xs font-mono font-semibold text-ink-700 bg-parchment-200 px-2 py-1 rounded">
                                   {standard.code}
                                 </span>
-                                <span className="text-xs text-gray-500">{standard.strand_name} Strand</span>
+                                <span className="text-xs text-ink-600">{standard.strand_name} Strand</span>
                               </div>
-                              <h3 className="font-medium text-gray-900 mb-2">{standard.title}</h3>
-                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                              <h3 className="font-medium text-ink-800 mb-2">{standard.title}</h3>
+                              <div className="flex items-center gap-4 text-sm text-ink-600">
                                 <span className="flex items-center gap-1">
                                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -974,8 +971,8 @@ export default function UnifiedPage() {
                               }}
                               className={`text-sm font-medium ml-4 whitespace-nowrap ${
                                 selectedStandard?.id === standard.id
-                                  ? 'text-blue-600 hover:text-blue-700'
-                                  : 'text-purple-600 hover:text-purple-700'
+                                  ? 'text-ink-700 hover:text-ink-800'
+                                  : 'text-ink-600 hover:text-ink-700'
                               }`}
                             >
                               Start Chat →
@@ -993,8 +990,8 @@ export default function UnifiedPage() {
               <div className="h-full overflow-y-auto px-6 py-4">
                 <div className="max-w-4xl mx-auto">
                   <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Document Ingestion</h2>
-                    <p className="text-gray-600 mt-2">
+                    <h2 className="text-2xl font-bold text-ink-800">Document Ingestion</h2>
+                    <p className="text-ink-600 mt-2">
                       Upload and process music education documents with AI-powered analysis
                     </p>
                   </div>
@@ -1010,35 +1007,35 @@ export default function UnifiedPage() {
               <div className="h-full overflow-y-auto px-6 py-4">
                 <div className="max-w-4xl mx-auto">
                   <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Image Processing</h2>
-                    <p className="text-gray-600 mt-2">
+                    <h2 className="text-2xl font-bold text-ink-800">Image Processing</h2>
+                    <p className="text-ink-600 mt-2">
                       Upload sheet music, diagrams, and other images for OCR and AI analysis
                     </p>
                   </div>
 
                   {/* Storage Info */}
                   {storageInfo && (
-                    <div className="bg-white shadow rounded-lg p-6 mb-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Storage Usage</h3>
+                    <div className="workspace-card p-6 mb-6">
+                      <h3 className="text-lg font-semibold text-ink-800 mb-4">Storage Usage</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Images:</span>
-                          <span className="font-medium">{storageInfo.image_count}</span>
+                          <span className="text-ink-600">Images:</span>
+                          <span className="font-medium text-ink-800">{storageInfo.image_count}</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Storage:</span>
-                          <span className="font-medium">
+                          <span className="text-ink-600">Storage:</span>
+                          <span className="font-medium text-ink-800">
                             {storageInfo.usage_mb.toFixed(2)} MB / {storageInfo.limit_mb} MB
                           </span>
                         </div>
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="w-full bg-parchment-200 rounded-full h-2.5">
                           <div
                             className={`h-2.5 rounded-full ${
                               storageInfo.percentage > 90
-                                ? 'bg-red-600'
+                                ? 'bg-ink-700'
                                 : storageInfo.percentage > 70
-                                ? 'bg-yellow-600'
-                                : 'bg-blue-600'
+                                ? 'bg-ink-600'
+                                : 'bg-ink-500'
                             }`}
                             style={{ width: `${Math.min(storageInfo.percentage, 100)}%` }}
                           />
@@ -1051,8 +1048,8 @@ export default function UnifiedPage() {
                   <div
                     className={`border-2 border-dashed rounded-lg p-12 text-center transition-colors mb-6 ${
                       imageDragActive
-                        ? 'border-blue-500 bg-blue-50'
-                        : 'border-gray-300 hover:border-gray-400'
+                        ? 'border-ink-500 bg-parchment-200'
+                        : 'border-ink-300 hover:border-ink-400 bg-parchment-50'
                     }`}
                     onDragOver={(e) => {
                       e.preventDefault();
@@ -1073,72 +1070,72 @@ export default function UnifiedPage() {
                       className="hidden"
                     />
 
-                    <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="mx-auto h-12 w-12 text-ink-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                     </svg>
 
-                    <p className="mt-4 text-lg text-gray-600">
+                    <p className="mt-4 text-lg text-ink-700">
                       Drag and drop images here, or{' '}
                       <button
                         onClick={() => fileInputRef.current?.click()}
-                        className="text-blue-600 hover:text-blue-700 font-medium"
+                        className="text-ink-600 hover:text-ink-700 font-medium"
                       >
                         browse files
                       </button>
                     </p>
-                    <p className="mt-2 text-sm text-gray-500">
+                    <p className="mt-2 text-sm text-ink-600">
                       Supports PNG, JPEG, GIF, WebP (max 10MB per file)
                     </p>
 
                     {isUploading && (
                       <div className="mt-6 max-w-md mx-auto">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                        <div className="w-full bg-parchment-200 rounded-full h-2.5">
                           <div
-                            className="bg-blue-600 h-2.5 rounded-full transition-all"
+                            className="bg-ink-600 h-2.5 rounded-full transition-all"
                             style={{ width: `${uploadProgress}%` }}
                           />
                         </div>
-                        <p className="mt-2 text-sm text-gray-600">Uploading... {uploadProgress}%</p>
+                        <p className="mt-2 text-sm text-ink-600">Uploading... {uploadProgress}%</p>
                       </div>
                     )}
                   </div>
 
                   {uploadError && (
-                    <div className="rounded-md bg-red-50 p-4 mb-6">
-                      <div className="text-sm text-red-800">{uploadError}</div>
+                    <div className="rounded-md bg-parchment-300 p-4 mb-6 border border-ink-400">
+                      <div className="text-sm text-ink-800">{uploadError}</div>
                     </div>
                   )}
 
                   {/* Recent Images */}
                   {recentImages.length > 0 && (
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Images</h3>
+                      <h3 className="text-lg font-semibold text-ink-800 mb-4">Recent Images</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {recentImages.map((image) => (
                           <div
                             key={image.id}
-                            className="bg-white shadow rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer"
+                            className="workspace-card p-4 hover:shadow-lg transition-shadow cursor-pointer"
                             onClick={() => setSelectedImage(image)}
                           >
                             <div className="flex items-center justify-between mb-2">
-                              <h4 className="font-medium text-gray-900 truncate">{image.filename}</h4>
+                              <h4 className="font-medium text-ink-800 truncate">{image.filename}</h4>
                               <button
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleDeleteImage(image.id);
                                 }}
-                                className="text-red-600 hover:text-red-700"
+                                className="text-ink-700 hover:text-ink-800"
                               >
                                 <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                 </svg>
                               </button>
                             </div>
-                            <p className="text-sm text-gray-600">
+                            <p className="text-sm text-ink-600">
                               {new Date(image.uploaded_at).toLocaleDateString()}
                             </p>
                             {image.ocr_text && (
-                              <p className="text-sm text-gray-700 mt-2 line-clamp-2">{image.ocr_text}</p>
+                              <p className="text-sm text-ink-700 mt-2 line-clamp-2">{image.ocr_text}</p>
                             )}
                           </div>
                         ))}
@@ -1153,28 +1150,28 @@ export default function UnifiedPage() {
               <div className="h-full overflow-y-auto px-6 py-4">
                 <div className="max-w-4xl mx-auto">
                   <div className="mb-6">
-                    <h2 className="text-2xl font-bold text-gray-900">Settings</h2>
-                    <p className="text-gray-600 mt-2">
+                    <h2 className="text-2xl font-bold text-ink-800">Settings</h2>
+                    <p className="text-ink-600 mt-2">
                       Configure your processing preferences and system settings
                     </p>
                   </div>
 
                   <div className="space-y-6">
                     {/* Account Information */}
-                    <div className="bg-white shadow rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
+                    <div className="workspace-card p-6">
+                      <h3 className="text-lg font-semibold text-ink-800 mb-4">Account Information</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Name:</span>
-                          <span className="font-medium">Demo User</span>
+                          <span className="text-ink-600">Name:</span>
+                          <span className="font-medium text-ink-800">Demo User</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Email:</span>
-                          <span className="font-medium">demo@example.com</span>
+                          <span className="text-ink-600">Email:</span>
+                          <span className="font-medium text-ink-800">demo@example.com</span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Role:</span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 capitalize">
+                          <span className="text-ink-600">Role:</span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-parchment-200 text-ink-800 capitalize">
                             Admin
                           </span>
                         </div>
@@ -1182,14 +1179,14 @@ export default function UnifiedPage() {
                     </div>
 
                     {/* Processing Mode */}
-                    <div className="bg-white shadow rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">Processing Mode</h3>
-                      <p className="text-sm text-gray-600 mb-4">
+                    <div className="workspace-card p-6">
+                      <h3 className="text-lg font-semibold text-ink-800 mb-4">Processing Mode</h3>
+                      <p className="text-sm text-ink-600 mb-4">
                         Choose how AI processing is performed for lesson generation and image analysis
                       </p>
                       <div className="space-y-3">
                         <div className={`border-2 rounded-lg p-4 ${
-                          currentProcessingMode === 'cloud' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                          currentProcessingMode === 'cloud' ? 'border-ink-500 bg-parchment-200' : 'border-ink-300'
                         }`}>
                           <div className="flex items-center">
                             <input
@@ -1197,23 +1194,23 @@ export default function UnifiedPage() {
                               name="processing_mode"
                               checked={currentProcessingMode === 'cloud'}
                               onChange={() => setCurrentProcessingMode('cloud')}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                              className="h-4 w-4 text-ink-600 focus:ring-ink-500 border-ink-300"
                             />
                             <label className="ml-3">
-                              <span className="text-lg font-medium text-gray-900">Cloud Mode</span>
+                              <span className="text-lg font-medium text-ink-800">Cloud Mode</span>
                               {currentProcessingMode === 'cloud' && (
-                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white">
+                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-ink-600 text-parchment-100">
                                   Current
                                 </span>
                               )}
                             </label>
                           </div>
-                          <p className="ml-7 mt-2 text-sm text-gray-600">
+                          <p className="ml-7 mt-2 text-sm text-ink-600">
                             Fast processing with cloud AI API. No local setup required.
                           </p>
                         </div>
                         <div className={`border-2 rounded-lg p-4 ${
-                          currentProcessingMode === 'local' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                          currentProcessingMode === 'local' ? 'border-ink-500 bg-parchment-200' : 'border-ink-300'
                         }`}>
                           <div className="flex items-center">
                             <input
@@ -1221,18 +1218,18 @@ export default function UnifiedPage() {
                               name="processing_mode"
                               checked={currentProcessingMode === 'local'}
                               onChange={() => setCurrentProcessingMode('local')}
-                              className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300"
+                              className="h-4 w-4 text-ink-600 focus:ring-ink-500 border-ink-300"
                             />
                             <label className="ml-3">
-                              <span className="text-lg font-medium text-gray-900">Local Mode</span>
+                              <span className="text-lg font-medium text-ink-800">Local Mode</span>
                               {currentProcessingMode === 'local' && (
-                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-blue-600 text-white">
+                                <span className="ml-2 inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-ink-600 text-parchment-100">
                                   Current
                                 </span>
                               )}
                             </label>
                           </div>
-                          <p className="ml-7 mt-2 text-sm text-gray-600">
+                          <p className="ml-7 mt-2 text-sm text-ink-600">
                             Private processing with local AI model. Data stays on your machine.
                           </p>
                         </div>
@@ -1240,24 +1237,24 @@ export default function UnifiedPage() {
                     </div>
 
                     {/* System Status */}
-                    <div className="bg-white shadow rounded-lg p-6">
-                      <h3 className="text-lg font-semibold text-gray-900 mb-4">System Status</h3>
+                    <div className="workspace-card p-6">
+                      <h3 className="text-lg font-semibold text-ink-800 mb-4">System Status</h3>
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Backend API:</span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          <span className="text-ink-600">Backend API:</span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-parchment-200 text-ink-800">
                             Connected
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">Database:</span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          <span className="text-ink-600">Database:</span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-parchment-200 text-ink-800">
                             Ready
                           </span>
                         </div>
                         <div className="flex justify-between items-center">
-                          <span className="text-gray-600">AI Services:</span>
-                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          <span className="text-ink-600">AI Services:</span>
+                          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-parchment-200 text-ink-800">
                             Online
                           </span>
                         </div>
@@ -1279,161 +1276,202 @@ export default function UnifiedPage() {
         {/* Right Panel */}
         <aside
           id="rightPanel"
-          className="border-l border-gray-200 flex flex-col panel workspace-panel-glass"
+          className="border-l border-ink-300 flex flex-col panel workspace-panel-glass"
           style={{ width: `${rightPanelWidth}px`, minWidth: '300px', maxWidth: '600px' }}
         >
-          <div className="border-b border-gray-200 bg-white px-6 py-4">
-            <h2 className="font-semibold text-gray-900">Context & Configuration</h2>
-            <p className="text-xs text-gray-500 mt-1">Lesson settings, processing options, and assets</p>
+          <div className="border-b border-ink-300 bg-parchment-50 px-6 py-4">
+            <h2 className="font-semibold text-ink-800">Context & Configuration</h2>
+            <p className="text-xs text-ink-600 mt-1">Lesson settings, processing options, and assets</p>
           </div>
 
           <div className="flex-1 scrollable p-6 space-y-4">
-            <div className="workspace-card p-4 space-y-3">
-              <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <svg className="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Current Selections
-              </h3>
-              <div className="space-y-3 text-sm text-gray-700">
-                <div className="flex justify-between">
-                  <span>Grade Level</span>
-                  <span className="px-3 py-1 rounded-full bg-purple-100 text-purple-700 border border-purple-200">
-                    {selectedGrade}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Strand</span>
-                  <span className="italic text-gray-500">{selectedStrand || 'Not selected yet'}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Standard</span>
-                  <span className="italic text-gray-500">
-                    {selectedStandard?.code ?? 'Not selected yet'}
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setMode('browse')}
-                className="mt-4 w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                Browse Standards
-              </button>
-            </div>
-
-            <div className="workspace-card p-4 space-y-3">
-              <h3 className="font-semibold text-gray-900">Lesson Settings</h3>
+            <div className="workspace-card p-4 space-y-4">
+              {/* Current Selections */}
               <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1 block">Additional Context</label>
-                <textarea
-                  value={lessonContext}
-                  onChange={(event) => setLessonContext(event.target.value)}
-                  rows={3}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Lesson Duration</label>
-                  <select
-                    value={lessonDuration}
-                    onChange={(event) => setLessonDuration(event.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  >
-                    <option>30 minutes</option>
-                    <option>45 minutes</option>
-                    <option>60 minutes</option>
-                    <option>90 minutes</option>
-                  </select>
+                <h3 className="font-semibold text-ink-800 mb-3 flex items-center gap-2">
+                  <svg className="w-5 h-5 text-ink-600" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  Current Selections
+                </h3>
+                <div className="space-y-3 text-sm text-ink-700">
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1">Grade Level</label>
+                    <select
+                      value={selectedGrade}
+                      onChange={(event) => {
+                        setSelectedGrade(event.target.value);
+                        setSelectedObjective(null); // Clear objective when grade changes
+                      }}
+                      className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
+                    >
+                      {gradeOptions.map((grade) => (
+                        <option key={grade} value={grade}>
+                          {grade}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1">Strand</label>
+                    <select
+                      value={selectedStrand}
+                      onChange={(event) => {
+                        setSelectedStrand(event.target.value);
+                        setSelectedObjective(null); // Clear objective when strand changes
+                      }}
+                      className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
+                    >
+                      {strandOptions.map((strand) => (
+                        <option key={strand} value={strand}>
+                          {strand}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1">Standard</label>
+                    <select
+                      value={selectedStandard?.id || ''}
+                      onChange={(event) => {
+                        const standard = standards.find((s) => s.id === event.target.value);
+                        setSelectedStandard(standard || null);
+                        setSelectedObjective(null); // Clear objective when standard changes
+                      }}
+                      className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
+                    >
+                      <option value="">Not selected yet</option>
+                      {standards
+                        .filter((standard) => 
+                          standard.grade === selectedGrade && 
+                          standard.strand_name === selectedStrand
+                        )
+                        .map((standard) => (
+                          <option key={standard.id} value={standard.id}>
+                            {standard.code} - {standard.title}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-semibold text-ink-700 mb-1">Objective</label>
+                    <select
+                      value={selectedObjective || ''}
+                      onChange={(event) => setSelectedObjective(event.target.value || null)}
+                      disabled={!selectedStandard || !selectedStandard.learningObjectives || selectedStandard.learningObjectives.length === 0}
+                      className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 disabled:bg-parchment-200 disabled:text-ink-500 disabled:cursor-not-allowed bg-parchment-50 text-ink-800"
+                    >
+                      <option value="">
+                        {!selectedStandard 
+                          ? 'Select a standard first' 
+                          : !selectedStandard.learningObjectives || selectedStandard.learningObjectives.length === 0
+                          ? 'No objectives available'
+                          : 'Not selected yet'}
+                      </option>
+                      {selectedStandard?.learningObjectives?.map((objective, index) => (
+                        <option key={index} value={objective}>
+                          {objective}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
+                <button
+                  onClick={() => setMode('browse')}
+                  className="mt-4 w-full px-4 py-2 bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700"
+                >
+                  Browse Standards
+                </button>
+              </div>
+
+              {/* Lesson Settings */}
+              <div className="border-t border-ink-300 pt-4">
+                <h3 className="font-semibold text-ink-800">Lesson Settings</h3>
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 mb-1 block">Class Size</label>
-                  <input
-                    type="number"
-                    value={classSize}
-                    onChange={(event) => setClassSize(event.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    placeholder="e.g., 25"
+                  <label className="text-xs font-semibold text-ink-700 mb-1 block">Additional Context</label>
+                  <textarea
+                    value={lessonContext}
+                    onChange={(event) => setLessonContext(event.target.value)}
+                    rows={3}
+                    className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
                   />
                 </div>
+                <div className="grid grid-cols-2 gap-4 mt-3">
+                  <div>
+                    <label className="text-xs font-semibold text-ink-700 mb-1 block">Lesson Duration</label>
+                    <select
+                      value={lessonDuration}
+                      onChange={(event) => setLessonDuration(event.target.value)}
+                      className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
+                    >
+                      <option>30 minutes</option>
+                      <option>45 minutes</option>
+                      <option>60 minutes</option>
+                      <option>90 minutes</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-semibold text-ink-700 mb-1 block">Class Size</label>
+                    <input
+                      type="number"
+                      value={classSize}
+                      onChange={(event) => setClassSize(event.target.value)}
+                      className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
+                      placeholder="e.g., 25"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
 
-            {selectedStandard && (
-              <div className="workspace-card p-4 space-y-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-mono font-semibold text-blue-700 bg-blue-50 px-2 py-1 rounded">
-                    {selectedStandard.code}
+            <div className="workspace-card p-3 space-y-3">
+              <div>
+                <p className="text-xs uppercase tracking-wider text-ink-600 mb-2">Session Pulse</p>
+                <div className="flex items-center justify-between gap-3 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-ink-800 truncate">{sessionStatusLabel}</p>
+                    <p className="text-xs text-ink-600 truncate">
+                      {session
+                        ? 'Ready to receive your next prompt'
+                        : sessionError
+                        ? 'This workspace needs attention'
+                        : 'AI is initializing'}
+                    </p>
+                  </div>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${sessionStatusTone}`}>
+                    {sessionStatusDetail}
                   </span>
-                  <span className="text-xs text-gray-500">
-                    {selectedStandard.grade} • {selectedStandard.strand_name}
-                  </span>
                 </div>
-                <h3 className="font-medium text-gray-900">{selectedStandard.title}</h3>
-                <p className="text-sm text-gray-600 leading-relaxed">{selectedStandard.description}</p>
-                <div>
-                  <h4 className="text-xs font-semibold text-gray-700 uppercase mb-1">Learning Objectives</h4>
-                  <ul className="space-y-1 text-sm text-gray-600">
-                    {selectedStandard.learningObjectives.map((objective) => (
-                      <li className="flex items-start gap-2" key={objective}>
-                        <svg className="w-4 h-4 text-green-600 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
-                          <path
-                            fillRule="evenodd"
-                            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                        <span>{objective}</span>
-                      </li>
-                    ))}
-                  </ul>
+                <div className="flex items-center justify-between text-xs text-ink-600">
+                  <span>Mode</span>
+                  <span className="capitalize">{mode}</span>
                 </div>
               </div>
-            )}
 
-            <div className="workspace-card p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">Quick Actions</h3>
-              </div>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setMode('ingestion')}
-                  className="w-full px-4 py-2 bg-orange-600 text-white rounded-md hover:bg-orange-700 text-sm"
-                >
-                  📄 Upload Documents
-                </button>
-                <button
-                  onClick={() => setImageModalOpen(true)}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm"
-                >
-                  🖼️ Upload Images
-                </button>
-                <button
-                  onClick={() => setMode('settings')}
-                  className="w-full px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 text-sm"
-                >
-                  ⚙️ Settings
-                </button>
+              <div className="border-t border-ink-300 pt-3">
+                <h3 className="font-semibold text-ink-800 mb-2 text-xs">Your Activity</h3>
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300">
+                    <div className="text-lg font-bold text-ink-700">{messages.length}</div>
+                    <div className="text-xs text-ink-600 leading-tight">Messages</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300">
+                    <div className="text-lg font-bold text-ink-700">{quickStats.lessonsCreated}</div>
+                    <div className="text-xs text-ink-600 leading-tight">Lessons</div>
+                  </div>
+                  <div className="bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300">
+                    <div className="text-lg font-bold text-ink-600">{quickStats.activeDrafts}</div>
+                    <div className="text-xs text-ink-600 leading-tight">Drafts</div>
+                  </div>
+                </div>
+                <div className="mt-2 text-xs text-ink-600 leading-tight">
+                  <span>{storageInfo?.image_count ?? 0} images</span>
+                  <span className="mx-1">•</span>
+                  <span>Demo mode</span>
+                </div>
               </div>
             </div>
 
-            <div className="bg-gradient-to-br from-purple-50 to-blue-50 rounded-2xl border border-purple-200 p-4 shadow-lg">
-              <h3 className="font-semibold text-gray-900 mb-3">Your Activity</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-2xl font-bold text-purple-600">{quickStats.lessonsCreated}</div>
-                  <div className="text-xs text-gray-600">Lessons Created</div>
-                </div>
-                <div className="bg-white rounded-lg p-3">
-                  <div className="text-2xl font-bold text-blue-600">{quickStats.activeDrafts}</div>
-                  <div className="text-xs text-gray-600">Active Drafts</div>
-                </div>
-              </div>
-              <div className="mt-3 text-xs text-gray-600">
-                <p>{storageInfo?.image_count ?? 0} images stored</p>
-                <p>Demo environment • single-user mode</p>
-              </div>
-            </div>
           </div>
         </aside>
       </div>
@@ -1448,17 +1486,17 @@ export default function UnifiedPage() {
           }}
         >
           <div
-            className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-xl space-y-4"
+            className="workspace-card rounded-2xl max-w-3xl w-full p-6 shadow-xl space-y-4"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold text-gray-900">Upload Images</h3>
+              <h3 className="text-lg font-semibold text-ink-800">Upload Images</h3>
               <button
                 onClick={() => {
                   setImageModalOpen(false);
                   setImageDragActive(false);
                 }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-ink-500 hover:text-ink-700"
               >
                 ✕
               </button>
@@ -1466,8 +1504,8 @@ export default function UnifiedPage() {
             <div
               className={`border-2 rounded-2xl p-8 text-center transition-colors ${
                 imageDragActive
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-dashed border-gray-300 bg-white'
+                  ? 'border-ink-500 bg-parchment-200'
+                  : 'border-dashed border-ink-300 bg-parchment-50'
               }`}
               onDragOver={(event) => {
                 event.preventDefault();
@@ -1487,44 +1525,44 @@ export default function UnifiedPage() {
                 className="hidden"
                 onChange={handleFileSelect}
               />
-              <svg className="mx-auto h-12 w-12 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <svg className="mx-auto h-12 w-12 text-ink-500" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
               </svg>
-              <p className="mt-4 text-lg text-gray-600">
+              <p className="mt-4 text-lg text-ink-700">
                 Drag and drop images or{' '}
                 <button
                   onClick={() => fileInputRef.current?.click()}
-                  className="text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-ink-600 hover:text-ink-700 font-medium"
                 >
                   browse files
                 </button>
               </p>
-              <p className="mt-2 text-xs text-gray-500">PNG, JPEG, TIFF, WebP (max 10MB per file)</p>
+              <p className="mt-2 text-xs text-ink-600">PNG, JPEG, TIFF, WebP (max 10MB per file)</p>
               {isUploading && (
                 <div className="mt-6">
-                  <div className="w-full bg-gray-200 rounded-full h-2.5">
+                  <div className="w-full bg-parchment-200 rounded-full h-2.5">
                     <div
-                      className="h-2.5 rounded-full bg-blue-600 transition-all"
+                      className="h-2.5 rounded-full bg-ink-600 transition-all"
                       style={{ width: `${uploadProgress}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-600 mt-2">
+                  <p className="text-xs text-ink-600 mt-2">
                     Uploading — {uploadProgress}% complete
                   </p>
                 </div>
               )}
             </div>
-            {uploadError && <p className="text-sm text-red-600">{uploadError}</p>}
+            {uploadError && <p className="text-sm text-ink-800 bg-parchment-300 px-3 py-2 rounded-md border border-ink-500">{uploadError}</p>}
             <div className="flex justify-end gap-3">
               <button
                 onClick={() => setImageModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
+                className="px-4 py-2 bg-parchment-200 text-ink-700 rounded-md hover:bg-parchment-300"
               >
                 Cancel
               </button>
               <button
                 onClick={() => fileInputRef.current?.click()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                className="px-4 py-2 bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700"
               >
                 Browse Files
               </button>
@@ -1540,31 +1578,31 @@ export default function UnifiedPage() {
           onClick={() => setSelectedImage(null)}
         >
           <div
-            className="bg-white rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6"
+            className="workspace-card rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-2xl font-bold text-gray-900">{selectedImage.filename}</h3>
-              <button onClick={() => setSelectedImage(null)} className="text-gray-400 hover:text-gray-600">
+              <h3 className="text-2xl font-bold text-ink-800">{selectedImage.filename}</h3>
+              <button onClick={() => setSelectedImage(null)} className="text-ink-500 hover:text-ink-700">
                 ✕
               </button>
             </div>
-            <div className="space-y-4 text-sm text-gray-600">
+            <div className="space-y-4 text-sm text-ink-600">
               <p>Uploaded: {new Date(selectedImage.uploaded_at).toLocaleString()}</p>
               <p>Size: {(selectedImage.file_size / 1024).toFixed(2)} KB</p>
               <p>Type: {selectedImage.mime_type}</p>
               {selectedImage.ocr_text && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">OCR Extracted Text</h4>
-                  <div className="bg-gray-50 rounded p-4 text-sm text-gray-700 whitespace-pre-wrap">
+                  <h4 className="font-semibold text-ink-800 mb-2">OCR Extracted Text</h4>
+                  <div className="bg-parchment-200 rounded p-4 text-sm text-ink-700 whitespace-pre-wrap">
                     {selectedImage.ocr_text}
                   </div>
                 </div>
               )}
               {selectedImage.vision_analysis && (
                 <div>
-                  <h4 className="font-semibold text-gray-900 mb-2">Vision Analysis</h4>
-                  <div className="bg-blue-50 rounded p-4 text-sm text-gray-700 whitespace-pre-wrap">
+                  <h4 className="font-semibold text-ink-800 mb-2">Vision Analysis</h4>
+                  <div className="bg-parchment-200 rounded p-4 text-sm text-ink-700 whitespace-pre-wrap">
                     {selectedImage.vision_analysis}
                   </div>
                 </div>
@@ -1572,13 +1610,13 @@ export default function UnifiedPage() {
               <div className="flex justify-end gap-3">
                 <button
                   onClick={() => handleDeleteImage(selectedImage.id)}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700"
+                  className="px-4 py-2 bg-ink-700 text-parchment-100 rounded-md hover:bg-ink-800"
                 >
                   Delete
                 </button>
                 <button
                   onClick={() => setSelectedImage(null)}
-                  className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700"
+                  className="px-4 py-2 bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700"
                 >
                   Close
                 </button>

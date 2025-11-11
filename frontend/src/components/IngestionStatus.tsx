@@ -102,36 +102,37 @@ export default function IngestionStatus() {
   ];
 
   const getColorClasses = (color: string) => {
+    // All cards use parchment theme with slight variations
     const colorMap: Record<string, { bg: string; text: string; icon: string }> = {
-      blue: { bg: 'bg-blue-50', text: 'text-blue-600', icon: 'text-blue-500' },
-      green: { bg: 'bg-green-50', text: 'text-green-600', icon: 'text-green-500' },
-      purple: { bg: 'bg-purple-50', text: 'text-purple-600', icon: 'text-purple-500' },
-      yellow: { bg: 'bg-yellow-50', text: 'text-yellow-600', icon: 'text-yellow-500' },
-      indigo: { bg: 'bg-indigo-50', text: 'text-indigo-600', icon: 'text-indigo-500' },
-      pink: { bg: 'bg-pink-50', text: 'text-pink-600', icon: 'text-pink-500' },
-      orange: { bg: 'bg-orange-50', text: 'text-orange-600', icon: 'text-orange-500' },
-      teal: { bg: 'bg-teal-50', text: 'text-teal-600', icon: 'text-teal-500' },
-      cyan: { bg: 'bg-cyan-50', text: 'text-cyan-600', icon: 'text-cyan-500' },
+      blue: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
+      green: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
+      purple: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
+      yellow: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
+      indigo: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
+      pink: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
+      orange: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
+      teal: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
+      cyan: { bg: 'workspace-card', text: 'text-ink-700', icon: 'text-ink-600' },
     };
     return colorMap[color] || colorMap.blue;
   };
 
   if (loading) {
     return (
-      <div className="bg-white shadow rounded-lg p-6">
+      <div className="workspace-card rounded-lg p-6">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading ingestion statistics...</p>
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ink-600 mx-auto mb-4"></div>
+          <p className="text-ink-600">Loading ingestion statistics...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="workspace-card rounded-lg p-6">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-gray-900">Ingestion Statistics</h2>
-        <div className="flex items-center text-sm text-gray-500">
+        <h2 className="text-xl font-semibold text-ink-800">Ingestion Statistics</h2>
+        <div className="flex items-center text-sm text-ink-600">
           <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
           </svg>
@@ -147,9 +148,9 @@ export default function IngestionStatus() {
               <div className="flex items-center">
                 <div className={`text-2xl mr-3 ${colors.icon}`}>{stat.icon}</div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">{stat.title}</p>
+                  <p className="text-sm font-medium text-ink-600">{stat.title}</p>
                   <p className={`text-2xl font-bold ${colors.text}`}>{stat.value.toLocaleString()}</p>
-                  <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+                  <p className="text-xs text-ink-500 mt-1">{stat.description}</p>
                 </div>
               </div>
             </div>
@@ -157,9 +158,9 @@ export default function IngestionStatus() {
         })}
       </div>
 
-      <div className="mt-6 pt-6 border-t border-gray-200">
+      <div className="mt-6 pt-6 border-t border-ink-300">
         <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-ink-600">
             <strong>Total Content Items:</strong> {(
               stats.standards_count + 
               stats.objectives_count + 
@@ -173,7 +174,7 @@ export default function IngestionStatus() {
               stats.resource_count
             ).toLocaleString()}
           </div>
-          <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+          <button className="text-sm text-ink-600 hover:text-ink-800 font-medium">
             View Detailed Reports →
           </button>
         </div>
