@@ -1,6 +1,33 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import DocumentIngestion from '../components/DocumentIngestion';
+import IngestionStatus from '../components/IngestionStatus';
 
 export default function DashboardPage() {
+  const [showIngestion, setShowIngestion] = useState(false);
+
+  if (showIngestion) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Document Ingestion</h1>
+            <p className="mt-2 text-gray-600">
+              Upload and process music education documents
+            </p>
+          </div>
+          <button
+            onClick={() => setShowIngestion(false)}
+            className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+          >
+            ← Back to Dashboard
+          </button>
+        </div>
+        <DocumentIngestion onIngestionComplete={() => setShowIngestion(false)} />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -16,7 +43,38 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <button
+          onClick={() => setShowIngestion(true)}
+          className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow text-left"
+        >
+          <div className="p-6">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <svg
+                  className="h-8 w-8 text-orange-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                  />
+                </svg>
+              </div>
+              <div className="ml-5">
+                <h3 className="text-lg font-medium text-gray-900">Document Ingestion</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Upload standards, unpacking, and alignment documents
+                </p>
+              </div>
+            </div>
+          </div>
+        </button>
+
         <Link
           to="/classic/images"
           className="bg-white overflow-hidden shadow rounded-lg hover:shadow-md transition-shadow"
@@ -134,41 +192,64 @@ export default function DashboardPage() {
       </div>
 
       {/* Features Overview */}
-      <div className="bg-blue-50 rounded-lg p-6">
-        <h3 className="text-lg font-semibold text-blue-900 mb-3">Milestone 3 Features</h3>
-        <ul className="space-y-2 text-blue-800">
-          <li className="flex items-start">
-            <svg className="h-5 w-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Image ingestion with OCR and vision AI
-          </li>
-          <li className="flex items-start">
-            <svg className="h-5 w-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Citation tracking with IEEE-style formatting
-          </li>
-          <li className="flex items-start">
-            <svg className="h-5 w-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            Processing mode toggle (Cloud vs Local with Ollama)
-          </li>
-        </ul>
+      <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-3">🚀 Document Ingestion Features</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <h4 className="font-medium text-gray-800 mb-2">Supported Document Types</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              <li className="flex items-center">
+                <span className="mr-2">📋</span>
+                NC Music Standards & Learning Objectives
+              </li>
+              <li className="flex items-center">
+                <span className="mr-2">📚</span>
+                Grade-Level Unpacking Documents
+              </li>
+              <li className="flex items-center">
+                <span className="mr-2">🔗</span>
+                Horizontal & Vertical Alignment Matrices
+              </li>
+              <li className="flex items-center">
+                <span className="mr-2">📖</span>
+                Glossaries, FAQs & Reference Materials
+              </li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="font-medium text-gray-800 mb-2">Advanced Capabilities</h4>
+            <ul className="space-y-1 text-sm text-gray-700">
+              <li className="flex items-center">
+                <svg className="h-4 w-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                AI-powered document classification
+              </li>
+              <li className="flex items-center">
+                <svg className="h-4 w-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Conversational ingestion guidance
+              </li>
+              <li className="flex items-center">
+                <svg className="h-4 w-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Extended database schema support
+              </li>
+              <li className="flex items-center">
+                <svg className="h-4 w-4 mr-2 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Processing options for each document type
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
+
+      {/* Ingestion Status Dashboard */}
+      <IngestionStatus />
     </div>
   );
 }
