@@ -8,6 +8,11 @@ export default function DashboardPage() {
         <p className="mt-2 text-gray-600">
           AI-powered lesson planning assistant for music teachers
         </p>
+        <div className="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-md">
+          <p className="text-sm text-blue-800">
+            <strong>Demo Mode:</strong> You're using PocketMusec in single-user demo mode. No authentication required.
+          </p>
+        </div>
       </div>
 
       {/* Quick Actions */}
@@ -120,15 +125,9 @@ export default function DashboardPage() {
             </span>
           </div>
           <div className="flex justify-between items-center">
-            <span className="text-gray-600">Role:</span>
+            <span className="text-gray-600">Mode:</span>
             <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-gray-100 text-gray-800 capitalize">
-              Admin
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-gray-600">Account Status:</span>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
-              Active
+              Demo
             </span>
           </div>
         </div>
@@ -167,16 +166,6 @@ export default function DashboardPage() {
               />
             </svg>
             Processing mode toggle (Cloud vs Local with Ollama)
-          </li>
-          <li className="flex items-start">
-            <svg className="h-5 w-5 mr-2 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
-              <path
-                fillRule="evenodd"
-                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
-                clipRule="evenodd"
-              />
-            </svg>
-            User authentication with JWT and role-based access
           </li>
         </ul>
       </div>

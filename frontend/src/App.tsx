@@ -1,9 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
+import Layout from './components/Layout';
 import DashboardPage from './pages/DashboardPage';
 import ImagesPage from './pages/ImagesPage';
 import SettingsPage from './pages/SettingsPage';
-import UsersPage from './pages/UsersPage';
-import Layout from './components/Layout';
+import WorkspacePage from './pages/WorkspacePage';
 
 function App() {
   return (
@@ -15,8 +15,10 @@ function App() {
         <Route index element={<DashboardPage />} />
         <Route path="images" element={<ImagesPage />} />
         <Route path="settings" element={<SettingsPage />} />
-        <Route path="users" element={<UsersPage />} />
       </Route>
+
+      {/* Workspace is a full-screen interface (Variant 6: Dashboard Chat Hybrid), doesn't use Layout */}
+      <Route path="workspace" element={<WorkspacePage />} />
 
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

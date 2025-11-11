@@ -57,60 +57,6 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         return response
 
 
-class AuthRateLimitMiddleware(BaseHTTPMiddleware):
-    """
-    Strict rate limiting for auth endpoints
-
-    Limits to 5 login attempts per minute to prevent brute force
-    """
-
-    def __init__(self, app, max_attempts: int = 5):
-        super().__init__(app)
-        self.max_attempts = max_attempts
-        self.attempts: Dict[str, list] = {}
-
-    async def dispatch(self, request: Request, call_next):
-        # Only apply to auth endpoints
-        if not request.url.path.startswith("/api/auth/"):
-            return await call_next(request)
-
-        # Only limit POST requests (login, register)
-        if request.method != "POST":
-            return await call_next(request)
-
-        client_ip = request.client.host
-        now = datetime.utcnow()
-
-        # Track attempts per IP
-        if client_ip not in self.attempts:
-            self.attempts[client_ip] = []
-
-        # Remove old attempts (older than 1 minute)
-        self.attempts[client_ip] = [
-            attempt_time for attempt_time in self.attempts[client_ip]
-            if now - attempt_time < timedelta(minutes=1)
-        ]
-
-        # Check if exceeded limit
-        if len(self.attempts[client_ip]) >= self.max_attempts:
-            logger.warning(f"Auth rate limit exceeded for IP: {client_ip}")
-            return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={
-                    "detail": "Too many authentication attempts. Please try again in 1 minute.",
-                    "retry_after": 60
-                },
-                headers={"Retry-After": "60"}
-            )
-
-        # Add current attempt
-        self.attempts[client_ip].append(now)
-
-        # Process request
-        response = await call_next(request)
-        return response
-
-
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):
     """
     Add security headers to all responses

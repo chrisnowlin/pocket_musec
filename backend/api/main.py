@@ -8,10 +8,9 @@ import os
 import logging
 from pathlib import Path
 
-from .routes import auth, images, settings
+from .routes import images, settings, sessions, standards
 from .middleware import (
     RateLimitMiddleware,
-    AuthRateLimitMiddleware,
     SecurityHeadersMiddleware,
 )
 from ..repositories.migrations import MigrationManager
@@ -35,7 +34,6 @@ app = FastAPI(
 
 # Add middleware in reverse order (last added runs first)
 # Rate limiting middleware
-app.add_middleware(AuthRateLimitMiddleware, max_attempts=5)
 app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
 
 # Security headers middleware
@@ -56,9 +54,10 @@ app.add_middleware(
 
 
 # Include routers
-app.include_router(auth.router)
 app.include_router(images.router)
 app.include_router(settings.router)
+app.include_router(sessions.router)
+app.include_router(standards.router)
 
 
 # Exception handlers
@@ -99,22 +98,9 @@ async def startup_event():
     try:
         migration_manager.migrate_to_milestone3()
         logger.info("Database migrations completed")
-
-        # Check if default admin exists
-        if not migration_manager.check_users_exist():
-            logger.warning(
-                "No users in database. Create an admin user via POST /api/setup/init-admin"
-            )
     except Exception as e:
         logger.error(f"Migration failed: {e}")
         raise
-
-    # Check JWT secret
-    if not os.getenv("JWT_SECRET_KEY"):
-        logger.warning(
-            "JWT_SECRET_KEY not set. Using default (INSECURE for production!)"
-        )
-        logger.warning("Set JWT_SECRET_KEY environment variable for production use")
 
     logger.info("PocketMusec API started successfully")
 
@@ -137,57 +123,6 @@ async def health_check():
 async def root():
     """Root endpoint"""
     return {"message": "PocketMusec API", "version": "0.3.0", "docs": "/api/docs"}
-
-
-# Setup endpoint for initial admin creation
-@app.post("/api/setup/init-admin", tags=["setup"])
-async def initialize_admin(email: str, password: str, full_name: str = "Admin User"):
-    """
-    Create initial admin user (only works if no users exist)
-
-    This is a setup endpoint for bootstrapping the system.
-    After the first admin is created, use the regular /api/auth/register endpoint.
-    """
-    from ..auth.password import hash_password
-
-    db_path = os.getenv("DATABASE_PATH", "data/standards/standards.db")
-    migration_manager = MigrationManager(db_path)
-
-    # Check if users already exist
-    if migration_manager.check_users_exist():
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={
-                "detail": "Admin user already exists. Use /api/auth/register to create additional users."
-            },
-        )
-
-    try:
-        # Hash password and create admin
-        password_hash = hash_password(password)
-        admin_id = migration_manager.create_default_admin(
-            email=email, password_hash=password_hash, full_name=full_name
-        )
-
-        logger.info(f"Initial admin user created: {email}")
-
-        return {
-            "message": "Admin user created successfully",
-            "admin_id": admin_id,
-            "email": email,
-        }
-
-    except ValueError as e:
-        # Password validation error
-        raise JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST, content={"detail": str(e)}
-        )
-    except Exception as e:
-        logger.error(f"Failed to create admin: {e}")
-        raise JSONResponse(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content={"detail": "Failed to create admin user"},
-        )
 
 
 if __name__ == "__main__":
