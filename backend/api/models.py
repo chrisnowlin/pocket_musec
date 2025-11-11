@@ -1,7 +1,7 @@
 """Pydantic models for API requests and responses"""
 
 from pydantic import BaseModel, EmailStr, Field
-from typing import Optional
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 
 
@@ -70,3 +70,68 @@ class ErrorResponse(BaseModel):
     """Error response"""
     detail: str
     error_code: Optional[str] = None
+
+
+class StandardResponse(BaseModel):
+    """Standard metadata for UI"""
+    id: str
+    code: str
+    grade: str
+    strand_code: str
+    strand_name: str
+    title: str
+    description: str
+    objectives: int
+    learning_objectives: List[str]
+    last_used: Optional[str] = None
+
+
+class SessionCreateRequest(BaseModel):
+    """Request to start a new session"""
+    grade_level: Optional[str] = None
+    strand_code: Optional[str] = None
+    standard_id: Optional[str] = None
+    additional_context: Optional[str] = None
+
+
+class SessionUpdateRequest(BaseModel):
+    """Update session context"""
+    grade_level: Optional[str] = None
+    strand_code: Optional[str] = None
+    standard_id: Optional[str] = None
+    additional_context: Optional[str] = None
+
+
+class SessionResponse(BaseModel):
+    """Session summary returned to the client"""
+    id: str
+    grade_level: Optional[str]
+    strand_code: Optional[str]
+    selected_standard: Optional[StandardResponse]
+    additional_context: Optional[str]
+    created_at: Optional[datetime]
+    updated_at: Optional[datetime]
+
+
+class LessonSummary(BaseModel):
+    """Lesson summary returned with chat response"""
+    id: str
+    title: str
+    summary: str
+    content: str
+    metadata: Dict[str, Any]
+    citations: List[str] = []
+
+
+class ChatMessageRequest(BaseModel):
+    """Chat message sent from the workspace"""
+    message: str
+    lesson_duration: Optional[str] = None
+    class_size: Optional[str] = None
+
+
+class ChatResponse(BaseModel):
+    """Response payload containing AI reply and lesson"""
+    response: str
+    lesson: LessonSummary
+    session: SessionResponse
