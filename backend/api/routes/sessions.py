@@ -2,7 +2,7 @@
 
 import asyncio
 import json
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -122,16 +122,18 @@ async def update_session(
     return _session_to_response(updated, standard_repo)
 
 
-def _create_lesson_agent(session: Any) -> LessonAgent:
+def _create_lesson_agent(session: Any, use_conversational: bool = True) -> LessonAgent:
     """Create and initialize a LessonAgent for the session"""
     flow = Flow(name="lesson_planning")
     store = Store()
     standard_repo = StandardsRepository()
 
+    # Use conversational mode by default for more natural interaction
     agent = LessonAgent(
         flow=flow,
         store=store,
         standards_repo=standard_repo,
+        conversational_mode=use_conversational,
     )
 
     # Try to restore agent state from session if available
