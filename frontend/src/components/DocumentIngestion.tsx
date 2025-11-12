@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { ingestionService, DocumentClassification, IngestionResults } from '../services/ingestionService';
 
 interface DocumentIngestionProps {
@@ -9,11 +9,9 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
   const [file, setFile] = useState<File | null>(null);
   const [classification, setClassification] = useState<DocumentClassification | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currentStep, setCurrentStep] = useState<'upload' | 'classification' | 'options' | 'processing' | 'complete'>('upload');
-  const [selectedOption, setSelectedOption] = useState<string>('');
+  const [currentStep, setCurrentStep] = useState<'upload' | 'classification' | 'confirm' | 'processing' | 'complete'>('upload');
   const [results, setResults] = useState<IngestionResults | null>(null);
   const [error, setError] = useState<string>('');
-  const [advancedOptions, setAdvancedOptions] = useState<Array<{ id: string; label: string; description: string }>>([]);
 
   const handleFileSelect = useCallback(async (selectedFile: File) => {
     if (!selectedFile.type.includes('pdf')) {
@@ -29,17 +27,13 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
     try {
       const classificationResult = await ingestionService.classifyDocument(selectedFile);
       setClassification(classificationResult);
-      setCurrentStep('options');
+      setCurrentStep('confirm');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Classification failed');
       setCurrentStep('upload');
     } finally {
       setIsProcessing(false);
     }
-  }, []);
-
-  const handleAdvancedOption = useCallback((option: string) => {
-    setSelectedOption(option);
   }, []);
 
   const handleIngestion = useCallback(async () => {
@@ -51,55 +45,29 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
 
     try {
       const ingestionResults = await ingestionService.ingestDocument({ 
-        file, 
-        advancedOption: selectedOption 
+        file
       });
+      console.log('Ingestion results:', ingestionResults);
       setResults(ingestionResults);
       setCurrentStep('complete');
       onIngestionComplete?.(ingestionResults);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Ingestion failed');
-      setCurrentStep('options');
+      setCurrentStep('confirm');
     } finally {
       setIsProcessing(false);
     }
-  }, [file, selectedOption, onIngestionComplete]);
+  }, [file, onIngestionComplete]);
 
   const handleReset = useCallback(() => {
     setFile(null);
     setClassification(null);
-    setSelectedOption('');
     setResults(null);
     setError('');
     setCurrentStep('upload');
     setIsProcessing(false);
-    setAdvancedOptions([]);
   }, []);
 
-  // Fetch advanced options when classification changes
-  useEffect(() => {
-    const fetchAdvancedOptions = async () => {
-      if (!classification) return;
-
-      try {
-        const options = await ingestionService.getAdvancedOptions(classification.documentType.value);
-        const formattedOptions = options.map((option, index) => ({
-          id: `option-${index}`,
-          label: option,
-          description: option
-        }));
-        setAdvancedOptions(formattedOptions);
-      } catch (err) {
-        console.error('Failed to fetch advanced options:', err);
-        // Fallback to default options
-        setAdvancedOptions([
-          { id: 'default', label: 'Standard Processing', description: 'Default extraction settings' }
-        ]);
-      }
-    };
-
-    fetchAdvancedOptions();
-  }, [classification]);
 
   const renderResults = useCallback(() => {
     if (!results) return null;
@@ -231,8 +199,8 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
         </div>
       )}
 
-      {/* Step 3: Advanced Options */}
-      {currentStep === 'options' && classification && (
+      {/* Step 3: Confirmation */}
+      {currentStep === 'confirm' && classification && (
         <div className="workspace-card rounded-lg p-6">
           <div className="mb-6">
             <h3 className="text-lg font-medium text-ink-800 mb-4">Document Analysis Results</h3>
@@ -258,41 +226,9 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
             </div>
 
             <div className="bg-parchment-200 rounded-lg p-4 mb-6 border border-ink-300">
-              <p className="text-sm text-ink-800">
-                <strong>Recommended Parser:</strong> {classification.recommendedParser}
-              </p>
-              <p className="text-sm text-ink-700 mt-1">
+              <p className="text-sm text-ink-700">
                 {classification.documentType.description}
               </p>
-            </div>
-          </div>
-
-          <div className="mb-6">
-            <h4 className="text-md font-medium text-ink-800 mb-3">Advanced Options</h4>
-            <div className="space-y-3">
-              {advancedOptions.map((option) => (
-                <label
-                  key={option.id}
-                  className={`flex items-start p-4 border rounded-lg cursor-pointer transition-colors ${
-                    selectedOption === option.id
-                      ? 'border-ink-500 bg-parchment-200'
-                      : 'border-ink-300 hover:border-ink-400 bg-parchment-50'
-                  }`}
-                >
-                  <input
-                    type="radio"
-                    name="advanced-option"
-                    value={option.id}
-                    checked={selectedOption === option.id}
-                    onChange={(e) => handleAdvancedOption(e.target.value)}
-                    className="mt-1 mr-3 text-ink-600 focus:ring-ink-500"
-                  />
-                  <div>
-                    <div className="font-medium text-ink-800">{option.label}</div>
-                    <div className="text-sm text-ink-600">{option.description}</div>
-                  </div>
-                </label>
-              ))}
             </div>
           </div>
 
@@ -315,7 +251,7 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
                 disabled={isProcessing}
                 className="px-6 py-2 bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700 disabled:opacity-50"
               >
-                {isProcessing ? 'Processing...' : 'Start Ingestion'}
+                {isProcessing ? 'Processing...' : 'Proceed with Ingestion'}
               </button>
             </div>
           </div>

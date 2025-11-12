@@ -15,7 +15,7 @@ import DraftsModal from '../components/unified/DraftsModal';
 import ImageUploadModal from '../components/unified/ImageUploadModal';
 import ImageDetailModal from '../components/unified/ImageDetailModal';
 import DocumentIngestion from '../components/DocumentIngestion';
-import IngestionStatus from '../components/IngestionStatus';
+import IngestionStatus, { IngestionStatusRef } from '../components/IngestionStatus';
 import LessonEditor from '../components/unified/LessonEditor';
 import ErrorBoundary from '../components/ErrorBoundary';
 import ToastContainer from '../components/unified/ToastContainer';
@@ -131,6 +131,9 @@ export default function UnifiedPage() {
     256,
     384
   );
+
+  // Ref for IngestionStatus to refresh after ingestion
+  const ingestionStatusRef = useRef<IngestionStatusRef>(null);
 
   const {
     messageContainerHeight,
@@ -551,9 +554,16 @@ export default function UnifiedPage() {
                       Upload and process music education documents with AI-powered analysis
                     </p>
                   </div>
-                  <DocumentIngestion onIngestionComplete={() => {}} />
+                  <DocumentIngestion 
+                    onIngestionComplete={async () => {
+                      // Refresh ingestion status after successful ingestion
+                      if (ingestionStatusRef.current) {
+                        await ingestionStatusRef.current.refresh();
+                      }
+                    }} 
+                  />
                   <div className="mt-8">
-                    <IngestionStatus />
+                    <IngestionStatus ref={ingestionStatusRef} />
                   </div>
                 </div>
               </div>

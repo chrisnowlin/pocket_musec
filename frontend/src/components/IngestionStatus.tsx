@@ -1,7 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useImperativeHandle, forwardRef } from 'react';
 import { statsService, DatabaseStats } from '../services/statsService';
 
-export default function IngestionStatus() {
+export interface IngestionStatusRef {
+  refresh: () => Promise<void>;
+}
+
+const IngestionStatus = forwardRef<IngestionStatusRef>((props, ref) => {
   const [stats, setStats] = useState<DatabaseStats>({
     standards_count: 0,
     objectives_count: 0,
@@ -22,22 +26,26 @@ export default function IngestionStatus() {
   const [contentItems, setContentItems] = useState<any[]>([]);
   const [loadingItems, setLoadingItems] = useState(false);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      setLoading(true);
-      try {
-        const statsData = await statsService.getIngestionStats();
-        setStats(statsData);
-      } catch (error) {
-        console.error('Failed to fetch ingestion stats:', error);
-        // Keep default stats on error
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchStats = async () => {
+    setLoading(true);
+    try {
+      const statsData = await statsService.getIngestionStats();
+      setStats(statsData);
+    } catch (error) {
+      console.error('Failed to fetch ingestion stats:', error);
+      // Keep default stats on error
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchStats();
   }, []);
+
+  useImperativeHandle(ref, () => ({
+    refresh: fetchStats,
+  }));
 
   const statCards = [
     {
@@ -497,4 +505,8 @@ export default function IngestionStatus() {
       )}
     </div>
   );
-}
+});
+
+IngestionStatus.displayName = 'IngestionStatus';
+
+export default IngestionStatus;

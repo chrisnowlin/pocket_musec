@@ -1,3 +1,4 @@
+import { useNavigate } from 'react-router-dom';
 import type { ViewMode, ConversationGroup } from '../../types/unified';
 import { quickAccessLinks } from '../../constants/unified';
 import ConversationMenu from './ConversationMenu';
@@ -37,6 +38,8 @@ export default function Sidebar({
   onDeleteConversation,
   onOpenConversationEditor,
 }: SidebarProps) {
+  const navigate = useNavigate();
+
   return (
     <aside
       id="sidebar"
@@ -189,9 +192,31 @@ export default function Sidebar({
       </nav>
 
       <div className="p-3 border-t border-ink-700">
-        <div className="text-xs text-parchment-300 px-3 py-2">
-          <p>Demo Environment</p>
-          <p>Single-user mode</p>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => navigate('/')}
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          >
+            PocketMusec
+          </button>
+          <button
+            onClick={() => navigate('/planner')}
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          >
+            PocketPlanner
+          </button>
+          <button
+            onClick={() => navigate('/db')}
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          >
+            MusecDB
+          </button>
+          <button
+            onClick={() => navigate('/tracker')}
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+          >
+            MusecTracker
+          </button>
         </div>
       </div>
     </aside>
