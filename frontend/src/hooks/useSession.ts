@@ -5,6 +5,22 @@ import type { ConversationGroup, ConversationItem } from '../types/unified';
 import { standardLibrary } from '../constants/unified';
 import { frontendToBackendGrade, frontendToBackendStrand } from '../lib/gradeUtils';
 
+// Helper function to transform API response from snake_case to camelCase
+const transformStandard = (standard: any): StandardRecord => {
+  return {
+    ...standard,
+    learningObjectives: standard.learning_objectives || standard.learningObjectives || [],
+  };
+};
+
+// Helper function to transform session's selected_standard if present
+const transformSession = (session: any): SessionResponsePayload => {
+  if (session.selected_standard) {
+    session.selected_standard = transformStandard(session.selected_standard);
+  }
+  return session;
+};
+
 export function useSession() {
   const [session, setSession] = useState<SessionResponsePayload | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
@@ -31,7 +47,8 @@ export function useSession() {
       const result = await api.listStandards(params);
 
       if (result.ok) {
-        const payload = result.data;
+        // Transform API response from snake_case to camelCase
+        const payload = result.data.map(transformStandard);
         setStandards(payload.length ? payload : standardLibrary);
       }
     } catch (err) {
@@ -48,12 +65,13 @@ export function useSession() {
         });
 
         if (result.ok) {
-          setSession(result.data);
+          const transformedSession = transformSession(result.data);
+          setSession(transformedSession);
           await loadStandards(
-            result.data.grade_level ?? defaultGrade,
-            result.data.strand_code ?? defaultStrand
+            transformedSession.grade_level ?? defaultGrade,
+            transformedSession.strand_code ?? defaultStrand
           );
-          return result.data;
+          return transformedSession;
         } else {
           setSessionError(result.message || 'Unable to start a session');
           return null;
@@ -80,15 +98,16 @@ export function useSession() {
         });
 
         if (result.ok) {
-          setSession(result.data);
+          const transformedSession = transformSession(result.data);
+          setSession(transformedSession);
           setSessionError(null);
           setRetrySuccess(true);
           setRetryMessage('Session successfully re-established!');
           await loadStandards(
-            result.data.grade_level ?? defaultGrade,
-            result.data.strand_code ?? defaultStrand
+            transformedSession.grade_level ?? defaultGrade,
+            transformedSession.strand_code ?? defaultStrand
           );
-          return result.data;
+          return transformedSession;
         } else {
           setSessionError(result.message || 'Unable to retry session');
           setRetrySuccess(false);
@@ -137,14 +156,16 @@ export function useSession() {
     try {
       const result = await api.getSession(sessionId);
       if (result.ok) {
-        setSession(result.data);
+        // Transform selected_standard if present
+        const transformedSession = transformSession(result.data);
+        setSession(transformedSession);
         
         // Load standards for the session's grade and strand
-        if (result.data.grade_level && result.data.strand_code) {
-          await loadStandards(result.data.grade_level, result.data.strand_code);
+        if (transformedSession.grade_level && transformedSession.strand_code) {
+          await loadStandards(transformedSession.grade_level, transformedSession.strand_code);
         }
         
-        return result.data;
+        return transformedSession;
       } else {
         console.error('Failed to load conversation:', result.message);
         return null;
