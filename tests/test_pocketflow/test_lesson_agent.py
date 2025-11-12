@@ -47,14 +47,16 @@ class TestLessonAgent:
     
     @pytest.fixture
     def lesson_agent(self, mock_flow, mock_store, mock_standards_repo, mock_llm_client):
-        """Create a LessonAgent instance with mocked dependencies"""
-        return LessonAgent(mock_flow, mock_store, mock_standards_repo, mock_llm_client)
+        """Create a LessonAgent instance with mocked dependencies (form-based mode for legacy tests)"""
+        return LessonAgent(mock_flow, mock_store, mock_standards_repo, mock_llm_client, conversational_mode=False)
     
     def test_initialization(self, lesson_agent):
         """Test LessonAgent initialization"""
         assert lesson_agent.name == "LessonAgent"
         assert lesson_agent.get_state() == "welcome"
-        assert lesson_agent.lesson_requirements == {}
+        # Lesson requirements now initialized with conversation context structure
+        assert "conversation_context" in lesson_agent.lesson_requirements
+        assert "extracted_info" in lesson_agent.lesson_requirements
         assert len(lesson_agent.state_handlers) == 8
     
     def test_setup_state_handlers(self, lesson_agent):

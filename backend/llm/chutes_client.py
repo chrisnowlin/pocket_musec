@@ -78,7 +78,8 @@ class ChutesClient:
         """Make HTTP request with retry logic"""
         url = f"{self.base_url}{endpoint}"
         headers = kwargs.pop('headers', {})
-        headers['Authorization'] = f'Bearer {self.api_key}'
+        # Chutes API uses the API key directly without "Bearer" prefix
+        headers['Authorization'] = self.api_key
         headers['Content-Type'] = 'application/json'
         
         for attempt in range(self.max_retries):
