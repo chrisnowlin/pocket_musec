@@ -194,14 +194,23 @@ export function useSession() {
       }
     });
 
+    // Sort thisWeekSessions by most recently updated and limit to 3
+    const sortedThisWeekSessions = thisWeekSessions
+      .sort((a, b) => {
+        const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
+        const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
+        return dateB - dateA; // Most recent first
+      })
+      .slice(0, 3); // Limit to 3 most recent
+
     const groups: ConversationGroup[] = [];
     
     if (todaySessions.length > 0) {
       groups.push({ label: 'Today', items: todaySessions });
     }
     
-    if (thisWeekSessions.length > 0) {
-      groups.push({ label: 'This Week', items: thisWeekSessions });
+    if (sortedThisWeekSessions.length > 0) {
+      groups.push({ label: 'Recent Chats', items: sortedThisWeekSessions });
     }
     
     if (olderSessions.length > 0) {

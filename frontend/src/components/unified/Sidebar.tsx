@@ -1,5 +1,6 @@
 import type { ViewMode, ConversationGroup } from '../../types/unified';
 import { quickAccessLinks } from '../../constants/unified';
+import ConversationMenu from './ConversationMenu';
 
 interface SidebarProps {
   width: number;
@@ -18,6 +19,9 @@ interface SidebarProps {
   // Template management props
   onOpenTemplatesModal: () => void;
   templateCount: number;
+  // Conversation menu props
+  onDeleteConversation: (sessionId: string) => void;
+  onOpenConversationEditor: (sessionId: string) => void;
 }
 
 export default function Sidebar({
@@ -35,6 +39,8 @@ export default function Sidebar({
   draftCount,
   onOpenTemplatesModal,
   templateCount,
+  onDeleteConversation,
+  onOpenConversationEditor,
 }: SidebarProps) {
   return (
     <aside
@@ -114,18 +120,29 @@ export default function Sidebar({
                   </h3>
                   <div className="space-y-1">
                     {group.items.map((item) => (
-                      <button
+                      <div
                         key={item.id}
-                        onClick={() => onSelectConversation(item.id)}
-                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                        className={`relative flex items-center group ${
                           item.active
                             ? 'bg-ink-700 text-parchment-100'
                             : 'text-parchment-200 hover:bg-ink-700 hover:text-parchment-100'
-                        }`}
+                        } rounded-lg transition-colors`}
                       >
-                        <div className="text-sm font-medium truncate">{item.title}</div>
-                        <div className="text-xs text-parchment-400">{item.hint}</div>
-                      </button>
+                        <button
+                          onClick={() => onSelectConversation(item.id)}
+                          className="flex-1 text-left px-3 py-2 rounded-lg transition-colors"
+                        >
+                          <div className="text-sm font-medium truncate">{item.title}</div>
+                          <div className="text-xs text-parchment-400">{item.hint}</div>
+                        </button>
+                        <div className="pr-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <ConversationMenu
+                            sessionId={item.id}
+                            onDelete={onDeleteConversation}
+                            onOpenEditor={onOpenConversationEditor}
+                          />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 </div>

@@ -111,8 +111,22 @@ const api = {
   sendChatMessage: (sessionId: string, payload: ChatMessagePayload) =>
     apiClient.post<ChatResponsePayload>(`/sessions/${sessionId}/messages`, payload),
   getSession: (sessionId: string) => apiClient.get<SessionResponsePayload>(`/sessions/${sessionId}`),
+  deleteSession: (sessionId: string) => apiClient.delete<{ message: string }>(`/sessions/${sessionId}`),
   generateLesson: (request: unknown) => apiClient.post('/lessons/generate', request),
   getLesson: (sessionId: string) => apiClient.get(`/lessons/${sessionId}`),
+  getLessonBySession: async (sessionId: string): Promise<ApiResult<DraftItem[]>> => {
+    // Get all drafts and filter by session_id on client side
+    const result = await apiClient.get<DraftItem[]>('/drafts');
+    if (result.ok) {
+      const filtered = result.data.filter(draft => {
+        // Check metadata for session_id
+        const metadata = draft.metadata as any;
+        return metadata?.session_id === sessionId;
+      });
+      return { ...result, data: filtered };
+    }
+    return result;
+  },
   getImages: () => apiClient.get('/images'),
   getImageStorageInfo: () => apiClient.get('/images/storage/info'),
   uploadImages: (formData: FormData, onUploadProgress?: (progress: number) => void) =>

@@ -19,6 +19,12 @@ import ImageUploadModal from '../components/unified/ImageUploadModal';
 import ImageDetailModal from '../components/unified/ImageDetailModal';
 import DocumentIngestion from '../components/DocumentIngestion';
 import IngestionStatus from '../components/IngestionStatus';
+import LessonEditor from '../components/unified/LessonEditor';
+import ErrorBoundary from '../components/ErrorBoundary';
+import ToastContainer from '../components/unified/ToastContainer';
+import ConfirmDialog from '../components/unified/ConfirmDialog';
+import { useToast } from '../hooks/useToast';
+import api from '../lib/api';
 import type {
   UIState,
   ChatState,
@@ -27,7 +33,6 @@ import type {
   SettingsState
 } from '../types/unified';
 import type { StandardRecord } from '../lib/types';
-import { standardLibrary } from '../constants/unified';
 
 export default function UnifiedPage() {
   // Grouped state management
@@ -39,6 +44,15 @@ export default function UnifiedPage() {
   const [draftsModalOpen, setDraftsModalOpen] = useState(false);
   const [templatesModalOpen, setTemplatesModalOpen] = useState(false);
   const [templateCreationModalOpen, setTemplateCreationModalOpen] = useState(false);
+  const [conversationEditorOpen, setConversationEditorOpen] = useState(false);
+  const [conversationEditorContent, setConversationEditorContent] = useState('');
+  const [conversationEditorSessionId, setConversationEditorSessionId] = useState<string | null>(null);
+  const [isSavingConversationEditor, setIsSavingConversationEditor] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState<string | null>(null);
+
+  // Toast notifications
+  const { toasts, removeToast, success, error, info } = useToast();
 
   const [chatState, setChatState] = useState<ChatState>({
     input: '',
@@ -96,15 +110,18 @@ export default function UnifiedPage() {
     isLoadingSessions,
     loadConversation,
     formatSessionsAsConversations,
+    initSession,
+    loadSessions,
   } = useSession();
   const {
     messages,
     isTyping,
     chatError,
-    appendMessage,
     processChatMessage,
     resetMessages,
     isLoadingConversation,
+    updateMessageWithMetadata,
+    loadConversationMessages,
   } = useChat({
     session,
     lessonDuration: lessonSettings.lessonDuration,
@@ -130,6 +147,7 @@ export default function UnifiedPage() {
     draftCount,
     getDraft,
     deleteDraft,
+    updateDraft,
   } = useDrafts();
 
   // Template management hook
@@ -147,14 +165,30 @@ export default function UnifiedPage() {
   const modalFileInputRef = useRef<HTMLInputElement>(null);
 
   // Event handlers
-  const handleNewConversation = () => {
+  const handleNewConversation = async () => {
+    // Create a new session with the current lesson settings (not defaults)
+    // This allows users to set grade/strand in the right panel before starting a conversation
+    const newSession = await initSession(
+      lessonSettings.selectedGrade,
+      lessonSettings.selectedStrand
+    );
+    
+    if (newSession) {
+      // Update lesson settings to match the created session
+      updateLessonSettings({
+        selectedGrade: newSession.grade_level || lessonSettings.selectedGrade,
+        selectedStrand: newSession.strand_code || lessonSettings.selectedStrand,
+        selectedStandard: newSession.selected_standard || null,
+        selectedObjective: null,
+        lessonContext: newSession.additional_context || lessonSettings.lessonContext,
+      });
+      
+      // Refresh the sessions list so the new conversation appears in Recent Chats
+      await loadSessions();
+    }
+    
+    // Reset messages for the new conversation
     resetMessages();
-    updateLessonSettings({
-      selectedGrade: 'Grade 3',
-      selectedStandard: standards[0] ?? standardLibrary[0],
-      selectedStrand: 'Connect',
-      selectedObjective: null,
-    });
     updateUIState({ mode: 'chat' });
   };
 
@@ -171,7 +205,13 @@ export default function UnifiedPage() {
         lessonContext: loadedSession.additional_context || '',
       });
       
-      // Switch to chat mode - messages will be loaded by the useEffect hook in useChat
+      // Explicitly load conversation messages into the chat UI
+      await loadConversationMessages(loadedSession);
+      
+      // Refresh the sessions list to update timestamps and ensure accurate display
+      await loadSessions();
+      
+      // Switch to chat mode
       updateUIState({ mode: 'chat' });
     }
   };
@@ -183,6 +223,11 @@ export default function UnifiedPage() {
     updateChatState({ input: '' });
     processChatMessage(trimmed, setSession);
   };
+
+  const handleUpdateMessage = useCallback((messageId: string, newText: string) => {
+    // Use the new function that handles metadata automatically
+    updateMessageWithMetadata(messageId, newText);
+  }, [updateMessageWithMetadata]);
 
   const handleStartChat = (standard: StandardRecord, prompt: string) => {
     updateUIState({ mode: 'chat' });
@@ -223,6 +268,18 @@ export default function UnifiedPage() {
     if (success) {
       // Draft is automatically removed from the list by the hook
     }
+  };
+
+  const handleEditDraft = async (draftId: string) => {
+    const draft = await getDraft(draftId);
+    if (draft) {
+      // This will be handled by the DraftsModal component's internal edit state
+      console.log('Editing draft:', draft);
+    }
+  };
+
+  const handleUpdateDraft = async (draftId: string, updates: { title?: string; content?: string; metadata?: Record<string, unknown> }) => {
+    return await updateDraft(draftId, updates);
   };
 
   // Template event handlers
@@ -300,6 +357,149 @@ export default function UnifiedPage() {
     }
   };
 
+  // Conversation menu handlers
+  const handleDeleteConversation = (sessionId: string) => {
+    setPendingDeleteSessionId(sessionId);
+    setDeleteConfirmOpen(true);
+  };
+
+  const confirmDeleteConversation = async () => {
+    if (!pendingDeleteSessionId) return;
+
+    const sessionId = pendingDeleteSessionId;
+    setDeleteConfirmOpen(false);
+    setPendingDeleteSessionId(null);
+
+    try {
+      const result = await api.deleteSession(sessionId);
+      if (result.ok) {
+        success('Conversation deleted successfully');
+        // Refresh the sessions list
+        await loadSessions();
+        // If the deleted session was the current one, reset
+        if (session?.id === sessionId) {
+          resetMessages();
+          setSession(null);
+        }
+      } else {
+        console.error('Failed to delete conversation:', result.message);
+        error(`Failed to delete conversation: ${result.message}`);
+      }
+    } catch (err) {
+      console.error('Error deleting conversation:', err);
+      error('An error occurred while deleting the conversation.');
+    }
+  };
+
+  const cancelDeleteConversation = () => {
+    setDeleteConfirmOpen(false);
+    setPendingDeleteSessionId(null);
+  };
+
+  const handleOpenConversationEditor = async (sessionId: string) => {
+    try {
+      // First, try to get lesson from drafts
+      const draftsResult = await api.getLessonBySession(sessionId);
+      let lessonContent = '';
+
+      if (draftsResult.ok && draftsResult.data.length > 0) {
+        // Use the most recent lesson
+        lessonContent = draftsResult.data[0].content;
+      } else {
+        // Fallback: try to extract from conversation history
+        const sessionResult = await api.getSession(sessionId);
+        if (sessionResult.ok && sessionResult.data.conversation_history) {
+          try {
+            const history = JSON.parse(sessionResult.data.conversation_history);
+            // Find the last assistant message that contains lesson content
+            for (let i = history.length - 1; i >= 0; i--) {
+              if (history[i].role === 'assistant' && history[i].content) {
+                const content = history[i].content;
+                // Check if it looks like a lesson (contains markdown headers or lesson structure)
+                if (content.includes('#') || content.includes('Lesson') || content.length > 200) {
+                  lessonContent = content;
+                  break;
+                }
+              }
+            }
+          } catch (e) {
+            console.error('Failed to parse conversation history:', e);
+          }
+        }
+      }
+
+      if (!lessonContent) {
+        info('No lesson content found for this conversation.');
+        return;
+      }
+
+      setConversationEditorContent(lessonContent);
+      setConversationEditorSessionId(sessionId);
+      setConversationEditorOpen(true);
+    } catch (err) {
+      console.error('Error opening conversation editor:', err);
+      error('An error occurred while opening the editor.');
+    }
+  };
+
+  const handleSaveConversationEditor = async (content: string) => {
+    if (!conversationEditorSessionId) return;
+
+    setIsSavingConversationEditor(true);
+    try {
+      // Try to update existing draft or create new one
+      const draftsResult = await api.getLessonBySession(conversationEditorSessionId);
+      
+      if (draftsResult.ok && draftsResult.data.length > 0) {
+        // Update existing draft
+        const draftId = draftsResult.data[0].id;
+        const updateResult = await api.updateDraft(draftId, { content });
+        if (updateResult.ok) {
+          setConversationEditorOpen(false);
+          setConversationEditorSessionId(null);
+          setConversationEditorContent('');
+        } else {
+          throw new Error(updateResult.message);
+        }
+      } else {
+        // Create new draft
+        const sessionResult = await api.getSession(conversationEditorSessionId);
+        if (sessionResult.ok) {
+          const session = sessionResult.data;
+          const createResult = await api.createDraft({
+            session_id: conversationEditorSessionId,
+            title: `${session.grade_level || 'Lesson'} · ${session.strand_code || 'Lesson'} Strand`,
+            content,
+            metadata: {
+              session_id: conversationEditorSessionId,
+              grade_level: session.grade_level,
+              strand_code: session.strand_code,
+              standard_id: session.selected_standard?.code,
+            },
+          });
+          if (createResult.ok) {
+            setConversationEditorOpen(false);
+            setConversationEditorSessionId(null);
+            setConversationEditorContent('');
+          } else {
+            throw new Error(createResult.message);
+          }
+        }
+      }
+    } catch (err: any) {
+      console.error('Error saving conversation editor:', err);
+      error(`Failed to save: ${err.message || 'Unknown error'}`);
+    } finally {
+      setIsSavingConversationEditor(false);
+    }
+  };
+
+  const handleCancelConversationEditor = () => {
+    setConversationEditorOpen(false);
+    setConversationEditorSessionId(null);
+    setConversationEditorContent('');
+  };
+
   return (
     <>
       <div className="flex h-screen">
@@ -319,6 +519,8 @@ export default function UnifiedPage() {
           draftCount={draftCount}
           onOpenTemplatesModal={handleOpenTemplatesModal}
           templateCount={templateCount}
+          onDeleteConversation={handleDeleteConversation}
+          onOpenConversationEditor={handleOpenConversationEditor}
         />
 
         <div
@@ -354,6 +556,7 @@ export default function UnifiedPage() {
                 onResizerMouseDown={handleMessageContainerResizerMouseDown}
                 resizing={resizingMessageContainer}
                 isLoadingConversation={isLoadingConversation}
+                onUpdateMessage={handleUpdateMessage}
               />
             )}
 
@@ -502,7 +705,46 @@ export default function UnifiedPage() {
         isLoading={isLoadingDrafts}
         onOpenDraft={handleOpenDraft}
         onDeleteDraft={handleDeleteDraft}
+        onEditDraft={handleEditDraft}
+        onUpdateDraft={handleUpdateDraft}
       />
+
+      {/* Conversation Editor Modal */}
+      {conversationEditorOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full h-full max-h-[90vh] flex flex-col">
+            {isSavingConversationEditor && (
+              <div className="absolute top-4 right-4 z-90 bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm flex items-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                Saving lesson...
+              </div>
+            )}
+            <ErrorBoundary>
+              <LessonEditor
+                content={conversationEditorContent}
+                onSave={handleSaveConversationEditor}
+                onCancel={handleCancelConversationEditor}
+                autoSave={false}
+              />
+            </ErrorBoundary>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={deleteConfirmOpen}
+        title="Delete Conversation"
+        message="Are you sure you want to delete this conversation? This action cannot be undone."
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onConfirm={confirmDeleteConversation}
+        onCancel={cancelDeleteConversation}
+        variant="danger"
+      />
+
+      {/* Toast Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </>
   );
 }

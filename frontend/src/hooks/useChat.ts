@@ -87,6 +87,31 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     );
   }, []);
 
+  const updateMessageWithMetadata = useCallback((id: string, newText: string) => {
+    setMessages((prev) =>
+      prev.map((message) => {
+        if (message.id === id) {
+          // If this is the first modification, store the original text
+          if (!message.isModified && !message.originalText) {
+            return {
+              ...message,
+              text: newText,
+              originalText: message.text,
+              isModified: true
+            };
+          }
+          // If already modified, just update the text
+          return {
+            ...message,
+            text: newText,
+            isModified: true
+          };
+        }
+        return message;
+      })
+    );
+  }, []);
+
   const processChatMessage = useCallback(
     async (messageText: string, onComplete?: (session: SessionResponsePayload) => void) => {
       const activeSessionId = session?.id;
@@ -292,6 +317,8 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     loadConversationMessages,
     messageStatuses,
     updateMessageStatus,
+    updateMessageText,
+    updateMessageWithMetadata,
     generateMessageId,
   };
 }

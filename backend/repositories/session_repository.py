@@ -168,6 +168,16 @@ class SessionRepository:
         finally:
             conn.close()
 
+    def delete_session(self, session_id: str) -> bool:
+        """Delete a session by ID. Returns True if deleted, False if not found."""
+        conn = self.db_manager.get_connection()
+        try:
+            cursor = conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+            conn.commit()
+            return cursor.rowcount > 0
+        finally:
+            conn.close()
+
     def _row_to_session(self, row: sqlite3.Row) -> Session:
         # Helper to safely get optional columns
         def safe_get(row, key: str, default=None):

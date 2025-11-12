@@ -9,6 +9,8 @@ export interface ChatMessage {
   sender: ChatSender;
   text: string;
   timestamp: string;
+  isModified?: boolean;
+  originalText?: string;
 }
 
 export interface ImageData {
@@ -92,6 +94,18 @@ export interface DraftsModalProps {
   isLoading: boolean;
   onOpenDraft: (draftId: string) => void;
   onDeleteDraft: (draftId: string) => void;
+  onEditDraft?: (draftId: string) => void;
+  onUpdateDraft?: (draftId: string, updates: { title?: string; content?: string; metadata?: Record<string, unknown> }) => Promise<DraftItem | null>;
+}
+
+export type ExportFormat = 'markdown' | 'pdf' | 'docx';
+
+export interface ExportModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  draft: DraftItem | null;
+  onExport: (format: ExportFormat) => void;
+  isLoading: boolean;
 }
 
 export interface TemplatesModalProps {
@@ -102,6 +116,16 @@ export interface TemplatesModalProps {
   onSelectTemplate: (templateId: string) => void;
   onDeleteTemplate: (templateId: string) => void;
 }
+
+export interface LessonEditorProps {
+  content: string;
+  onSave: (content: string) => Promise<void>;
+  onCancel: () => void;
+  autoSave?: boolean;
+}
+
+export type EditorMode = 'edit' | 'preview' | 'split';
+export type SaveStatus = 'saved' | 'saving' | 'unsaved' | 'error';
 
 // Grouped state interfaces for better organization
 export interface UIState {

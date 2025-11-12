@@ -140,6 +140,35 @@ async def update_session(
     return _session_to_response(updated, standard_repo)
 
 
+@router.delete("/{session_id}")
+async def delete_session(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a session and optionally its associated lessons"""
+    repo = SessionRepository()
+    session = repo.get_session(session_id)
+    
+    if not session or session.user_id != current_user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
+    
+    # Optionally delete associated lessons
+    lesson_repo = LessonRepository()
+    lessons = lesson_repo.list_lessons_for_session(session_id)
+    for lesson in lessons:
+        lesson_repo.delete_lesson(lesson.id)
+    
+    # Delete the session
+    deleted = repo.delete_session(session_id)
+    if not deleted:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete session"
+        )
+    
+    return {"message": "Session deleted successfully"}
+
+
 def _create_lesson_agent(session: Any, use_conversational: bool = True) -> LessonAgent:
     """Create and initialize a LessonAgent for the session"""
     flow = Flow(name="lesson_planning")

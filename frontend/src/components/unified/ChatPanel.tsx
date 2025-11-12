@@ -18,6 +18,7 @@ interface ChatPanelProps {
   ) => void;
   resizing: boolean;
   isLoadingConversation?: boolean;
+  onUpdateMessage?: (id: string, newText: string) => void;
 }
 
 export default function ChatPanel({
@@ -32,6 +33,7 @@ export default function ChatPanel({
   onResizerMouseDown,
   resizing,
   isLoadingConversation = false,
+  onUpdateMessage,
 }: ChatPanelProps) {
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -72,7 +74,11 @@ export default function ChatPanel({
           ) : (
             <>
               {messages.map((message) => (
-                <ChatMessage key={message.id} message={message} />
+                <ChatMessage
+                  key={message.id}
+                  message={message}
+                  onUpdateMessage={onUpdateMessage}
+                />
               ))}
 
               {isTyping && (
