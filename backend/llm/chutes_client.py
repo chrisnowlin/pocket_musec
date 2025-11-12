@@ -16,14 +16,18 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Message:
-    """Chat message"""
+    """Chat message - supports both text and multimodal content"""
+
     role: str  # 'system', 'user', or 'assistant'
-    content: str
+    content: Union[
+        str, List[Dict[str, Any]]
+    ]  # Can be string or list of content parts for vision
 
 
 @dataclass
 class ChatResponse:
     """Response from chat completion"""
+
     content: str
     model: str
     usage: Dict[str, int]
@@ -32,22 +36,25 @@ class ChatResponse:
 
 class ChutesAPIError(Exception):
     """Base exception for Chutes API errors"""
+
     pass
 
 
 class ChutesAuthenticationError(ChutesAPIError):
     """Authentication failed"""
+
     pass
 
 
 class ChutesRateLimitError(ChutesAPIError):
     """Rate limit exceeded"""
+
     pass
 
 
 class ChutesClient:
     """Client for Chutes AI API"""
-    
+
     def __init__(
         self,
         api_key: Optional[str] = None,
@@ -57,31 +64,26 @@ class ChutesClient:
         max_retries: int = 3,
     ):
         self.api_key = api_key or config.chutes.api_key
-        self.base_url = (base_url or config.chutes.base_url).rstrip('/')
+        self.base_url = (base_url or config.chutes.base_url).rstrip("/")
         self.default_model = default_model or config.llm.default_model
         self.embedding_model = config.llm.embedding_model
         self.timeout = timeout
         self.max_retries = max_retries
         self.rate_limit_delay = 1.0  # Base delay for rate limiting
-        
+
         if not self.api_key:
             raise ChutesAuthenticationError(
                 "CHUTES_API_KEY not found. Please set it in .env file."
             )
-    
-    def _make_request(
-        self,
-        method: str,
-        endpoint: str,
-        **kwargs
-    ) -> requests.Response:
+
+    def _make_request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """Make HTTP request with retry logic"""
         url = f"{self.base_url}{endpoint}"
-        headers = kwargs.pop('headers', {})
-        # Chutes API uses the API key directly without "Bearer" prefix
-        headers['Authorization'] = self.api_key
-        headers['Content-Type'] = 'application/json'
-        
+        headers = kwargs.pop("headers", {})
+        # Chutes API uses Bearer token authentication
+        headers["Authorization"] = f"Bearer {self.api_key}"
+        headers["Content-Type"] = "application/json"
+
         for attempt in range(self.max_retries):
             try:
                 response = requests.request(
@@ -89,39 +91,39 @@ class ChutesClient:
                     url=url,
                     headers=headers,
                     timeout=self.timeout,
-                    **kwargs
+                    **kwargs,
                 )
-                
+
                 # Handle rate limiting with exponential backoff
                 if response.status_code == 429:
-                    retry_after = int(response.headers.get('Retry-After', 2 ** attempt))
+                    retry_after = int(response.headers.get("Retry-After", 2**attempt))
                     logger.warning(f"Rate limited. Retrying after {retry_after}s...")
                     time.sleep(retry_after)
                     continue
-                
+
                 # Handle authentication errors
                 if response.status_code == 401:
                     raise ChutesAuthenticationError("Invalid API key")
-                
+
                 # Raise for other errors
                 response.raise_for_status()
-                
+
                 return response
-                
+
             except requests.exceptions.Timeout:
                 if attempt == self.max_retries - 1:
                     raise ChutesAPIError(f"Request timed out after {self.timeout}s")
                 logger.warning(f"Timeout on attempt {attempt + 1}, retrying...")
-                time.sleep(2 ** attempt)
-                
+                time.sleep(2**attempt)
+
             except requests.exceptions.RequestException as e:
                 if attempt == self.max_retries - 1:
                     raise ChutesAPIError(f"Request failed: {str(e)}")
                 logger.warning(f"Request failed on attempt {attempt + 1}, retrying...")
-                time.sleep(2 ** attempt)
-        
+                time.sleep(2**attempt)
+
         raise ChutesAPIError("Max retries exceeded")
-    
+
     @handle_api_errors
     def chat_completion(
         self,
@@ -129,262 +131,255 @@ class ChutesClient:
         model: Optional[str] = None,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> ChatResponse:
         """
         Create a chat completion
-        
+
         Args:
             messages: List of chat messages
             model: Model to use (defaults to config.DEFAULT_MODEL)
             temperature: Sampling temperature (0-2)
             max_tokens: Maximum tokens to generate
             **kwargs: Additional parameters to pass to the API
-        
+
         Returns:
             ChatResponse with generated content
         """
+        # Build messages payload - handle both string and multimodal content
+        formatted_messages: List[Dict[str, Any]] = []
+        for msg in messages:
+            formatted_msg: Dict[str, Any] = {"role": msg.role}
+            # If content is a list (multimodal), pass it directly
+            # If content is a string, pass it as is
+            formatted_msg["content"] = msg.content  # type: ignore
+            formatted_messages.append(formatted_msg)
+
         payload = {
-            'model': model or self.default_model,
-            'messages': [{'role': msg.role, 'content': msg.content} for msg in messages],
-            'temperature': temperature or config.llm.default_temperature,
-            'max_tokens': max_tokens or config.llm.default_max_tokens,
-            **kwargs
+            "model": model or self.default_model,
+            "messages": formatted_messages,
+            "temperature": temperature or config.llm.default_temperature,
+            "max_tokens": max_tokens or config.llm.default_max_tokens,
+            **kwargs,
         }
-        
-        response = self._make_request('POST', '/chat/completions', json=payload)
+
+        response = self._make_request("POST", "/chat/completions", json=payload)
         data = response.json()
-        
-        choice = data['choices'][0]
+
+        choice = data["choices"][0]
         return ChatResponse(
-            content=choice['message']['content'],
-            model=data['model'],
-            usage=data.get('usage', {}),
-            finish_reason=choice.get('finish_reason', 'unknown')
+            content=choice["message"]["content"],
+            model=data["model"],
+            usage=data.get("usage", {}),
+            finish_reason=choice.get("finish_reason", "unknown"),
         )
-    
+
     def chat_completion_stream(
         self,
         messages: List[Message],
         model: Optional[str] = None,
         temperature: Optional[float] = None,
         max_tokens: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ) -> Iterator[str]:
         """
         Create a streaming chat completion
-        
+
         Args:
             messages: List of chat messages
             model: Model to use (defaults to config.DEFAULT_MODEL)
             temperature: Sampling temperature (0-2)
             max_tokens: Maximum tokens to generate
             **kwargs: Additional parameters to pass to the API
-        
+
         Yields:
             Content chunks as they are generated
         """
         payload = {
-            'model': model or self.default_model,
-            'messages': [{'role': msg.role, 'content': msg.content} for msg in messages],
-            'temperature': temperature or config.llm.default_temperature,
-            'max_tokens': max_tokens or config.llm.default_max_tokens,
-            'stream': True,
-            **kwargs
+            "model": model or self.default_model,
+            "messages": [
+                {"role": msg.role, "content": msg.content} for msg in messages
+            ],
+            "temperature": temperature or config.llm.default_temperature,
+            "max_tokens": max_tokens or config.llm.default_max_tokens,
+            "stream": True,
+            **kwargs,
         }
-        
-        response = self._make_request('POST', '/chat/completions', json=payload, stream=True)
-        
+
+        response = self._make_request(
+            "POST", "/chat/completions", json=payload, stream=True
+        )
+
         for line in response.iter_lines():
             if line:
-                line_str = line.decode('utf-8')
-                if line_str.startswith('data: '):
+                line_str = line.decode("utf-8")
+                if line_str.startswith("data: "):
                     data_str = line_str[6:]  # Remove 'data: ' prefix
-                    if data_str == '[DONE]':
+                    if data_str == "[DONE]":
                         break
-                    
+
                     try:
                         data = json.loads(data_str)
-                        if 'choices' in data and len(data['choices']) > 0:
-                            delta = data['choices'][0].get('delta', {})
-                            if 'content' in delta:
-                                yield delta['content']
+                        if "choices" in data and len(data["choices"]) > 0:
+                            delta = data["choices"][0].get("delta", {})
+                            if "content" in delta:
+                                yield delta["content"]
                     except json.JSONDecodeError:
                         continue
-    
-    def create_embedding(
-        self,
-        text: str,
-        model: Optional[str] = None
-    ) -> List[float]:
+
+    def create_embedding(self, text: str, model: Optional[str] = None) -> List[float]:
         """
         Create an embedding for the given text
-        
+
         Args:
             text: Text to embed
             model: Embedding model to use (defaults to config.EMBEDDING_MODEL)
-        
+
         Returns:
             List of floats representing the embedding vector
         """
-        payload = {
-            'model': model or config.llm.embedding_model,
-            'input': text
-        }
-        
+        payload = {"model": model or config.llm.embedding_model, "input": text}
+
         # Use dedicated embedding endpoint
-        embedding_url = config.chutes.embedding_base_url.rstrip('/')
+        embedding_url = config.chutes.embedding_base_url.rstrip("/")
         headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json'
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
         }
-        
+
         response = requests.post(
             f"{embedding_url}/embeddings",
             headers=headers,
             json=payload,
-            timeout=self.timeout
+            timeout=self.timeout,
         )
         response.raise_for_status()
         data = response.json()
-        
-        return data['data'][0]['embedding']
-    
+
+        return data["data"][0]["embedding"]
+
     def create_embeddings_batch(
-        self,
-        texts: List[str],
-        model: Optional[str] = None
+        self, texts: List[str], model: Optional[str] = None
     ) -> List[List[float]]:
         """
         Create embeddings for multiple texts
-        
+
         Args:
             texts: List of texts to embed
             model: Embedding model to use (defaults to config.EMBEDDING_MODEL)
-        
+
         Returns:
             List of embedding vectors
         """
-        payload = {
-            'model': model or config.llm.embedding_model,
-            'input': texts
-        }
-        
+        payload = {"model": model or config.llm.embedding_model, "input": texts}
+
         # Use dedicated embedding endpoint
-        embedding_url = config.chutes.embedding_base_url.rstrip('/')
+        embedding_url = config.chutes.embedding_base_url.rstrip("/")
         headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json'
+            "Authorization": f"Bearer {self.api_key}",
+            "Content-Type": "application/json",
         }
-        
+
         response = requests.post(
             f"{embedding_url}/embeddings",
             headers=headers,
             json=payload,
-            timeout=self.timeout
+            timeout=self.timeout,
         )
         response.raise_for_status()
         data = response.json()
-        
+
         # Sort by index to maintain order
-        sorted_embeddings = sorted(data['data'], key=lambda x: x['index'])
-        return [item['embedding'] for item in sorted_embeddings]
-    
+        sorted_embeddings = sorted(data["data"], key=lambda x: x["index"])
+        return [item["embedding"] for item in sorted_embeddings]
+
     def generate_lesson_plan(
         self,
         context: LessonPromptContext,
         template_type: str = "lesson_plan",
         stream: bool = False,
-        **kwargs
+        **kwargs,
     ) -> Union[str, Iterator[str]]:
         """
         Generate a lesson plan using the specified template
-        
+
         Args:
             context: Lesson context information
             template_type: Type of template to use
             stream: Whether to stream the response
             **kwargs: Additional parameters for the API call
-            
+
         Returns:
             Generated lesson plan content
         """
         messages = self._prepare_messages(context, template_type)
-        
+
         if stream:
-            return self.chat_completion_stream(
-                messages=messages,
-                **kwargs
-            )
+            return self.chat_completion_stream(messages=messages, **kwargs)
         else:
-            response = self.chat_completion(
-                messages=messages,
-                **kwargs
-            )
+            response = self.chat_completion(messages=messages, **kwargs)
             return response.content
-    
+
     def generate_embeddings(
-        self,
-        texts: List[str],
-        model: Optional[str] = None
+        self, texts: List[str], model: Optional[str] = None
     ) -> List[List[float]]:
         """
         Generate embeddings for multiple texts (alias for create_embeddings_batch)
-        
+
         Args:
             texts: List of texts to embed
             model: Embedding model to use
-            
+
         Returns:
             List of embedding vectors
         """
         return self.create_embeddings_batch(texts, model)
-    
+
     def _prepare_messages(
-        self,
-        context: LessonPromptContext,
-        template_type: str = "lesson_plan"
+        self, context: LessonPromptContext, template_type: str = "lesson_plan"
     ) -> List[Message]:
         """
         Prepare messages for API call using templates
-        
+
         Args:
             context: Lesson context information
             template_type: Type of template to use
-            
+
         Returns:
             List of messages for the API call
         """
         system_prompt = LessonPromptTemplates.get_system_prompt()
         user_prompt = LessonPromptTemplates.generate_prompt(template_type, context)
-        
+
         return [
-            Message(role='system', content=system_prompt),
-            Message(role='user', content=user_prompt)
+            Message(role="system", content=system_prompt),
+            Message(role="user", content=user_prompt),
         ]
-    
-    def build_prompt_context(self, standard_data: Dict[str, Any]) -> LessonPromptContext:
+
+    def build_prompt_context(
+        self, standard_data: Dict[str, Any]
+    ) -> LessonPromptContext:
         """
         Build LessonPromptContext from standard data dictionary
-        
+
         Args:
             standard_data: Dictionary containing standard information
-            
+
         Returns:
             LessonPromptContext instance
         """
         return LessonPromptContext(
-            grade_level=standard_data.get("grade_level"),
-            strand_code=standard_data.get("strand_code"),
-            strand_name=standard_data.get("strand_name"),
-            strand_description=standard_data.get("strand_description"),
-            standard_id=standard_data.get("standard_id"),
-            standard_text=standard_data.get("standard_text"),
+            grade_level=str(standard_data.get("grade_level") or ""),
+            strand_code=str(standard_data.get("strand_code") or ""),
+            strand_name=str(standard_data.get("strand_name") or ""),
+            strand_description=str(standard_data.get("strand_description") or ""),
+            standard_id=str(standard_data.get("standard_id") or ""),
+            standard_text=str(standard_data.get("standard_text") or ""),
             objectives=standard_data.get("objectives", []),
             additional_context=standard_data.get("additional_context"),
             lesson_duration=standard_data.get("lesson_duration"),
             class_size=standard_data.get("class_size"),
-            available_resources=standard_data.get("available_resources")
+            available_resources=standard_data.get("available_resources"),
         )
 
 
@@ -394,34 +389,31 @@ def ask_llm(
     system_prompt: Optional[str] = None,
     model: Optional[str] = None,
     temperature: Optional[float] = None,
-    max_tokens: Optional[int] = None
+    max_tokens: Optional[int] = None,
 ) -> str:
     """
     Simple wrapper for asking the LLM a question
-    
+
     Args:
         prompt: User prompt/question
         system_prompt: Optional system prompt to set context
         model: Model to use
         temperature: Sampling temperature
         max_tokens: Maximum tokens to generate
-    
+
     Returns:
         String response from the LLM
     """
     client = ChutesClient()
     messages = []
-    
+
     if system_prompt:
-        messages.append(Message(role='system', content=system_prompt))
-    
-    messages.append(Message(role='user', content=prompt))
-    
+        messages.append(Message(role="system", content=system_prompt))
+
+    messages.append(Message(role="user", content=prompt))
+
     response = client.chat_completion(
-        messages=messages,
-        model=model,
-        temperature=temperature,
-        max_tokens=max_tokens
+        messages=messages, model=model, temperature=temperature, max_tokens=max_tokens
     )
-    
+
     return response.content
