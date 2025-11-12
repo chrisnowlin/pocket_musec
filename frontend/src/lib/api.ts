@@ -132,15 +132,59 @@ const api = {
   updateProcessingMode: (mode: string) =>
     apiClient.put('/settings/processing-mode', { mode }),
   downloadLocalModel: () => apiClient.post('/settings/models/local/download'),
-  streamChatMessage: (sessionId: string, payload: ChatMessagePayload) =>
-    fetch(`${API_BASE_URL}/sessions/${sessionId}/messages/stream`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      credentials: 'include',
-      body: JSON.stringify(payload),
-    }),
+  streamChatMessage: async (sessionId: string, payload: ChatMessagePayload, retryCount: number = 0): Promise<Response> => {
+    const maxRetries = 2;
+    
+    try {
+      const response = await fetch(`${API_BASE_URL}/sessions/${sessionId}/messages/stream`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        
+        // Network errors or server errors might be retryable
+        if (retryCount < maxRetries && (response.status >= 500 || response.status === 0)) {
+          console.warn(`Streaming request failed (attempt ${retryCount + 1}/${maxRetries + 1}), retrying...`);
+          
+          // Exponential backoff with jitter
+          const baseDelay = 1000;
+          const jitter = Math.random() * 0.3 * baseDelay;
+          const delay = baseDelay * Math.pow(2, retryCount) + jitter;
+          
+          await new Promise(resolve => setTimeout(resolve, delay));
+          return api.streamChatMessage(sessionId, payload, retryCount + 1);
+        }
+        
+        throw new Error(`HTTP ${response.status}: ${errorText || 'Unknown error'}`);
+      }
+
+      if (!response.body) {
+        throw new Error('Response body is not available');
+      }
+
+      return response;
+    } catch (error: any) {
+      // Handle network errors with retry
+      if (retryCount < maxRetries && error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.warn(`Network error in streaming (attempt ${retryCount + 1}/${maxRetries + 1}), retrying...`);
+        
+        const baseDelay = 1000;
+        const jitter = Math.random() * 0.3 * baseDelay;
+        const delay = baseDelay * Math.pow(2, retryCount) + jitter;
+        
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return api.streamChatMessage(sessionId, payload, retryCount + 1);
+      }
+      
+      throw error;
+    }
+  },
   // Draft operations
   getDrafts: () => apiClient.get<DraftItem[]>('/drafts'),
   getDraft: (draftId: string) => apiClient.get<DraftItem>(`/drafts/${draftId}`),

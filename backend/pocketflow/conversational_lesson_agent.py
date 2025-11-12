@@ -135,12 +135,23 @@ Focus on musical education context. If information isn't present, use null."""
                 messages=messages, temperature=0.3, max_tokens=500
             )
 
+            # Debug logging to check response type
+            logger.debug(f"Response type: {type(response)}")
+            
             # Parse the JSON response
             try:
-                extracted = json.loads(response.content)
+                # Handle both ChatResponse object and dictionary
+                if hasattr(response, 'content'):
+                    content = response.content
+                elif isinstance(response, dict):
+                    content = response.get('content', str(response))
+                else:
+                    content = str(response)
+                    
+                extracted = json.loads(content)
                 return extracted
             except json.JSONDecodeError:
-                logger.warning(f"Failed to parse analysis response: {response.content}")
+                logger.warning(f"Failed to parse analysis response: {content if 'content' in locals() else response}")
                 return {"confidence_score": 0.0}
 
         except Exception as e:
@@ -259,7 +270,16 @@ Write your response as if you're talking to a fellow music educator. Be warm, kn
             messages=messages, temperature=0.7, max_tokens=800
         )
 
-        return response.content
+        # Debug logging to check response type
+        logger.debug(f"Generate response type: {type(response)}")
+        
+        # Handle both ChatResponse object and dictionary
+        if hasattr(response, 'content'):
+            return response.content
+        elif isinstance(response, dict):
+            return response.get('content', str(response))
+        else:
+            return str(response)
 
     def _handle_conversational_welcome(self, message: str) -> str:
         """Handle the initial conversational exchange"""

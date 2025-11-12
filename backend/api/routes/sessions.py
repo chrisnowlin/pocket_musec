@@ -2,6 +2,7 @@
 
 import asyncio
 import json
+import logging
 from typing import List, Dict, Any, Optional, Union
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -24,6 +25,8 @@ from ..models import (
 )
 from ..dependencies import get_current_user
 from ...auth import User
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
@@ -271,40 +274,85 @@ async def send_message(
     agent = _create_lesson_agent(session)
     lesson_repo = LessonRepository()
 
-    # Process message through the agent
-    response_text = agent.chat(request.message)
+    try:
+        # Add user message to conversation history BEFORE generating response
+        conversation_history = agent.get_conversation_history()
+        conversation_history.append({"role": "user", "content": request.message})
+        
+        # Save conversation history with user message first
+        agent_state_json = agent.serialize_state()
+        conversation_history_json = json.dumps(conversation_history)
+        current_state = agent.get_state()
 
-    # Save agent state for persistence
-    _save_agent_state(session_id, agent, session_repo)
+        # Transactional save: ensure conversation history is saved before proceeding
+        saved_session = session_repo.save_agent_state(
+            session_id=session_id,
+            agent_state=agent_state_json,
+            conversation_history=conversation_history_json,
+            current_state=current_state,
+        )
+        
+        if not saved_session:
+            raise HTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to save conversation history"
+            )
+        
+        logger.info(f"Conversation history saved for session {session_id}")
 
-    # Compose lesson from agent's current state
-    plan = _compose_lesson_from_agent(agent, current_user)
+        # Process message through the agent
+        response_text = agent.chat(request.message)
 
-    lesson = lesson_repo.create_lesson(
-        session_id=session.id,
-        user_id=current_user.id,
-        title=plan["title"],
-        content=plan["content"],
-        metadata=json.dumps(plan["metadata"]),
-        processing_mode=current_user.processing_mode.value,
-        is_draft=True,  # Save all generated lessons as drafts by default
-    )
+        # Save final agent state with AI response
+        _save_agent_state(session_id, agent, session_repo)
 
-    session_repo.touch_session(session_id)
-    updated_session = session_repo.get_session(session_id)
+        # Compose lesson from agent's current state
+        plan = _compose_lesson_from_agent(agent, current_user)
 
-    lesson_summary = _lesson_to_summary(
-        lesson=lesson,
-        summary_text=response_text,
-        metadata=plan.get("metadata"),
-        citations=plan.get("citations", []),
-    )
+        lesson = lesson_repo.create_lesson(
+            session_id=session.id,
+            user_id=current_user.id,
+            title=plan["title"],
+            content=plan["content"],
+            metadata=json.dumps(plan["metadata"]),
+            processing_mode=current_user.processing_mode.value,
+            is_draft=True,  # Save all generated lessons as drafts by default
+        )
 
-    return ChatResponse(
-        response=response_text,
-        lesson=lesson_summary,
-        session=_session_to_response(updated_session, standard_repo),
-    )
+        session_repo.touch_session(session_id)
+        updated_session = session_repo.get_session(session_id)
+
+        lesson_summary = _lesson_to_summary(
+            lesson=lesson,
+            summary_text=response_text,
+            metadata=plan.get("metadata"),
+            citations=plan.get("citations", []),
+        )
+
+        return ChatResponse(
+            response=response_text,
+            lesson=lesson_summary,
+            session=_session_to_response(updated_session, standard_repo),
+        )
+
+    except Exception as e:
+        logger.error(f"Error in send_message for session {session_id}: {e}")
+        # Try to save at least the user message if everything else fails
+        try:
+            conversation_history = [{"role": "user", "content": request.message}]
+            session_repo.save_agent_state(
+                session_id=session_id,
+                agent_state="{}",
+                conversation_history=json.dumps(conversation_history),
+                current_state="error",
+            )
+        except Exception as save_error:
+            logger.error(f"Failed to save fallback conversation history: {save_error}")
+        
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process message and save conversation"
+        )
 
 
 def _sse_event(payload: dict) -> str:
@@ -326,54 +374,123 @@ async def stream_message(
     agent = _create_lesson_agent(session)
     lesson_repo = LessonRepository()
 
-    # Process message through the agent
-    response_text = agent.chat(request.message)
+    try:
+        # Add user message to conversation history BEFORE generating response
+        conversation_history = agent.get_conversation_history()
+        conversation_history.append({"role": "user", "content": request.message})
+        
+        # Save conversation history with user message first
+        agent_state_json = agent.serialize_state()
+        conversation_history_json = json.dumps(conversation_history)
+        current_state = agent.get_state()
 
-    # Save agent state for persistence
-    _save_agent_state(session_id, agent, session_repo)
-
-    # Compose lesson from agent's current state
-    plan = _compose_lesson_from_agent(agent, current_user)
-
-    lesson = lesson_repo.create_lesson(
-        session_id=session.id,
-        user_id=current_user.id,
-        title=plan["title"],
-        content=plan["content"],
-        metadata=json.dumps(plan["metadata"]),
-        processing_mode=current_user.processing_mode.value,
-        is_draft=True,  # Save all generated lessons as drafts by default
-    )
-
-    session_repo.touch_session(session_id)
-    updated_session = session_repo.get_session(session_id)
-    lesson_summary = _lesson_to_summary(
-        lesson=lesson,
-        summary_text=response_text,
-        metadata=plan.get("metadata"),
-        citations=plan.get("citations", []),
-    )
-
-    async def event_stream():
-        yield _sse_event(
-            {"type": "status", "message": "PocketMusec is generating a response..."}
+        # Transactional save: ensure conversation history is saved before proceeding
+        saved_session = session_repo.save_agent_state(
+            session_id=session_id,
+            agent_state=agent_state_json,
+            conversation_history=conversation_history_json,
+            current_state=current_state,
         )
-        # Stream the agent's response in chunks
-        sentences = [
-            segment.strip() for segment in response_text.split(". ") if segment.strip()
-        ]
-        for sentence in sentences:
-            text = sentence if sentence.endswith(".") else sentence + "."
-            yield _sse_event({"type": "delta", "text": text})
-            await asyncio.sleep(0.1)
+        
+        if not saved_session:
+            raise HTTPException(
+                status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to save conversation history"
+            )
+        
+        logger.info(f"Conversation history saved for session {session_id}")
 
-        payload = ChatResponse(
-            response=response_text,
-            lesson=lesson_summary,
-            session=_session_to_response(updated_session, standard_repo),
-        )
-        yield _sse_event(
-            {"type": "complete", "payload": json.loads(payload.model_dump_json())}
+        # Now process message through the agent
+        response_text = agent.chat(request.message)
+
+        # Add AI response to conversation history
+        conversation_history = agent.get_conversation_history()
+        conversation_history.append({"role": "assistant", "content": response_text})
+
+        # Save final state with AI response
+        final_agent_state_json = agent.serialize_state()
+        final_conversation_history_json = json.dumps(conversation_history)
+        final_current_state = agent.get_state()
+
+        final_session = session_repo.save_agent_state(
+            session_id=session_id,
+            agent_state=final_agent_state_json,
+            conversation_history=final_conversation_history_json,
+            current_state=final_current_state,
         )
 
-    return StreamingResponse(event_stream(), media_type="text/event-stream")
+        if not final_session:
+            logger.error(f"Failed to save final conversation state for session {session_id}")
+            # Don't fail the request, but log the error
+
+        # Compose lesson from agent's current state
+        plan = _compose_lesson_from_agent(agent, current_user)
+
+        lesson = lesson_repo.create_lesson(
+            session_id=session.id,
+            user_id=current_user.id,
+            title=plan["title"],
+            content=plan["content"],
+            metadata=json.dumps(plan["metadata"]),
+            processing_mode=current_user.processing_mode.value,
+            is_draft=True,  # Save all generated lessons as drafts by default
+        )
+
+        session_repo.touch_session(session_id)
+        updated_session = session_repo.get_session(session_id)
+        lesson_summary = _lesson_to_summary(
+            lesson=lesson,
+            summary_text=response_text,
+            metadata=plan.get("metadata"),
+            citations=plan.get("citations", []),
+        )
+
+        async def event_stream():
+            # Send confirmation that conversation was persisted
+            yield _sse_event({
+                "type": "persisted",
+                "message": "Conversation saved successfully",
+                "session_updated": final_session is not None
+            })
+            
+            yield _sse_event(
+                {"type": "status", "message": "PocketMusec is generating a response..."}
+            )
+            # Stream the agent's response in chunks
+            sentences = [
+                segment.strip() for segment in response_text.split(". ") if segment.strip()
+            ]
+            for sentence in sentences:
+                text = sentence if sentence.endswith(".") else sentence + "."
+                yield _sse_event({"type": "delta", "text": text})
+                await asyncio.sleep(0.1)
+
+            payload = ChatResponse(
+                response=response_text,
+                lesson=lesson_summary,
+                session=_session_to_response(updated_session, standard_repo),
+            )
+            yield _sse_event(
+                {"type": "complete", "payload": json.loads(payload.model_dump_json())}
+            )
+
+        return StreamingResponse(event_stream(), media_type="text/event-stream")
+
+    except Exception as e:
+        logger.error(f"Error in stream_message for session {session_id}: {e}")
+        # Try to save at least the user message if everything else fails
+        try:
+            conversation_history = [{"role": "user", "content": request.message}]
+            session_repo.save_agent_state(
+                session_id=session_id,
+                agent_state="{}",
+                conversation_history=json.dumps(conversation_history),
+                current_state="error",
+            )
+        except Exception as save_error:
+            logger.error(f"Failed to save fallback conversation history: {save_error}")
+        
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to process message and save conversation"
+        )

@@ -180,7 +180,6 @@ export default function UnifiedPage() {
     const trimmed = chatState.input.trim();
     if (!trimmed) return;
 
-    appendMessage('user', trimmed);
     updateChatState({ input: '' });
     processChatMessage(trimmed, setSession);
   };
@@ -188,7 +187,6 @@ export default function UnifiedPage() {
   const handleStartChat = (standard: StandardRecord, prompt: string) => {
     updateUIState({ mode: 'chat' });
     updateLessonSettings({ selectedStandard: standard });
-    appendMessage('user', prompt);
     processChatMessage(prompt, setSession);
   };
 
@@ -290,7 +288,8 @@ export default function UnifiedPage() {
       updateUIState({ mode: 'chat' });
       
       // Optionally, add a message to the chat about using a template
-      appendMessage('user', `I'm using the "${template.name}" template. ${template.description}`);
+      const templateMessage = `I'm using the "${template.name}" template. ${template.description}`;
+      processChatMessage(templateMessage, setSession);
     }
   };
 
