@@ -6,7 +6,10 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from pathlib import Path
 import logging
 
-from backend.ingestion.nc_standards_formal_parser import NCStandardsParser
+from backend.ingestion.nc_standards_unified_parser import (
+    NCStandardsParser,
+    ParsingStrategy,
+)
 from backend.ingestion.document_classifier import DocumentClassifier, DocumentType
 from backend.repositories.database import DatabaseManager
 from backend.utils.error_handling import (
@@ -27,7 +30,7 @@ logger = get_logger("ingest_command")
 @handle_file_errors
 def standards(
     pdf_path: str = typer.Argument(..., help="Path to the NC Music Standards PDF file"),
-    db_path: str = typer.Option(
+    db_path: str | None = typer.Option(
         None,
         "--db-path",
         help="Custom path to the SQLite database (uses default if not provided)",
@@ -97,7 +100,12 @@ def standards(
                 console.print(f"📄 Parsing PDF: {pdf_path}")
 
             with logger.log_performance("pdf_parsing"):
-                parser = NCStandardsParser(use_vision=use_vision)
+                strategy = (
+                    ParsingStrategy.VISION_FIRST
+                    if use_vision
+                    else ParsingStrategy.TABLE_BASED
+                )
+                parser = NCStandardsParser(strategy=strategy)
                 parsed_standards = parser.parse_standards_document(str(pdf_file))
 
                 logger.info(
@@ -180,7 +188,7 @@ def _clear_standards(db_manager: DatabaseManager):
         conn.commit()
 
 
-def ingest_standards(pdf_path: str, db_path: str = None, force: bool = False):
+def ingest_standards(pdf_path: str, db_path: str | None = None, force: bool = False):
     """Wrapper function for ingesting standards from CLI"""
     return standards(pdf_path, db_path, force)
 
@@ -192,7 +200,7 @@ def auto(
     pdf_path: str = typer.Argument(
         ..., help="Path to NC Music Education PDF file (any type)"
     ),
-    db_path: str = typer.Option(
+    db_path: str | None = typer.Option(
         None,
         "--db-path",
         help="Custom path to the SQLite database (uses default if not provided)",
@@ -285,7 +293,7 @@ def auto(
 
 
 def _ingest_standards_document(
-    pdf_file: Path, db_path: str, force: bool, use_vision: bool
+    pdf_file: Path, db_path: str | None, force: bool, use_vision: bool
 ):
     """Helper to ingest standards document (extracted from standards command)"""
 
@@ -319,7 +327,10 @@ def _ingest_standards_document(
         console.print(f"📄 Parsing PDF: {pdf_file.name}")
 
     with logger.log_performance("pdf_parsing"):
-        parser = NCStandardsParser(use_vision=use_vision)
+        strategy = (
+            ParsingStrategy.VISION_FIRST if use_vision else ParsingStrategy.TABLE_BASED
+        )
+        parser = NCStandardsParser(strategy=strategy)
         parsed_standards = parser.parse_standards_document(str(pdf_file))
 
         logger.info(
