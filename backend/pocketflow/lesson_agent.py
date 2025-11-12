@@ -85,6 +85,43 @@ class LessonAgent(Agent):
  - Any specific standards or curriculum requirements
 </information_extraction>"""
 
+    def _normalize_grade_level(self, grade_level: str) -> str:
+        """Convert human-readable grade level to database format"""
+        if not grade_level:
+            return grade_level
+        
+        grade_mapping = {
+            "kindergarten": "0",
+            "k": "0",
+            "1st grade": "1",
+            "first grade": "1",
+            "grade 1": "1",
+            "2nd grade": "2",
+            "second grade": "2",
+            "grade 2": "2",
+            "3rd grade": "3",
+            "third grade": "3",
+            "grade 3": "3",
+            "4th grade": "4",
+            "fourth grade": "4",
+            "grade 4": "4",
+            "5th grade": "5",
+            "fifth grade": "5",
+            "grade 5": "5",
+            "6th grade": "6",
+            "sixth grade": "6",
+            "grade 6": "6",
+            "7th grade": "7",
+            "seventh grade": "7",
+            "grade 7": "7",
+            "8th grade": "8",
+            "eighth grade": "8",
+            "grade 8": "8",
+        }
+        
+        normalized = grade_mapping.get(grade_level.lower().strip())
+        return normalized if normalized else grade_level
+
     def _analyze_user_message(self, message: str) -> Dict[str, Any]:
         """Use Chutes API to analyze user message and extract information"""
         try:
@@ -143,42 +180,94 @@ Focus on musical education context. If information isn't present, use null."""
             return {"confidence_score": 0.0}
 
     def _get_relevant_standards(self, extracted_info: Dict[str, Any]) -> List[Standard]:
-        """Get relevant standards based on extracted information"""
+        """Get relevant standards using semantic search instead of keyword matching"""
         grade_level = extracted_info.get("grade_level")
         musical_topics = extracted_info.get("musical_topics", [])
 
         if not grade_level:
+            logger.warning("No grade level provided for standards search")
             return []
+        
+        # Normalize grade level for database compatibility
+        normalized_grade = self._normalize_grade_level(grade_level)
 
-        # Get all standards for the grade level
-        standards = self.standards_repo.get_standards_by_grade(grade_level)
-
+        # If no specific topics, get top standards for the grade level
         if not musical_topics:
-            return standards[:5]  # Return first 5 if no specific topics
+            try:
+                # Use semantic search with a general query for the grade level
+                search_results = self.standards_repo.search_standards_semantic(
+                    query=f"music education {normalized_grade}",
+                    grade_level=normalized_grade,
+                    limit=5,
+                    similarity_threshold=0.3  # Lower threshold for broader results
+                )
+                return [standard for standard, _ in search_results]
+            except Exception as e:
+                logger.error(f"Error in semantic search for grade-level standards: {e}")
+                # Fallback to get standards by grade
+                return self.standards_repo.get_standards_by_grade(normalized_grade)[:5]
 
-        # Score standards based on topic relevance
-        scored_standards = []
-        for standard in standards:
-            score = 0
-            standard_text = standard.standard_text.lower()
+        # Create search query from musical topics
+        search_query = " ".join(musical_topics) if musical_topics else f"music education {normalized_grade}"
+        
+        try:
+            # Use semantic search with the musical topics
+            search_results = self.standards_repo.search_standards_semantic(
+                query=search_query,
+                grade_level=normalized_grade,
+                limit=5,
+                similarity_threshold=0.4  # Moderate threshold for topic-specific results
+            )
+            
+            if search_results:
+                logger.info(f"Found {len(search_results)} relevant standards using semantic search")
+                return [standard for standard, _ in search_results]
+            else:
+                # Fallback to keyword-based search if no semantic results
+                logger.warning(f"No semantic search results found for query: {search_query}")
+                return self._fallback_keyword_search(normalized_grade, musical_topics)
+                
+        except Exception as e:
+            logger.error(f"Error in semantic search for standards: {e}")
+            # Fallback to keyword-based search
+            return self._fallback_keyword_search(normalized_grade, musical_topics)
 
-            for topic in musical_topics:
-                topic_lower = topic.lower()
-                if topic_lower in standard_text:
-                    score += 1
-                # Check for related terms
-                if any(
-                    related in standard_text
-                    for related in self._get_related_terms(topic)
-                ):
-                    score += 0.5
+    def _fallback_keyword_search(self, grade_level: str, musical_topics: List[str]) -> List[Standard]:
+        """Fallback method using keyword matching when semantic search fails"""
+        try:
+            # Get all standards for the grade level
+            standards = self.standards_repo.get_standards_by_grade(grade_level)
 
-            if score > 0:
-                scored_standards.append((standard, score))
+            if not musical_topics:
+                return standards[:5]  # Return first 5 if no specific topics
 
-        # Sort by score and return top matches
-        scored_standards.sort(key=lambda x: x[1], reverse=True)
-        return [standard for standard, _ in scored_standards[:5]]
+            # Score standards based on topic relevance using existing keyword logic
+            scored_standards = []
+            for standard in standards:
+                score = 0
+                standard_text = standard.standard_text.lower()
+
+                for topic in musical_topics:
+                    topic_lower = topic.lower()
+                    if topic_lower in standard_text:
+                        score += 1
+                    # Check for related terms
+                    if any(
+                        related in standard_text
+                        for related in self._get_related_terms(topic)
+                    ):
+                        score += 0.5
+
+                if score > 0:
+                    scored_standards.append((standard, score))
+
+            # Sort by score and return top matches
+            scored_standards.sort(key=lambda x: x[1], reverse=True)
+            return [standard for standard, _ in scored_standards[:5]]
+            
+        except Exception as e:
+            logger.error(f"Error in fallback keyword search: {e}")
+            return []  # Return empty list if all methods fail
 
     def _get_related_terms(self, topic: str) -> List[str]:
         """Get related musical terms for a topic"""
@@ -200,6 +289,121 @@ Focus on musical education context. If information isn't present, use null."""
 
         topic_lower = topic.lower()
         return term_mapping.get(topic_lower, [])
+
+    def _get_teaching_strategies_context(self, extracted_info: Dict[str, Any]) -> List[str]:
+        """
+        Retrieve pedagogical content and teaching strategies using semantic search
+        from standards and objectives in the database.
+        
+        Args:
+            extracted_info: Dictionary containing extracted lesson information
+            
+        Returns:
+            List of teaching strategy context strings
+        """
+        try:
+            grade_level = extracted_info.get("grade_level", "")
+            musical_topics = extracted_info.get("musical_topics", [])
+            activity_preferences = extracted_info.get("activity_preferences", [])
+            
+            # Normalize grade level for database compatibility
+            normalized_grade = self._normalize_grade_level(grade_level)
+            
+            # Build search query for teaching strategies
+            search_terms = []
+            if musical_topics:
+                search_terms.extend(musical_topics)
+            if activity_preferences:
+                search_terms.extend(activity_preferences)
+            
+            # Add pedagogy-specific terms
+            search_terms.extend(["teaching strategies", "pedagogical approaches", "instructional methods", "activities"])
+            
+            search_query = " ".join(search_terms) if search_terms else f"music teaching strategies {grade_level}"
+            
+            logger.info(f"Searching for teaching strategies with query: {search_query}")
+            
+            # Use semantic search to find relevant standards that contain teaching strategies
+            search_results = self.standards_repo.search_standards_semantic(
+                query=search_query,
+                grade_level=normalized_grade,
+                limit=5,
+                similarity_threshold=0.3  # Lower threshold for broader pedagogical results
+            )
+            
+            # Extract relevant context from the search results
+            context_parts = []
+            for standard, similarity in search_results:
+                # Create context snippet with standard info
+                context_part = f"[From Standard: {standard.standard_id} - {standard.strand_name}]\n{standard.standard_text[:300]}..."
+                context_parts.append(context_part)
+                
+            if context_parts:
+                logger.info(f"Retrieved {len(context_parts)} teaching strategy context items")
+                return context_parts
+            else:
+                logger.info("No teaching strategies found in standards")
+                return []
+                
+        except Exception as e:
+            logger.error(f"Error retrieving teaching strategies context: {e}")
+            return []
+
+    def _get_assessment_guidance_context(self, extracted_info: Dict[str, Any]) -> List[str]:
+        """
+        Retrieve assessment strategies and guidance using semantic search
+        from standards and objectives in the database.
+        
+        Args:
+            extracted_info: Dictionary containing extracted lesson information
+            
+        Returns:
+            List of assessment guidance context strings
+        """
+        try:
+            grade_level = extracted_info.get("grade_level", "")
+            musical_topics = extracted_info.get("musical_topics", [])
+            
+            # Normalize grade level for database compatibility
+            normalized_grade = self._normalize_grade_level(grade_level)
+            
+            # Build search query for assessment strategies
+            search_terms = []
+            if musical_topics:
+                search_terms.extend(musical_topics)
+            
+            # Add assessment-specific terms
+            search_terms.extend(["assessment strategies", "evaluation methods", "rubrics", "formative assessment"])
+            
+            search_query = " ".join(search_terms) if search_terms else f"music assessment strategies {normalized_grade}"
+            
+            logger.info(f"Searching for assessment guidance with query: {search_query}")
+            
+            # Use semantic search to find relevant standards that contain assessment guidance
+            search_results = self.standards_repo.search_standards_semantic(
+                query=search_query,
+                grade_level=normalized_grade,
+                limit=5,
+                similarity_threshold=0.3  # Lower threshold for broader assessment results
+            )
+            
+            # Extract relevant context from the search results
+            context_parts = []
+            for standard, similarity in search_results:
+                # Create context snippet with standard info
+                context_part = f"[From Standard: {standard.standard_id} - {standard.strand_name}]\n{standard.standard_text[:300]}..."
+                context_parts.append(context_part)
+                
+            if context_parts:
+                logger.info(f"Retrieved {len(context_parts)} assessment guidance context items")
+                return context_parts
+            else:
+                logger.info("No assessment guidance found in standards")
+                return []
+                
+        except Exception as e:
+            logger.error(f"Error retrieving assessment guidance context: {e}")
+            return []
 
     def _generate_conversational_response(
         self,
@@ -426,12 +630,17 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
         return any(trigger in message_lower for trigger in generation_triggers)
 
     def _generate_lesson_plan(self) -> str:
-        """Generate the actual lesson plan using collected information"""
+        """Generate the actual lesson plan using collected information with RAG context"""
         try:
-            # Build lesson context from conversation
+            # Build lesson context from conversation (now includes RAG context)
             context = self._build_lesson_context_from_conversation()
+            
+            # Log that RAG context is being used
+            rag_context_count = len(self.lesson_requirements.get("rag_context", []))
+            if rag_context_count > 0:
+                logger.info(f"Generating lesson plan with {rag_context_count} RAG context items")
 
-            # Generate the lesson plan
+            # Generate the lesson plan with enhanced context
             lesson_plan = self.llm_client.generate_lesson_plan(context, stream=False)
 
             # Handle the Union[str, Iterator[str]] return type
@@ -445,6 +654,11 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
             # Store the generated lesson
             self.lesson_requirements["generated_lesson"] = final_plan
             self.set_state("complete")
+
+            # Enhanced response with RAG context information
+            rag_info = ""
+            if rag_context_count > 0:
+                rag_info = f"\n\n## 📚 Enhanced with Educational Resources\n\nThis lesson plan was enhanced with {rag_context_count} relevant educational resources and teaching strategies retrieved from our knowledge base."
 
             response = f"""# 🎉 Your Personalized Music Lesson Plan
 
@@ -472,7 +686,7 @@ This lesson plan was created specifically for you based on our conversation! I c
 • • *Additional activities or projects*
 • • *Technology integration ideas*
 • • *Performance or sharing opportunities*
-
+{rag_info}
 ---
 
 ### 💬 What would you like to refine about this lesson?
@@ -504,7 +718,7 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             return error_msg
 
     def _build_lesson_context_from_conversation(self) -> LessonPromptContext:
-        """Build lesson context from conversational extraction"""
+        """Build lesson context from conversational extraction with structured RAG context"""
         extracted = self.lesson_requirements["extracted_info"]
 
         # Get the best standard from suggestions
@@ -517,7 +731,7 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
                 standard.standard_id
             )
 
-        # Build additional context from conversation
+        # Build additional context from conversation (non-RAG)
         additional_context_parts = []
 
         if extracted.get("musical_topics"):
@@ -540,6 +754,19 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
                 f"Preferred activities: {', '.join(extracted['activity_preferences'])}"
             )
 
+        # RAG Context: Retrieve teaching strategies and assessment guidance
+        teaching_context = self._get_teaching_strategies_context(extracted)
+        assessment_context = self._get_assessment_guidance_context(extracted)
+        
+        # Store RAG context in lesson requirements for debugging/analysis
+        self.lesson_requirements["rag_context"] = {
+            "teaching_context": teaching_context,
+            "assessment_context": assessment_context
+        }
+        
+        # Build final additional context (keeping backward compatibility)
+        final_additional_context = " | ".join(additional_context_parts) if additional_context_parts else None
+
         return LessonPromptContext(
             grade_level=extracted.get("grade_level", "Grade 3"),
             strand_code=standard.strand_code if standard else "Create",
@@ -552,12 +779,13 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             if standard
             else "Custom lesson based on teacher requirements",
             objectives=[obj.objective_text for obj in objectives],
-            additional_context=" | ".join(additional_context_parts)
-            if additional_context_parts
-            else None,
+            additional_context=final_additional_context,
             lesson_duration=extracted.get("time_constraints", "45 minutes"),
             class_size=25,  # Default, could be extracted in future
             available_resources=extracted.get("resources", []),
+            # NEW: Structured RAG context fields
+            teaching_context=teaching_context,
+            assessment_context=assessment_context,
         )
 
     def _handle_refinement(self, message: str) -> str:
@@ -974,11 +1202,21 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             raise
 
     def _build_lesson_context(self) -> LessonPromptContext:
-        """Build context dictionary for lesson generation"""
+        """Build context dictionary for lesson generation with RAG context support"""
         objective_texts = [
             obj.objective_text
             for obj in self.lesson_requirements.get("selected_objectives", [])
         ]
+
+        # Extract basic info for RAG context retrieval
+        extracted_info = {
+            "grade_level": self.lesson_requirements["grade_level"],
+            "musical_topics": [self.lesson_requirements["standard"].standard_text[:100]],  # Use standard as topic
+        }
+
+        # RAG Context: Retrieve teaching strategies and assessment guidance
+        teaching_context = self._get_teaching_strategies_context(extracted_info)
+        assessment_context = self._get_assessment_guidance_context(extracted_info)
 
         return LessonPromptContext(
             grade_level=self.lesson_requirements["grade_level"],
@@ -991,6 +1229,12 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             standard_text=self.lesson_requirements["standard"].standard_text,
             objectives=objective_texts,
             additional_context=self.lesson_requirements.get("additional_context"),
+            lesson_duration=self.lesson_requirements.get("time_constraints"),
+            class_size=self.lesson_requirements.get("class_size", 25),
+            available_resources=self.lesson_requirements.get("available_resources", []),
+            # NEW: Structured RAG context fields
+            teaching_context=teaching_context,
+            assessment_context=assessment_context,
         )
 
     def _handle_complete(self, message: str) -> str:

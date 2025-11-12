@@ -21,10 +21,51 @@ class LessonPromptContext:
     lesson_duration: Optional[str] = None
     class_size: Optional[int] = None
     available_resources: Optional[List[str]] = None
+    # RAG context fields for enhanced lesson generation
+    teaching_context: Optional[List[str]] = None  # Teaching strategies and pedagogical content
+    assessment_context: Optional[List[str]] = None  # Assessment strategies and guidance
 
 
 class LessonPromptTemplates:
     """Prompt templates optimized for Qwen models"""
+    
+    @staticmethod
+    def _format_rag_context(teaching_context: Optional[List[str]] = None,
+                           assessment_context: Optional[List[str]] = None) -> str:
+        """
+        Format RAG context into structured XML for prompt inclusion.
+        
+        Args:
+            teaching_context: List of teaching strategy context strings
+            assessment_context: List of assessment guidance context strings
+            
+        Returns:
+            Formatted XML string with RAG context sections
+        """
+        context_sections = []
+        
+        if teaching_context:
+            teaching_section = ["<rag_teaching_context>"]
+            teaching_section.append("<header>Teaching Strategies and Pedagogical Content</header>")
+            teaching_section.append("<content>")
+            for i, context_item in enumerate(teaching_context, 1):
+                teaching_section.append(f"<item index='{i}'>{context_item}</item>")
+            teaching_section.extend(["</content>", "</rag_teaching_context>"])
+            context_sections.append("\n".join(teaching_section))
+        
+        if assessment_context:
+            assessment_section = ["<rag_assessment_context>"]
+            assessment_section.append("<header>Assessment Strategies and Guidance</header>")
+            assessment_section.append("<content>")
+            for i, context_item in enumerate(assessment_context, 1):
+                assessment_section.append(f"<item index='{i}'>{context_item}</item>")
+            assessment_section.extend(["</content>", "</rag_assessment_context>"])
+            context_sections.append("\n".join(assessment_section))
+        
+        if context_sections:
+            return "\n\n".join(context_sections) + "\n"
+        else:
+            return ""
     
     @staticmethod
     def get_system_prompt() -> str:
@@ -74,9 +115,30 @@ You are an expert music education curriculum specialist with deep knowledge of:
         """
         Generate a comprehensive lesson plan prompt using Qwen best practices.
         Uses XML tags and structured format as recommended for Qwen3.
+        Enhanced with RAG context for improved educational content.
         """
         objectives_text = "\n".join([f"- {obj}" for obj in context.objectives])
         resources_text = ", ".join(context.available_resources or ["standard classroom instruments"])
+        
+        # Format RAG context using helper method
+        rag_context_xml = LessonPromptTemplates._format_rag_context(
+            teaching_context=context.teaching_context,
+            assessment_context=context.assessment_context
+        )
+        
+        # Build enhanced requirements based on available RAG context
+        enhanced_requirements = """1. Create a detailed lesson plan that directly addresses the standard and objectives
+2. Include engaging, age-appropriate musical activities
+3. Provide clear assessment strategies and success criteria
+4. Incorporate differentiation for diverse learning needs
+5. Ensure all activities are feasible within the time constraints
+6. Include specific materials and setup requirements
+7. Add reflection and extension opportunities"""
+        
+        if context.teaching_context:
+            enhanced_requirements += "\n8. Integrate proven teaching strategies from educational resources provided"
+        if context.assessment_context:
+            enhanced_requirements += "\n9. Incorporate evidence-based assessment methods from expert guidance"
         
         return f"""<task>
 Generate a comprehensive, standards-based music lesson plan for {context.grade_level} students.
@@ -108,15 +170,23 @@ Generate a comprehensive, standards-based music lesson plan for {context.grade_l
 {f'<additional_context>{context.additional_context}</additional_context>' if context.additional_context else ''}
 </context>
 
+{rag_context_xml if rag_context_xml else ''}
+
 <requirements>
-1. Create a detailed lesson plan that directly addresses the standard and objectives
-2. Include engaging, age-appropriate musical activities
-3. Provide clear assessment strategies and success criteria
-4. Incorporate differentiation for diverse learning needs
-5. Ensure all activities are feasible within the time constraints
-6. Include specific materials and setup requirements
-7. Add reflection and extension opportunities
+{enhanced_requirements}
 </requirements>
+
+<rag_guidance>
+{f"**Teaching Strategy Guidance**: Incorporate the proven pedagogical approaches and teaching strategies provided in the RAG context sections. These resources contain evidence-based methods specifically relevant to {context.grade_level} music education and the standards being addressed." if context.teaching_context else ""}
+
+{f"**Assessment Guidance**: Utilize the assessment strategies and evaluation methods provided in the RAG assessment context. These approaches are designed to effectively measure musical learning and student progress for {context.grade_level} students." if context.assessment_context else ""}
+
+**Integration Instructions**:
+- Reference specific strategies and methods from the provided RAG context
+- Adapt the retrieved content to fit your specific lesson objectives and activities
+- Ensure all RAG-inspired elements are age-appropriate and standards-aligned
+- Combine retrieved expertise with your own pedagogical knowledge
+</rag_guidance>
 
 <structure>
 ## Lesson Overview
@@ -168,15 +238,23 @@ Generate a comprehensive, standards-based music lesson plan for {context.grade_l
 - Practical implementation in real classroom settings
 - Inclusive and culturally responsive teaching approaches
 - Opportunities for student creativity and expression
+- Effective integration of RAG-provided teaching and assessment strategies
 </quality_criteria>"""
 
     @staticmethod
     def generate_activity_ideas_prompt(context: LessonPromptContext) -> str:
         """
         Generate specific activity ideas for a music standard.
-        Uses structured format with clear examples.
+        Uses structured format with clear examples and RAG context.
         """
         objectives_text = "\n".join([f"- {obj}" for obj in context.objectives])
+        
+        # Format RAG context using helper method
+        rag_context_xml = LessonPromptTemplates._format_rag_context(
+            teaching_context=context.teaching_context,
+            assessment_context=context.assessment_context
+        )
+        
         return f"""<task>
 Generate 5-7 creative, engaging music activities for {context.grade_level} students that address the following standard.
 </task>
@@ -189,6 +267,19 @@ Generate 5-7 creative, engaging music activities for {context.grade_level} stude
 </objectives>
 </standard>
 
+{rag_context_xml if rag_context_xml else ''}
+
+<rag_guidance>
+{f"**Teaching Strategy Integration**: Incorporate proven pedagogical approaches and teaching strategies from the RAG context provided. These evidence-based methods are specifically relevant to {context.grade_level} music education." if context.teaching_context else ""}
+
+{f"**Assessment Integration**: Design assessment components that utilize the evaluation strategies provided in the RAG assessment context." if context.assessment_context else ""}
+
+**Integration Instructions**:
+- Reference specific activities and strategies from the provided RAG context
+- Adapt retrieved content to create engaging, standards-aligned activities
+- Ensure all activities incorporate evidence-based teaching methods when available
+</rag_guidance>
+
 <activity_requirements>
 Each activity should include:
 1. Clear title and brief description
@@ -198,6 +289,7 @@ Each activity should include:
 5. Assessment method
 6. Differentiation strategies
 7. Student engagement elements
+{"8. Integration of evidence-based teaching strategies (from RAG context)" if context.teaching_context else ""}
 </activity_requirements>
 
 <examples>
@@ -215,20 +307,28 @@ Provide a mix of activity types:
 For each activity, use this structure:
 
 ### Activity Title
-**Time:** X minutes  
-**Materials:** List of required materials  
-**Procedure:** Step-by-step instructions  
-**Assessment:** How to measure learning  
-**Differentiation:** Support and extension strategies  
+**Time:** X minutes
+**Materials:** List of required materials
+**Procedure:** Step-by-step instructions
+**Assessment:** How to measure learning
+**Differentiation:** Support and extension strategies
 **Engagement:** Elements that make it engaging for students
+{"**RAG Integration:** Evidence-based strategies applied" if context.teaching_context else ""}
 </format>"""
 
     @staticmethod
     def generate_assessment_prompt(context: LessonPromptContext) -> str:
         """
-        Generate assessment strategies for a music standard.
+        Generate assessment strategies for a music standard with RAG context.
         """
         objectives_text = "\n".join([f"- {obj}" for obj in context.objectives])
+        
+        # Format RAG context using helper method
+        rag_context_xml = LessonPromptTemplates._format_rag_context(
+            teaching_context=context.teaching_context,
+            assessment_context=context.assessment_context
+        )
+        
         return f"""<task>
 Create comprehensive assessment strategies for the following music standard and objectives.
 </task>
@@ -242,6 +342,19 @@ Create comprehensive assessment strategies for the following music standard and 
 <objectives>
 {objectives_text}
 </objectives>
+
+{rag_context_xml if rag_context_xml else ''}
+
+<rag_guidance>
+{f"**Assessment Strategy Integration**: Incorporate the evidence-based assessment methods and evaluation approaches provided in the RAG assessment context. These strategies are specifically designed for {context.grade_level} music education and valid assessment practices." if context.assessment_context else ""}
+
+{f"**Teaching Context Integration**: Consider the teaching strategies and pedagogical approaches provided in the RAG teaching context when designing assessments that align with instructional methods." if context.teaching_context else ""}
+
+**Integration Instructions**:
+- Utilize specific assessment strategies from the provided RAG context
+- Adapt retrieved assessment methods to fit the specific standard and objectives
+- Ensure all assessments are age-appropriate and align with best practices
+</rag_guidance>
 
 <assessment_types>
 Create assessments for:
@@ -260,6 +373,7 @@ For each assessment type, include:
 - Time requirements
 - Materials needed
 - Differentiation strategies
+{"- Integration of evidence-based assessment methods (from RAG context)" if context.assessment_context else ""}
 </requirements>
 
 <quality_indicators>
@@ -269,13 +383,21 @@ Ensure assessments measure:
 - Creative expression
 - Collaboration and participation
 - Critical thinking and reflection
+- Valid and reliable assessment practices
+{"- Alignment with research-supported assessment strategies" if context.assessment_context else ""}
 </quality_indicators>"""
 
     @staticmethod
     def generate_differentiation_prompt(context: LessonPromptContext) -> str:
         """
-        Generate differentiation strategies for diverse learners.
+        Generate differentiation strategies for diverse learners with RAG context.
         """
+        # Format RAG context using helper method
+        rag_context_xml = LessonPromptTemplates._format_rag_context(
+            teaching_context=context.teaching_context,
+            assessment_context=context.assessment_context
+        )
+        
         return f"""<task>
 Develop comprehensive differentiation strategies for the following music lesson to support all learners.
 </task>
@@ -285,6 +407,19 @@ Develop comprehensive differentiation strategies for the following music lesson 
 <standard>{context.standard_text}</standard>
 <class_size>{context.class_size or "25 students"}</class_size>
 </lesson_context>
+
+{rag_context_xml if rag_context_xml else ''}
+
+<rag_guidance>
+{f"**Teaching Strategy Integration**: Incorporate the proven pedagogical approaches and differentiation methods provided in the RAG teaching context. These evidence-based strategies are specifically designed for supporting diverse learners in {context.grade_level} music education." if context.teaching_context else ""}
+
+{f"**Assessment Integration**: Design differentiated assessment approaches that utilize the evaluation strategies provided in the RAG assessment context, ensuring fair and accurate measurement of learning for all students." if context.assessment_context else ""}
+
+**Integration Instructions**:
+- Reference specific differentiation strategies from the provided RAG context
+- Adapt retrieved strategies to address the diverse needs in your music classroom
+- Ensure all differentiation approaches are evidence-based and age-appropriate
+</rag_guidance>
 
 <learner_groups>
 Consider needs of:
@@ -302,6 +437,7 @@ Provide strategies for:
 - Process differentiation (how students learn)
 - Product differentiation (how students demonstrate learning)
 - Environment differentiation (learning environment setup)
+{"- Integration of research-supported differentiation methods (from RAG context)" if context.teaching_context else ""}
 </strategy_types>
 
 <format>
@@ -311,6 +447,7 @@ For each strategy, include:
 - Implementation steps
 - Required resources
 - Assessment considerations
+{"- RAG Context Integration:** Evidence-based approach applied" if context.teaching_context else ""}
 </format>"""
 
     @staticmethod
@@ -563,13 +700,21 @@ Develop strategies for:
     @classmethod
     def create_comprehensive_lesson_prompt(cls, context: LessonPromptContext) -> str:
         """
-        Create a comprehensive prompt that includes all major lesson components.
+        Create a comprehensive prompt that includes all major lesson components with RAG context.
         """
+        # Format RAG context for comprehensive view
+        rag_context_xml = cls._format_rag_context(
+            teaching_context=context.teaching_context,
+            assessment_context=context.assessment_context
+        )
+        
         return f"""<task>
 Generate a comprehensive, standards-based music lesson plan for {context.grade_level} students that includes all essential components for effective music instruction.
 </task>
 
 {cls.generate_lesson_plan_prompt(context)}
+
+{rag_context_xml if rag_context_xml else ''}
 
 <additional_requirements>
 In addition to the lesson plan structure, ensure your response includes:
@@ -581,7 +726,17 @@ In addition to the lesson plan structure, ensure your response includes:
 6. Culturally responsive teaching strategies
 7. Parent communication suggestions
 8. Student reflection questions and activities
+{"9. Integration of evidence-based teaching strategies from RAG context" if context.teaching_context else ""}
+{"10. Application of research-supported assessment methods from RAG context" if context.assessment_context else ""}
 </additional_requirements>
+
+<comprehensive_rag_guidance>
+{f"**Comprehensive Teaching Integration**: Throughout all lesson components, systematically incorporate the proven pedagogical approaches and teaching strategies provided in the RAG context. These evidence-based methods should inform activity design, instructional sequences, and student engagement techniques for {context.grade_level} music education." if context.teaching_context else ""}
+
+{f"**Comprehensive Assessment Integration**: Apply the assessment strategies and evaluation methods from the RAG assessment context across all lesson components, including formative checks, summative evaluations, performance assessments, and student self-reflection activities." if context.assessment_context else ""}
+
+**Holistic Integration**: Ensure that RAG-provided content is woven throughout the entire lesson plan, not just isolated to one section, creating a cohesive and research-informed instructional experience.
+</comprehensive_rag_guidance>
 
 <quality_standards>
 The lesson plan should demonstrate:
@@ -592,4 +747,7 @@ The lesson plan should demonstrate:
 - Practical classroom implementation
 - Opportunities for student creativity and expression
 - Effective assessment and feedback strategies
+{"- Systematic integration of evidence-based teaching methods" if context.teaching_context else ""}
+{"- Application of research-validated assessment practices" if context.assessment_context else ""}
+{"- Coherent synthesis of RAG-provided educational expertise" if (context.teaching_context or context.assessment_context) else ""}
 </quality_standards>"""
