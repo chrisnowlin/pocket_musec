@@ -164,6 +164,63 @@ def extract_standards_from_text(text: str, page_num: int) -> List[Dict[str, Any]
     return standards
 
 
+def recover_missing_grade_prefixes(
+    standards: List[Dict[str, Any]],
+) -> List[Dict[str, Any]]:
+    """
+    Intelligently recover missing grade prefixes from standards.
+
+    Sometimes the vision model extracts standards like "RE.1" without the grade prefix.
+    This function infers the grade from surrounding standards on the same page.
+
+    Args:
+        standards: List of standard dictionaries
+
+    Returns:
+        List with recovered grade prefixes
+    """
+    recovered_count = 0
+
+    for std in standards:
+        std_id = std.get("id", "")
+        dot_count = std_id.count(".")
+
+        # Check if missing grade prefix (only 1 dot: e.g., "RE.1")
+        if dot_count == 1 and re.match(r"^(CN|CR|PR|RE)\.\d+$", std_id):
+            # This is a standard missing its grade prefix
+            # Try to infer grade from page context or other standards
+            page_num = std.get("page", None)
+
+            # Look for other standards from the same page with valid IDs
+            if page_num:
+                same_page_stds = [
+                    s
+                    for s in standards
+                    if s.get("page") == page_num and s.get("id", "").count(".") == 2
+                ]
+
+                if same_page_stds:
+                    # Extract grade from first valid standard on same page
+                    sample_id = same_page_stds[0].get("id", "")
+                    grade_prefix = sample_id.split(".")[0]
+
+                    # Reconstruct the standard ID
+                    new_id = f"{grade_prefix}.{std_id}"
+                    logger.info(
+                        f"Recovered grade prefix: '{std_id}' → '{new_id}' "
+                        f"(inferred from page {page_num} context)"
+                    )
+                    std["id"] = new_id
+                    recovered_count += 1
+
+    if recovered_count > 0:
+        logger.info(
+            f"Recovered {recovered_count} standards with missing grade prefixes"
+        )
+
+    return standards
+
+
 def clean_malformed_standards(standards: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     """
     Remove malformed standard IDs that are actually objectives.
@@ -280,6 +337,9 @@ def extract_standards_from_pdf_multipage(
 
     result = list(all_standards.values())
     logger.info(f"Total unique standards extracted: {len(result)}")
+
+    # Apply intelligent grade prefix recovery
+    result = recover_missing_grade_prefixes(result)
 
     # Apply post-processing filter to remove malformed entries
     result = clean_malformed_standards(result)
