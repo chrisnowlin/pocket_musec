@@ -65,6 +65,9 @@ class MigrationManager:
         # Run drafts migration
         self.migrate_to_drafts_support()
         
+        # Run Kindergarten to Grade 0 migration
+        self.migrate_kindergarten_to_grade_zero()
+        
         logger.info("All migrations completed successfully")
 
     def migrate_standards_table(self) -> None:
@@ -662,6 +665,106 @@ class MigrationManager:
         except Exception as e:
             conn.rollback()
             logger.error(f"Failed to clear extended data: {e}")
+            raise
+        finally:
+            conn.close()
+
+    def migrate_kindergarten_to_grade_zero(self) -> None:
+        """
+        Migrate to version 6: Convert Kindergarten grade from "K" to "0" for proper sorting
+        
+        Updates:
+        - All "K" values in grade_level columns to "0" across all tables
+        - This ensures Kindergarten sorts before Grade 1 in database queries
+        """
+        current_version = self.get_schema_version()
+        
+        if current_version >= 6:
+            logger.info(
+                f"Database already at version {current_version}, skipping Kindergarten migration"
+            )
+            return
+        
+        logger.info("Starting version 6 database migration (Kindergarten -> Grade 0)...")
+        
+        conn = self.get_connection()
+        try:
+            # Update standards table
+            cursor = conn.execute("""
+                UPDATE standards 
+                SET grade_level = '0' 
+                WHERE grade_level = 'K'
+            """)
+            standards_updated = cursor.rowcount
+            logger.info(f"Updated {standards_updated} standards records")
+            
+            # Update sessions table
+            cursor = conn.execute("""
+                UPDATE sessions 
+                SET grade_level = '0' 
+                WHERE grade_level = 'K'
+            """)
+            sessions_updated = cursor.rowcount
+            logger.info(f"Updated {sessions_updated} sessions records")
+            
+            # Update unpacking_sections table if it exists
+            try:
+                cursor = conn.execute("""
+                    UPDATE unpacking_sections 
+                    SET grade_level = '0' 
+                    WHERE grade_level = 'K'
+                """)
+                unpacking_updated = cursor.rowcount
+                logger.info(f"Updated {unpacking_updated} unpacking_sections records")
+            except sqlite3.OperationalError:
+                logger.info("unpacking_sections table does not exist, skipping")
+            
+            # Update teaching_strategies table if it exists
+            try:
+                cursor = conn.execute("""
+                    UPDATE teaching_strategies 
+                    SET grade_level = '0' 
+                    WHERE grade_level = 'K'
+                """)
+                strategies_updated = cursor.rowcount
+                logger.info(f"Updated {strategies_updated} teaching_strategies records")
+            except sqlite3.OperationalError:
+                logger.info("teaching_strategies table does not exist, skipping")
+            
+            # Update assessment_guidance table if it exists
+            try:
+                cursor = conn.execute("""
+                    UPDATE assessment_guidance 
+                    SET grade_level = '0' 
+                    WHERE grade_level = 'K'
+                """)
+                guidance_updated = cursor.rowcount
+                logger.info(f"Updated {guidance_updated} assessment_guidance records")
+            except sqlite3.OperationalError:
+                logger.info("assessment_guidance table does not exist, skipping")
+            
+            # Update alignment_relationships table if it exists
+            try:
+                cursor = conn.execute("""
+                    UPDATE alignment_relationships 
+                    SET grade_level = '0' 
+                    WHERE grade_level = 'K'
+                """)
+                alignment_updated = cursor.rowcount
+                logger.info(f"Updated {alignment_updated} alignment_relationships records")
+            except sqlite3.OperationalError:
+                logger.info("alignment_relationships table does not exist, skipping")
+            
+            conn.commit()
+            
+            # Update schema version
+            self.set_schema_version(6)
+            
+            logger.info("Version 6 migration (Kindergarten -> Grade 0) completed successfully")
+        
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Migration v6 failed: {e}")
             raise
         finally:
             conn.close()

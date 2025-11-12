@@ -3,6 +3,7 @@ import api from '../lib/api';
 import type { SessionResponsePayload, StandardRecord } from '../lib/types';
 import type { ConversationGroup, ConversationItem } from '../types/unified';
 import { standardLibrary } from '../constants/unified';
+import { frontendToBackendGrade, frontendToBackendStrand } from '../lib/gradeUtils';
 
 export function useSession() {
   const [session, setSession] = useState<SessionResponsePayload | null>(null);
@@ -16,10 +17,18 @@ export function useSession() {
 
   const loadStandards = useCallback(async (grade: string, strand: string) => {
     try {
-      const result = await api.listStandards({
-        grade_level: grade,
-        strand_code: strand,
-      });
+      // Handle "All Grades" and "All Strands" - don't filter by these
+      const params: { grade_level?: string; strand_code?: string } = {};
+      
+      if (grade && grade !== 'All Grades') {
+        params.grade_level = frontendToBackendGrade(grade);
+      }
+      
+      if (strand && strand !== 'All Strands') {
+        params.strand_code = frontendToBackendStrand(strand);
+      }
+      
+      const result = await api.listStandards(params);
 
       if (result.ok) {
         const payload = result.data;

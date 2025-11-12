@@ -59,8 +59,9 @@ class AlignmentMatrixParser:
         self.standard_pattern = r"(?:K|\d+|BE|IN|AD|AC)\.(?:CN|CR|PR|RE)\.\d+"
 
         # Grade ordering for progression analysis
+        # Note: Kindergarten is stored as "0" in database for proper sorting before Grade 1
         self.grade_order = [
-            "K",
+            "0",
             "1",
             "2",
             "3",
@@ -422,8 +423,9 @@ class AlignmentMatrixParser:
                 return grade
 
         # Check for grade names
+        # Note: Kindergarten is stored as "0" in database for proper sorting before Grade 1
         grade_names = {
-            "KINDERGARTEN": "K",
+            "KINDERGARTEN": "0",
             "FIRST": "1",
             "SECOND": "2",
             "THIRD": "3",

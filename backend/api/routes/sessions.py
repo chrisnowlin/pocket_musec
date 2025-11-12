@@ -34,10 +34,19 @@ router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 def _standard_to_response(standard, repo: StandardsRepository) -> StandardResponse:
     objectives = repo.get_objectives_for_standard(standard.standard_id)
     learning_objectives = [obj.objective_text for obj in objectives][:3]
+    # Convert database grade format to frontend display format
+    # Database stores: "0", "1", "2", "3", etc.
+    # Frontend expects: "Kindergarten", "Grade 1", "Grade 2", "Grade 3", etc.
+    grade_display = standard.grade_level
+    if grade_display == "0" or grade_display == "K":
+        grade_display = "Kindergarten"
+    elif grade_display and grade_display.isdigit():
+        # Convert numeric grades to "Grade X" format
+        grade_display = f"Grade {grade_display}"
     return StandardResponse(
         id=standard.standard_id,
         code=standard.standard_id,
-        grade=standard.grade_level,
+        grade=grade_display,
         strand_code=standard.strand_code,
         strand_name=standard.strand_name,
         title=standard.standard_text,
@@ -210,14 +219,20 @@ def _create_lesson_agent(session: Any, use_conversational: bool = True) -> Lesso
     if session.agent_state:
         try:
             agent.restore_state(session.agent_state)
-            return agent
+            # If we're in conversational mode but restored a form-based state, convert it
+            if use_conversational:
+                form_based_states = ["welcome", "grade_selection", "strand_selection", 
+                                   "standard_selection", "objective_refinement", "context_collection"]
+                if agent.get_state() in form_based_states:
+                    # Convert to conversational mode - start fresh in conversational_welcome
+                    agent.set_state("conversational_welcome")
         except Exception as e:
             # If restoration fails, continue with fresh agent
             import logging
-
             logging.warning(f"Failed to restore agent state: {e}")
 
-    # Pre-populate agent with session context if available
+    # Always pre-populate agent with session context if available
+    # This ensures that even if state was restored, we have the latest session context
     if session.grade_level:
         agent.lesson_requirements["grade_level"] = session.grade_level
     if session.strand_code:

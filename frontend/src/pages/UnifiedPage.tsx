@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { useChat } from '../hooks/useChat';
 import { useSession } from '../hooks/useSession';
 import { useImages } from '../hooks/useImages';
@@ -22,6 +22,7 @@ import ToastContainer from '../components/unified/ToastContainer';
 import ConfirmDialog from '../components/unified/ConfirmDialog';
 import { useToast } from '../hooks/useToast';
 import api from '../lib/api';
+import { frontendToBackendGrade } from '../lib/gradeUtils';
 import type {
   UIState,
   ChatState,
@@ -108,6 +109,7 @@ export default function UnifiedPage() {
     formatSessionsAsConversations,
     initSession,
     loadSessions,
+    loadStandards,
   } = useSession();
   const {
     messages,
@@ -150,6 +152,11 @@ export default function UnifiedPage() {
   // Refs - must be declared at top level (React hooks rule)
   const imageFileInputRef = useRef<HTMLInputElement>(null);
   const modalFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Load standards when grade or strand changes
+  useEffect(() => {
+    loadStandards(lessonSettings.selectedGrade, lessonSettings.selectedStrand);
+  }, [lessonSettings.selectedGrade, lessonSettings.selectedStrand, loadStandards]);
 
   // Event handlers
   const handleNewConversation = async () => {
@@ -216,9 +223,27 @@ export default function UnifiedPage() {
     updateMessageWithMetadata(messageId, newText);
   }, [updateMessageWithMetadata]);
 
-  const handleStartChat = (standard: StandardRecord, prompt: string) => {
+  const handleStartChat = async (standard: StandardRecord, prompt: string) => {
     updateUIState({ mode: 'chat' });
-    updateLessonSettings({ selectedStandard: standard });
+    updateLessonSettings({ 
+      selectedStandard: standard,
+      selectedGrade: standard.grade,
+      selectedStrand: standard.strand_name
+    });
+    
+    // Update session with the selected standard if session exists
+    if (session?.id) {
+      const backendGrade = frontendToBackendGrade(standard.grade);
+      const result = await api.updateSession(session.id, {
+        grade_level: backendGrade,
+        strand_code: standard.strand_code,
+        standard_id: standard.id
+      });
+      if (result.ok) {
+        setSession(result.data);
+      }
+    }
+    
     processChatMessage(prompt, setSession);
   };
 

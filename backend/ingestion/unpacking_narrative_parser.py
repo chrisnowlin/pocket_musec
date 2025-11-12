@@ -94,7 +94,7 @@ class UnpackingNarrativeParser:
             text = page.raw_text.lower()
 
             if "kindergarten" in text:
-                return "K"
+                return "0"  # Stored as "0" in database for proper sorting before Grade 1
             elif "first grade" in text:
                 return "1"
             elif "second grade" in text:

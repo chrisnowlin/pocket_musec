@@ -706,8 +706,9 @@ class NCStandardsParser:
     
     def _grade_sort_key(self, grade: str) -> tuple:
         """Generate sort key for grade levels"""
-        if grade == "K":
-            return (0, "K")
+        # Handle both "0" (new format) and "K" (legacy format) for backward compatibility
+        if grade == "0" or grade == "K":
+            return (0, "0")
         elif grade.isdigit():
             return (1, int(grade))
         else:
@@ -731,8 +732,9 @@ class NCStandardsParser:
         text_upper = text.upper()
         
         # Check for specific grade patterns
+        # Note: Kindergarten is stored as "0" in database for proper sorting before Grade 1
         if "KINDERGARTEN" in text_upper:
-            return "K"
+            return "0"
         
         # Check for numbered grades (First Grade, Second Grade, etc.)
         grade_map = {
@@ -1341,10 +1343,11 @@ class NCStandardsParser:
         text_upper = text.strip().upper()
         
         # Exact matches for specific grade indicators
+        # Note: Kindergarten is stored as "0" in database for proper sorting before Grade 1
         if text_upper == "KINDERGARTEN":
-            return "K"
+            return "0"
         elif text_upper == "K":
-            return "K"
+            return "0"
         elif text_upper == "BEGINNING":
             return "BE"
         elif text_upper == "INTERMEDIATE":
@@ -1355,8 +1358,9 @@ class NCStandardsParser:
             return "AC"
         
         # Pattern matches for grade levels in context
+        # Note: Kindergarten is stored as "0" in database for proper sorting before Grade 1
         if "KINDERGARTEN GENERAL MUSIC" in text_upper:
-            return "K"
+            return "0"
         elif re.match(r"^(\d+)TH GRADE GENERAL MUSIC$", text_upper):
             match = re.match(r"^(\d+)TH GRADE GENERAL MUSIC$", text_upper)
             return match.group(1) if match else None

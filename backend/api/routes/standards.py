@@ -13,11 +13,20 @@ router = APIRouter(prefix="/api/standards", tags=["standards"])
 
 def _standard_to_response(standard, repo: StandardsRepository) -> StandardResponse:
     objectives = repo.get_objectives_for_standard(standard.standard_id)
-    learning_objectives = [obj.objective_text for obj in objectives][:3]
+    learning_objectives = [obj.objective_text for obj in objectives]
+    # Convert database grade format to frontend display format
+    # Database stores: "0", "1", "2", "3", etc.
+    # Frontend expects: "Kindergarten", "Grade 1", "Grade 2", "Grade 3", etc.
+    grade_display = standard.grade_level
+    if grade_display == "0" or grade_display == "K":
+        grade_display = "Kindergarten"
+    elif grade_display and grade_display.isdigit():
+        # Convert numeric grades to "Grade X" format
+        grade_display = f"Grade {grade_display}"
     return StandardResponse(
         id=standard.standard_id,
         code=standard.standard_id,
-        grade=standard.grade_level,
+        grade=grade_display,
         strand_code=standard.strand_code,
         strand_name=standard.strand_name,
         title=standard.standard_text,

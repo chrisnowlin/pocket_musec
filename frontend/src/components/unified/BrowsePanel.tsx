@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import type { StandardRecord } from '../../lib/types';
 import { gradeOptions, strandOptions } from '../../constants/unified';
+import { frontendToBackendGrade, frontendToBackendStrand } from '../../lib/gradeUtils';
 
 interface BrowsePanelProps {
   standards: StandardRecord[];
@@ -29,8 +30,17 @@ export default function BrowsePanel({
 }: BrowsePanelProps) {
   const filteredStandards = useMemo(() => {
     return standards.filter((standard) => {
-      const matchesGrade = selectedGrade ? standard.grade === selectedGrade : true;
-      const matchesStrand = selectedStrand ? standard.strand_name === selectedStrand : true;
+      // Handle "All Grades" and "All Strands" selections
+      // Note: standard.grade is already in frontend format (e.g., "Kindergarten", "Grade 3")
+      // from the API response, so we compare directly with selectedGrade
+      const matchesGrade = selectedGrade === 'All Grades' || !selectedGrade
+        ? true
+        : standard.grade === selectedGrade;
+      
+      const matchesStrand = selectedStrand === 'All Strands' || !selectedStrand
+        ? true
+        : standard.strand_code === frontendToBackendStrand(selectedStrand);
+      
       const matchesSearch = browseQuery
         ? standard.title.toLowerCase().includes(browseQuery.toLowerCase()) ||
           standard.description.toLowerCase().includes(browseQuery.toLowerCase()) ||
@@ -68,34 +78,57 @@ export default function BrowsePanel({
               </svg>
             </div>
           </div>
-          <div className="flex gap-2 flex-wrap">
-            {gradeOptions.slice(0, 5).map((grade) => (
+          <div className="flex flex-col gap-3 items-center">
+            <div className="flex gap-2 flex-wrap justify-center">
               <button
-                key={grade}
-                onClick={() => onGradeChange(grade)}
+                onClick={() => onGradeChange('All Grades')}
                 className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                  selectedGrade === grade
+                  selectedGrade === 'All Grades' || !selectedGrade
                     ? 'bg-parchment-200 text-ink-700 border-ink-300'
                     : 'bg-parchment-100 text-ink-600 border-ink-300 hover:bg-parchment-200'
                 }`}
               >
-                {grade}
+                All Grades
               </button>
-            ))}
-            <div className="border-l border-ink-300 mx-2" />
-            {strandOptions.map((strand) => (
+              {gradeOptions.slice(0, 6).map((grade) => (
+                <button
+                  key={grade}
+                  onClick={() => onGradeChange(grade)}
+                  className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                    selectedGrade === grade
+                      ? 'bg-parchment-200 text-ink-700 border-ink-300'
+                      : 'bg-parchment-100 text-ink-600 border-ink-300 hover:bg-parchment-200'
+                  }`}
+                >
+                  {grade}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 flex-wrap justify-center">
               <button
-                key={strand}
-                onClick={() => onStrandChange(strand)}
+                onClick={() => onStrandChange('All Strands')}
                 className={`px-3 py-1 text-xs font-medium rounded-full border ${
-                  selectedStrand === strand
+                  selectedStrand === 'All Strands' || !selectedStrand
                     ? 'bg-parchment-200 text-ink-700 border-ink-300'
                     : 'bg-parchment-100 text-ink-600 border-ink-300 hover:bg-parchment-200'
                 }`}
               >
-                {strand}
+                All Strands
               </button>
-            ))}
+              {strandOptions.map((strand) => (
+                <button
+                  key={strand}
+                  onClick={() => onStrandChange(strand)}
+                  className={`px-3 py-1 text-xs font-medium rounded-full border ${
+                    selectedStrand === strand
+                      ? 'bg-parchment-200 text-ink-700 border-ink-300'
+                      : 'bg-parchment-100 text-ink-600 border-ink-300 hover:bg-parchment-200'
+                  }`}
+                >
+                  {strand}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -104,7 +137,7 @@ export default function BrowsePanel({
         <div className="space-y-4">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-ink-800">
-              Standards for {selectedGrade} · {selectedStrand}
+              Standards for {selectedGrade === 'All Grades' || !selectedGrade ? 'All Grades' : selectedGrade} · {selectedStrand === 'All Strands' || !selectedStrand ? 'All Strands' : selectedStrand}
             </h2>
             <span className="text-sm text-ink-600">{filteredStandards.length} standards found</span>
           </div>
