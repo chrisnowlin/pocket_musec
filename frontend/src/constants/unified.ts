@@ -73,22 +73,21 @@ export const conversationGroups: ConversationGroup[] = [
   {
     label: 'Today',
     items: [
-      { title: 'Grade 3 · Create Strand', hint: '2 hours ago · 12 messages', active: true },
-      { title: 'Grade 5 Rhythm Focus', hint: '4 hours ago · 8 messages', active: false },
+      { id: 'sample-1', title: 'Grade 3 · Create Strand', hint: '2 hours ago · 12 messages', active: true },
+      { id: 'sample-2', title: 'Grade 5 Rhythm Focus', hint: '4 hours ago · 8 messages', active: false },
     ],
   },
   {
     label: 'This Week',
     items: [
-      { title: 'Grade 1 · Present Singing', hint: '2 days ago · 15 messages', active: false },
-      { title: 'Kindergarten Movement', hint: '3 days ago · 6 messages', active: false },
+      { id: 'sample-3', title: 'Grade 1 · Present Singing', hint: '2 days ago · 15 messages', active: false },
+      { id: 'sample-4', title: 'Kindergarten Movement', hint: '3 days ago · 6 messages', active: false },
     ],
   },
 ];
 
 export const quickAccessLinks: QuickAccessLink[] = [
   { label: 'Templates', hint: 'Saved song maps' },
-  { label: 'Saved Drafts', hint: '8 drafts' },
 ];
 
 export const quickStats: QuickStats = {

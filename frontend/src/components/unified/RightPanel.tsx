@@ -17,6 +17,9 @@ interface RightPanelProps {
   mode: ViewMode;
   messageCount: number;
   storageInfo: StorageInfo | null;
+  isRetryingSession?: boolean;
+  retrySuccess?: boolean | null;
+  retryMessage?: string;
   onGradeChange: (grade: string) => void;
   onStrandChange: (strand: string) => void;
   onStandardChange: (standard: StandardRecord | null) => void;
@@ -25,6 +28,8 @@ interface RightPanelProps {
   onLessonDurationChange: (duration: string) => void;
   onClassSizeChange: (size: string) => void;
   onBrowseStandards: () => void;
+  onRetrySession?: () => Promise<SessionResponsePayload | null>;
+  onSaveAsTemplate?: () => void;
 }
 
 export default function RightPanel({
@@ -42,6 +47,9 @@ export default function RightPanel({
   mode,
   messageCount,
   storageInfo,
+  isRetryingSession = false,
+  retrySuccess = null,
+  retryMessage = '',
   onGradeChange,
   onStrandChange,
   onStandardChange,
@@ -50,6 +58,8 @@ export default function RightPanel({
   onLessonDurationChange,
   onClassSizeChange,
   onBrowseStandards,
+  onRetrySession,
+  onSaveAsTemplate,
 }: RightPanelProps) {
   const sessionStatusLabel = session
     ? 'Connected to PocketMusec'
@@ -233,6 +243,33 @@ export default function RightPanel({
               </div>
             </div>
           </div>
+
+          {/* Template Actions */}
+          <div className="border-t border-ink-300 pt-4">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-semibold text-ink-800">Template Actions</h3>
+            </div>
+            <button
+              onClick={onSaveAsTemplate}
+              className="w-full px-4 py-2 bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700 transition-colors flex items-center justify-center gap-2"
+              title="Save current lesson settings as a template"
+            >
+              <svg
+                className="w-4 h-4"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V2"
+                />
+              </svg>
+              Save as Template
+            </button>
+          </div>
         </div>
 
         <div className="workspace-card p-3 space-y-3">
@@ -249,11 +286,28 @@ export default function RightPanel({
                     : 'AI is initializing'}
                 </p>
               </div>
-              <span
-                className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${sessionStatusTone}`}
-              >
-                {sessionStatusDetail}
-              </span>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {sessionError && onRetrySession && (
+                  <button
+                    onClick={onRetrySession}
+                    disabled={isRetryingSession}
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full border transition-colors ${
+                      isRetryingSession
+                        ? 'bg-ink-300 text-ink-500 border-ink-400 cursor-not-allowed'
+                        : 'bg-ink-600 text-parchment-100 border-ink-700 hover:bg-ink-700 cursor-pointer'
+                    }`}
+                  >
+                    {isRetryingSession ? 'Retrying...' : 'Retry'}
+                  </button>
+                )}
+                {!sessionError || !onRetrySession ? (
+                  <span
+                    className={`text-xs font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${sessionStatusTone}`}
+                  >
+                    {sessionStatusDetail}
+                  </span>
+                ) : null}
+              </div>
             </div>
             <div className="flex items-center justify-between text-xs text-ink-600">
               <span>Mode</span>
@@ -283,6 +337,45 @@ export default function RightPanel({
               <span>Demo mode</span>
             </div>
           </div>
+
+          {/* Retry Feedback */}
+          {retrySuccess !== null && retryMessage && (
+            <div
+              className={`p-3 rounded-lg border text-sm ${
+                retrySuccess
+                  ? 'bg-green-50 text-green-800 border-green-200'
+                  : 'bg-red-50 text-red-800 border-red-200'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <svg
+                  className={`w-4 h-4 flex-shrink-0 ${
+                    retrySuccess ? 'text-green-600' : 'text-red-600'
+                  }`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  {retrySuccess ? (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  ) : (
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  )}
+                </svg>
+                <span className="flex-1">{retryMessage}</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </aside>

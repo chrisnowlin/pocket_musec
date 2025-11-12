@@ -17,6 +17,7 @@ interface ChatPanelProps {
     ref: RefObject<HTMLDivElement>
   ) => void;
   resizing: boolean;
+  isLoadingConversation?: boolean;
 }
 
 export default function ChatPanel({
@@ -30,6 +31,7 @@ export default function ChatPanel({
   messageContainerHeight,
   onResizerMouseDown,
   resizing,
+  isLoadingConversation = false,
 }: ChatPanelProps) {
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -55,26 +57,42 @@ export default function ChatPanel({
             <h2 className="text-lg font-semibold text-ink-800">Lesson Planning Chat</h2>
             <p className="text-sm text-ink-600">Conversational AI guidance</p>
           </div>
-          {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
-          ))}
-
-          {isTyping && (
-            <div className="flex items-center gap-2">
-              <div className="typing-indicator flex items-center gap-1">
-                <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
-                <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
-                <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+          
+          {isLoadingConversation ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="flex items-center gap-2">
+                <div className="typing-indicator flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+                  <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+                </div>
+                <span className="text-xs text-ink-600">Loading conversation...</span>
               </div>
-              <span className="text-xs text-ink-600">PocketMusec is typing...</span>
             </div>
+          ) : (
+            <>
+              {messages.map((message) => (
+                <ChatMessage key={message.id} message={message} />
+              ))}
+
+              {isTyping && (
+                <div className="flex items-center gap-2">
+                  <div className="typing-indicator flex items-center gap-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+                    <span className="w-2.5 h-2.5 rounded-full bg-ink-500" />
+                  </div>
+                  <span className="text-xs text-ink-600">PocketMusec is typing...</span>
+                </div>
+              )}
+            </>
           )}
 
           <ChatInput
             value={chatInput}
             onChange={setChatInput}
             onSend={onSendMessage}
-            disabled={isTyping}
+            disabled={isTyping || isLoadingConversation}
             sessionError={sessionError}
             chatError={chatError}
           />

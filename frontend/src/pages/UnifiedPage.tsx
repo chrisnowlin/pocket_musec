@@ -2,6 +2,8 @@ import { useState, useRef, useCallback } from 'react';
 import { useChat } from '../hooks/useChat';
 import { useSession } from '../hooks/useSession';
 import { useImages } from '../hooks/useImages';
+import { useDrafts } from '../hooks/useDrafts';
+import { useTemplates } from '../hooks/useTemplates';
 import { useResizing, useMessageContainerResizing } from '../hooks/useResizing';
 import Sidebar from '../components/unified/Sidebar';
 import HeroFocus from '../components/unified/HeroFocus';
@@ -10,12 +12,14 @@ import BrowsePanel from '../components/unified/BrowsePanel';
 import ImagePanel from '../components/unified/ImagePanel';
 import SettingsPanel from '../components/unified/SettingsPanel';
 import RightPanel from '../components/unified/RightPanel';
+import TemplatesModal from '../components/unified/TemplatesModal';
+import DraftsModal from '../components/unified/DraftsModal';
+import TemplateCreationModal from '../components/unified/TemplateCreationModal';
 import ImageUploadModal from '../components/unified/ImageUploadModal';
 import ImageDetailModal from '../components/unified/ImageDetailModal';
 import DocumentIngestion from '../components/DocumentIngestion';
 import IngestionStatus from '../components/IngestionStatus';
 import type {
-  ViewMode,
   UIState,
   ChatState,
   LessonSettings,
@@ -31,6 +35,10 @@ export default function UnifiedPage() {
     mode: 'chat',
     imageModalOpen: false,
   });
+
+  const [draftsModalOpen, setDraftsModalOpen] = useState(false);
+  const [templatesModalOpen, setTemplatesModalOpen] = useState(false);
+  const [templateCreationModalOpen, setTemplateCreationModalOpen] = useState(false);
 
   const [chatState, setChatState] = useState<ChatState>({
     input: '',
@@ -76,7 +84,19 @@ export default function UnifiedPage() {
   }, []);
 
   // Custom hooks
-  const { session, sessionError, standards, setSession } = useSession();
+  const {
+    session,
+    sessionError,
+    standards,
+    setSession,
+    retrySession,
+    isRetryingSession,
+    retrySuccess,
+    retryMessage,
+    isLoadingSessions,
+    loadConversation,
+    formatSessionsAsConversations,
+  } = useSession();
   const {
     messages,
     isTyping,
@@ -84,6 +104,7 @@ export default function UnifiedPage() {
     appendMessage,
     processChatMessage,
     resetMessages,
+    isLoadingConversation,
   } = useChat({
     session,
     lessonDuration: lessonSettings.lessonDuration,
@@ -102,6 +123,29 @@ export default function UnifiedPage() {
     handleResizerMouseDown: handleMessageContainerResizerMouseDown,
   } = useMessageContainerResizing(null);
 
+  // Draft management hook
+  const {
+    drafts,
+    isLoading: isLoadingDrafts,
+    draftCount,
+    getDraft,
+    deleteDraft,
+  } = useDrafts();
+
+  // Template management hook
+  const {
+    templates,
+    isLoading: isLoadingTemplates,
+    templateCount,
+    getTemplate,
+    deleteTemplate,
+    createTemplateFromLesson,
+  } = useTemplates();
+
+  // Refs - must be declared at top level (React hooks rule)
+  const imageFileInputRef = useRef<HTMLInputElement>(null);
+  const modalFileInputRef = useRef<HTMLInputElement>(null);
+
   // Event handlers
   const handleNewConversation = () => {
     resetMessages();
@@ -114,11 +158,28 @@ export default function UnifiedPage() {
     updateUIState({ mode: 'chat' });
   };
 
+  const handleSelectConversation = async (sessionId: string) => {
+    const loadedSession = await loadConversation(sessionId);
+    
+    if (loadedSession) {
+      // Update lesson settings based on the loaded session
+      updateLessonSettings({
+        selectedGrade: loadedSession.grade_level || 'Grade 3',
+        selectedStrand: loadedSession.strand_code || 'Connect',
+        selectedStandard: loadedSession.selected_standard || null,
+        selectedObjective: null,
+        lessonContext: loadedSession.additional_context || '',
+      });
+      
+      // Switch to chat mode - messages will be loaded by the useEffect hook in useChat
+      updateUIState({ mode: 'chat' });
+    }
+  };
+
   const handleSendMessage = () => {
     const trimmed = chatState.input.trim();
     if (!trimmed) return;
 
-    appendMessage('user', trimmed);
     updateChatState({ input: '' });
     processChatMessage(trimmed, setSession);
   };
@@ -126,8 +187,117 @@ export default function UnifiedPage() {
   const handleStartChat = (standard: StandardRecord, prompt: string) => {
     updateUIState({ mode: 'chat' });
     updateLessonSettings({ selectedStandard: standard });
-    appendMessage('user', prompt);
     processChatMessage(prompt, setSession);
+  };
+
+  // Draft event handlers
+  const handleOpenDraftsModal = () => {
+    setDraftsModalOpen(true);
+  };
+
+  const handleCloseDraftsModal = () => {
+    setDraftsModalOpen(false);
+  };
+
+  const handleOpenDraft = async (draftId: string) => {
+    const draft = await getDraft(draftId);
+    if (draft) {
+      // Update lesson settings based on the draft
+      updateLessonSettings({
+        selectedGrade: draft.grade || 'Grade 3',
+        selectedStrand: draft.strand || 'Connect',
+        lessonContext: draft.content.substring(0, 200) + '...',
+      });
+      
+      // Close the modal and switch to chat mode
+      handleCloseDraftsModal();
+      updateUIState({ mode: 'chat' });
+      
+      // TODO: Load the draft content into the chat/editor
+      // This would require extending the chat system to load draft content
+    }
+  };
+
+  const handleDeleteDraft = async (draftId: string) => {
+    const success = await deleteDraft(draftId);
+    if (success) {
+      // Draft is automatically removed from the list by the hook
+    }
+  };
+
+  // Template event handlers
+  const handleOpenTemplatesModal = () => {
+    setTemplatesModalOpen(true);
+  };
+
+  const handleCloseTemplatesModal = () => {
+    setTemplatesModalOpen(false);
+  };
+
+  const handleOpenTemplateCreationModal = () => {
+    setTemplateCreationModalOpen(true);
+  };
+
+  const handleCloseTemplateCreationModal = () => {
+    setTemplateCreationModalOpen(false);
+  };
+
+  const handleSaveTemplate = (name: string, description: string) => {
+    // Get the latest lesson content from messages or create a template from current settings
+    const lessonContent = messages.length > 0
+      ? messages[messages.length - 1].text
+      : `Lesson template for ${lessonSettings.selectedGrade} - ${lessonSettings.selectedStrand}`;
+
+    try {
+      createTemplateFromLesson(
+        lessonContent,
+        lessonSettings.selectedStandard,
+        {
+          grade: lessonSettings.selectedGrade,
+          strand: lessonSettings.selectedStrand,
+          objective: lessonSettings.selectedObjective,
+          lessonContext: lessonSettings.lessonContext,
+          lessonDuration: lessonSettings.lessonDuration,
+          classSize: lessonSettings.classSize,
+        },
+        name,
+        description
+      );
+      handleCloseTemplateCreationModal();
+    } catch (error) {
+      console.error('Failed to create template:', error);
+    }
+  };
+
+  const handleSelectTemplate = async (templateId: string) => {
+    const template = getTemplate(templateId);
+    if (template) {
+      // Update lesson settings based on the template
+      updateLessonSettings({
+        selectedGrade: template.grade,
+        selectedStrand: template.strand,
+        selectedStandard: standards.find(s => s.id === template.standardId) || null,
+        selectedObjective: template.objective || null,
+        lessonContext: template.content.substring(0, 200) + '...',
+        lessonDuration: template.lessonDuration || '30 minutes',
+        classSize: template.classSize || '25',
+      });
+      
+      // Close the modal and switch to chat mode
+      handleCloseTemplatesModal();
+      updateUIState({ mode: 'chat' });
+      
+      // Optionally, add a message to the chat about using a template
+      const templateMessage = `I'm using the "${template.name}" template. ${template.description}`;
+      processChatMessage(templateMessage, setSession);
+    }
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    const success = await deleteTemplate(templateId);
+    if (success) {
+      // Template is automatically removed from the list by the hook
+    }
   };
 
   return (
@@ -142,6 +312,13 @@ export default function UnifiedPage() {
           onUploadDocuments={() => updateUIState({ mode: 'ingestion' })}
           onUploadImages={() => updateUIState({ imageModalOpen: true })}
           onOpenSettings={() => updateUIState({ mode: 'settings' })}
+          conversationGroups={formatSessionsAsConversations()}
+          onSelectConversation={handleSelectConversation}
+          isLoadingSessions={isLoadingSessions}
+          onOpenDraftsModal={handleOpenDraftsModal}
+          draftCount={draftCount}
+          onOpenTemplatesModal={handleOpenTemplatesModal}
+          templateCount={templateCount}
         />
 
         <div
@@ -176,6 +353,7 @@ export default function UnifiedPage() {
                 messageContainerHeight={messageContainerHeight}
                 onResizerMouseDown={handleMessageContainerResizerMouseDown}
                 resizing={resizingMessageContainer}
+                isLoadingConversation={isLoadingConversation}
               />
             )}
 
@@ -225,7 +403,7 @@ export default function UnifiedPage() {
                 onDrop={imageHooks.handleDrop}
                 onDeleteImage={imageHooks.handleDeleteImage}
                 onDragOver={imageHooks.setImageDragActive}
-                fileInputRef={useRef<HTMLInputElement>(null)}
+                fileInputRef={imageFileInputRef}
               />
             )}
 
@@ -260,6 +438,9 @@ export default function UnifiedPage() {
           mode={uiState.mode}
           messageCount={messages.length}
           storageInfo={imageHooks.storageInfo}
+          isRetryingSession={isRetryingSession}
+          retrySuccess={retrySuccess}
+          retryMessage={retryMessage}
           onGradeChange={(grade) => updateLessonSettings({ selectedGrade: grade })}
           onStrandChange={(strand) => updateLessonSettings({ selectedStrand: strand })}
           onStandardChange={(standard) => updateLessonSettings({ selectedStandard: standard })}
@@ -268,6 +449,8 @@ export default function UnifiedPage() {
           onLessonDurationChange={(duration) => updateLessonSettings({ lessonDuration: duration })}
           onClassSizeChange={(size) => updateLessonSettings({ classSize: size })}
           onBrowseStandards={() => updateUIState({ mode: 'browse' })}
+          onRetrySession={() => retrySession(lessonSettings.selectedGrade, lessonSettings.selectedStrand)}
+          onSaveAsTemplate={handleOpenTemplateCreationModal}
         />
       </div>
 
@@ -285,13 +468,40 @@ export default function UnifiedPage() {
         onDrop={imageHooks.handleDrop}
         onDragOver={imageHooks.setImageDragActive}
         onFileSelect={imageHooks.handleFileSelect}
-        fileInputRef={useRef<HTMLInputElement>(null)}
+        fileInputRef={modalFileInputRef}
       />
 
       <ImageDetailModal
         image={imageHooks.selectedImage}
         onClose={() => imageHooks.setSelectedImage(null)}
         onDelete={imageHooks.handleDeleteImage}
+      />
+
+      {/* Templates Modal */}
+      <TemplatesModal
+        isOpen={templatesModalOpen}
+        onClose={handleCloseTemplatesModal}
+        templates={templates}
+        isLoading={isLoadingTemplates}
+        onSelectTemplate={handleSelectTemplate}
+        onDeleteTemplate={handleDeleteTemplate}
+      />
+
+      {/* Template Creation Modal */}
+      <TemplateCreationModal
+        isOpen={templateCreationModalOpen}
+        onClose={handleCloseTemplateCreationModal}
+        onSaveTemplate={handleSaveTemplate}
+      />
+
+      {/* Drafts Modal */}
+      <DraftsModal
+        isOpen={draftsModalOpen}
+        onClose={handleCloseDraftsModal}
+        drafts={drafts}
+        isLoading={isLoadingDrafts}
+        onOpenDraft={handleOpenDraft}
+        onDeleteDraft={handleDeleteDraft}
       />
     </>
   );

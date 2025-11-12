@@ -35,9 +35,15 @@ export interface ConversationGroup {
 }
 
 export interface ConversationItem {
+  id: string;
   title: string;
   hint: string;
   active: boolean;
+  grade?: string;
+  strand?: string;
+  standard?: string;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface QuickAccessLink {
@@ -48,6 +54,53 @@ export interface QuickAccessLink {
 export interface QuickStats {
   lessonsCreated: number;
   activeDrafts: number;
+}
+
+export interface DraftItem {
+  id: string;
+  title: string;
+  content: string;
+  metadata?: Record<string, unknown>;
+  grade?: string;
+  strand?: string;
+  standard?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TemplateItem {
+  id: string;
+  name: string;
+  description: string;
+  content: string;
+  grade: string;
+  strand: string;
+  standardId?: string;
+  standardCode?: string;
+  standardTitle?: string;
+  objective?: string;
+  lessonDuration?: string;
+  classSize?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DraftsModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  drafts: DraftItem[];
+  isLoading: boolean;
+  onOpenDraft: (draftId: string) => void;
+  onDeleteDraft: (draftId: string) => void;
+}
+
+export interface TemplatesModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  templates: TemplateItem[];
+  isLoading: boolean;
+  onSelectTemplate: (templateId: string) => void;
+  onDeleteTemplate: (templateId: string) => void;
 }
 
 // Grouped state interfaces for better organization

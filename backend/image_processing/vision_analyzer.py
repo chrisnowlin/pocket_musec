@@ -7,6 +7,8 @@ from typing import Optional, Dict
 import os
 import logging
 
+from ..config import config
+
 logger = logging.getLogger(__name__)
 
 

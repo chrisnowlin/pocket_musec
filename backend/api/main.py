@@ -10,7 +10,7 @@ import signal
 import sys
 from pathlib import Path
 
-from .routes import images, settings, sessions, standards, ingestion
+from .routes import images, settings, sessions, standards, ingestion, drafts, templates
 from .middleware import (
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
@@ -61,6 +61,8 @@ app.include_router(settings.router)
 app.include_router(sessions.router)
 app.include_router(standards.router)
 app.include_router(ingestion.router)
+app.include_router(drafts.router)
+app.include_router(templates.router)
 
 
 # Exception handlers
