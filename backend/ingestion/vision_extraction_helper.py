@@ -164,6 +164,48 @@ def extract_standards_from_text(text: str, page_num: int) -> List[Dict[str, Any]
     return standards
 
 
+def clean_malformed_standards(standards: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    Remove malformed standard IDs that are actually objectives.
+
+    Standards have format: GRADE.STRAND.NUMBER (e.g., K.PR.2, 8.RE.1)
+    Objectives have format: GRADE.STRAND.NUMBER.NUMBER (e.g., K.PR.2.1, 8.RE.1.3)
+
+    This filter removes entries where the ID has 3 dots instead of 2,
+    indicating an objective was mistakenly extracted as a top-level standard.
+
+    Args:
+        standards: List of standard dictionaries
+
+    Returns:
+        Filtered list with malformed entries removed
+    """
+    filtered = []
+    removed_count = 0
+
+    for std in standards:
+        std_id = std.get("id", "")
+
+        # Count dots - standards should have exactly 2 dots
+        dot_count = std_id.count(".")
+
+        if dot_count == 2:
+            # Valid standard ID format
+            filtered.append(std)
+        else:
+            # Malformed entry (likely an objective extracted as a standard)
+            removed_count += 1
+            logger.warning(
+                f"Filtering out malformed standard ID '{std_id}' "
+                f"(has {dot_count} dots, expected 2)"
+            )
+
+    if removed_count > 0:
+        logger.info(f"Removed {removed_count} malformed standard entries")
+
+    return filtered
+
+
 def extract_standards_from_pdf_multipage(
     pdf_path: str,
     llm_client,
@@ -238,6 +280,10 @@ def extract_standards_from_pdf_multipage(
 
     result = list(all_standards.values())
     logger.info(f"Total unique standards extracted: {len(result)}")
+
+    # Apply post-processing filter to remove malformed entries
+    result = clean_malformed_standards(result)
+    logger.info(f"After filtering malformed entries: {len(result)} standards")
 
     return result
 
