@@ -140,6 +140,29 @@ async def update_session(
     return _session_to_response(updated, standard_repo)
 
 
+@router.delete("")
+async def delete_all_sessions(
+    current_user: User = Depends(get_current_user),
+):
+    """Delete all sessions for the current user"""
+    repo = SessionRepository()
+    lesson_repo = LessonRepository()
+    
+    # Get all sessions for the user
+    sessions = repo.list_sessions(current_user.id, limit=1000)  # Get all sessions
+    
+    # Delete associated lessons for each session
+    for session in sessions:
+        lessons = lesson_repo.list_lessons_for_session(session.id)
+        for lesson in lessons:
+            lesson_repo.delete_lesson(lesson.id)
+    
+    # Delete all sessions
+    deleted_count = repo.delete_all_sessions(current_user.id)
+    
+    return {"message": f"Deleted {deleted_count} session(s) successfully", "count": deleted_count}
+
+
 @router.delete("/{session_id}")
 async def delete_session(
     session_id: str,

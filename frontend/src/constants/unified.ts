@@ -86,9 +86,7 @@ export const conversationGroups: ConversationGroup[] = [
   },
 ];
 
-export const quickAccessLinks: QuickAccessLink[] = [
-  { label: 'Templates', hint: 'Saved song maps' },
-];
+export const quickAccessLinks: QuickAccessLink[] = [];
 
 export const quickStats: QuickStats = {
   lessonsCreated: 23,

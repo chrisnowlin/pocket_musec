@@ -3,7 +3,6 @@ import { useChat } from '../hooks/useChat';
 import { useSession } from '../hooks/useSession';
 import { useImages } from '../hooks/useImages';
 import { useDrafts } from '../hooks/useDrafts';
-import { useTemplates } from '../hooks/useTemplates';
 import { useResizing, useMessageContainerResizing } from '../hooks/useResizing';
 import Sidebar from '../components/unified/Sidebar';
 import HeroFocus from '../components/unified/HeroFocus';
@@ -12,9 +11,7 @@ import BrowsePanel from '../components/unified/BrowsePanel';
 import ImagePanel from '../components/unified/ImagePanel';
 import SettingsPanel from '../components/unified/SettingsPanel';
 import RightPanel from '../components/unified/RightPanel';
-import TemplatesModal from '../components/unified/TemplatesModal';
 import DraftsModal from '../components/unified/DraftsModal';
-import TemplateCreationModal from '../components/unified/TemplateCreationModal';
 import ImageUploadModal from '../components/unified/ImageUploadModal';
 import ImageDetailModal from '../components/unified/ImageDetailModal';
 import DocumentIngestion from '../components/DocumentIngestion';
@@ -42,14 +39,13 @@ export default function UnifiedPage() {
   });
 
   const [draftsModalOpen, setDraftsModalOpen] = useState(false);
-  const [templatesModalOpen, setTemplatesModalOpen] = useState(false);
-  const [templateCreationModalOpen, setTemplateCreationModalOpen] = useState(false);
   const [conversationEditorOpen, setConversationEditorOpen] = useState(false);
   const [conversationEditorContent, setConversationEditorContent] = useState('');
   const [conversationEditorSessionId, setConversationEditorSessionId] = useState<string | null>(null);
   const [isSavingConversationEditor, setIsSavingConversationEditor] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState<string | null>(null);
+  const [clearAllHistoryConfirmOpen, setClearAllHistoryConfirmOpen] = useState(false);
 
   // Toast notifications
   const { toasts, removeToast, success, error, info } = useToast();
@@ -150,15 +146,6 @@ export default function UnifiedPage() {
     updateDraft,
   } = useDrafts();
 
-  // Template management hook
-  const {
-    templates,
-    isLoading: isLoadingTemplates,
-    templateCount,
-    getTemplate,
-    deleteTemplate,
-    createTemplateFromLesson,
-  } = useTemplates();
 
   // Refs - must be declared at top level (React hooks rule)
   const imageFileInputRef = useRef<HTMLInputElement>(null);
@@ -282,80 +269,6 @@ export default function UnifiedPage() {
     return await updateDraft(draftId, updates);
   };
 
-  // Template event handlers
-  const handleOpenTemplatesModal = () => {
-    setTemplatesModalOpen(true);
-  };
-
-  const handleCloseTemplatesModal = () => {
-    setTemplatesModalOpen(false);
-  };
-
-  const handleOpenTemplateCreationModal = () => {
-    setTemplateCreationModalOpen(true);
-  };
-
-  const handleCloseTemplateCreationModal = () => {
-    setTemplateCreationModalOpen(false);
-  };
-
-  const handleSaveTemplate = (name: string, description: string) => {
-    // Get the latest lesson content from messages or create a template from current settings
-    const lessonContent = messages.length > 0
-      ? messages[messages.length - 1].text
-      : `Lesson template for ${lessonSettings.selectedGrade} - ${lessonSettings.selectedStrand}`;
-
-    try {
-      createTemplateFromLesson(
-        lessonContent,
-        lessonSettings.selectedStandard,
-        {
-          grade: lessonSettings.selectedGrade,
-          strand: lessonSettings.selectedStrand,
-          objective: lessonSettings.selectedObjective,
-          lessonContext: lessonSettings.lessonContext,
-          lessonDuration: lessonSettings.lessonDuration,
-          classSize: lessonSettings.classSize,
-        },
-        name,
-        description
-      );
-      handleCloseTemplateCreationModal();
-    } catch (error) {
-      console.error('Failed to create template:', error);
-    }
-  };
-
-  const handleSelectTemplate = async (templateId: string) => {
-    const template = getTemplate(templateId);
-    if (template) {
-      // Update lesson settings based on the template
-      updateLessonSettings({
-        selectedGrade: template.grade,
-        selectedStrand: template.strand,
-        selectedStandard: standards.find(s => s.id === template.standardId) || null,
-        selectedObjective: template.objective || null,
-        lessonContext: template.content.substring(0, 200) + '...',
-        lessonDuration: template.lessonDuration || '30 minutes',
-        classSize: template.classSize || '25',
-      });
-      
-      // Close the modal and switch to chat mode
-      handleCloseTemplatesModal();
-      updateUIState({ mode: 'chat' });
-      
-      // Optionally, add a message to the chat about using a template
-      const templateMessage = `I'm using the "${template.name}" template. ${template.description}`;
-      processChatMessage(templateMessage, setSession);
-    }
-  };
-
-  const handleDeleteTemplate = async (templateId: string) => {
-    const success = await deleteTemplate(templateId);
-    if (success) {
-      // Template is automatically removed from the list by the hook
-    }
-  };
 
   // Conversation menu handlers
   const handleDeleteConversation = (sessionId: string) => {
@@ -394,6 +307,37 @@ export default function UnifiedPage() {
   const cancelDeleteConversation = () => {
     setDeleteConfirmOpen(false);
     setPendingDeleteSessionId(null);
+  };
+
+  // Clear all chat history handlers
+  const handleClearAllChatHistory = () => {
+    setClearAllHistoryConfirmOpen(true);
+  };
+
+  const confirmClearAllChatHistory = async () => {
+    setClearAllHistoryConfirmOpen(false);
+
+    try {
+      const result = await api.deleteAllSessions();
+      if (result.ok) {
+        success(`Successfully cleared all chat history (${result.data.count} conversation${result.data.count !== 1 ? 's' : ''} deleted)`);
+        // Refresh the sessions list
+        await loadSessions();
+        // Reset current session and messages
+        resetMessages();
+        setSession(null);
+      } else {
+        console.error('Failed to clear chat history:', result.message);
+        error(`Failed to clear chat history: ${result.message}`);
+      }
+    } catch (err) {
+      console.error('Error clearing chat history:', err);
+      error('An error occurred while clearing chat history.');
+    }
+  };
+
+  const cancelClearAllChatHistory = () => {
+    setClearAllHistoryConfirmOpen(false);
   };
 
   const handleOpenConversationEditor = async (sessionId: string) => {
@@ -517,8 +461,6 @@ export default function UnifiedPage() {
           isLoadingSessions={isLoadingSessions}
           onOpenDraftsModal={handleOpenDraftsModal}
           draftCount={draftCount}
-          onOpenTemplatesModal={handleOpenTemplatesModal}
-          templateCount={templateCount}
           onDeleteConversation={handleDeleteConversation}
           onOpenConversationEditor={handleOpenConversationEditor}
         />
@@ -614,6 +556,7 @@ export default function UnifiedPage() {
               <SettingsPanel
                 processingMode={settingsState.processingMode}
                 onProcessingModeChange={(mode) => updateSettingsState({ processingMode: mode })}
+                onClearChatHistory={handleClearAllChatHistory}
               />
             )}
           </div>
@@ -653,7 +596,6 @@ export default function UnifiedPage() {
           onClassSizeChange={(size) => updateLessonSettings({ classSize: size })}
           onBrowseStandards={() => updateUIState({ mode: 'browse' })}
           onRetrySession={() => retrySession(lessonSettings.selectedGrade, lessonSettings.selectedStrand)}
-          onSaveAsTemplate={handleOpenTemplateCreationModal}
         />
       </div>
 
@@ -678,23 +620,6 @@ export default function UnifiedPage() {
         image={imageHooks.selectedImage}
         onClose={() => imageHooks.setSelectedImage(null)}
         onDelete={imageHooks.handleDeleteImage}
-      />
-
-      {/* Templates Modal */}
-      <TemplatesModal
-        isOpen={templatesModalOpen}
-        onClose={handleCloseTemplatesModal}
-        templates={templates}
-        isLoading={isLoadingTemplates}
-        onSelectTemplate={handleSelectTemplate}
-        onDeleteTemplate={handleDeleteTemplate}
-      />
-
-      {/* Template Creation Modal */}
-      <TemplateCreationModal
-        isOpen={templateCreationModalOpen}
-        onClose={handleCloseTemplateCreationModal}
-        onSaveTemplate={handleSaveTemplate}
       />
 
       {/* Drafts Modal */}
@@ -740,6 +665,18 @@ export default function UnifiedPage() {
         cancelLabel="Cancel"
         onConfirm={confirmDeleteConversation}
         onCancel={cancelDeleteConversation}
+        variant="danger"
+      />
+
+      {/* Clear All History Confirmation Dialog */}
+      <ConfirmDialog
+        isOpen={clearAllHistoryConfirmOpen}
+        title="Clear All Chat History"
+        message="Are you sure you want to delete all conversations? This will permanently remove all your chat history and cannot be undone."
+        confirmLabel="Clear All"
+        cancelLabel="Cancel"
+        onConfirm={confirmClearAllChatHistory}
+        onCancel={cancelClearAllChatHistory}
         variant="danger"
       />
 

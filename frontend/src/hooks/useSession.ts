@@ -157,8 +157,22 @@ export function useSession() {
     const olderSessions: ConversationItem[] = [];
 
     sessions.forEach((sessionItem) => {
-      const createdDate = new Date(sessionItem.created_at || '');
-      const updatedDate = new Date(sessionItem.updated_at || '');
+      // Parse dates with validation - use created_at as fallback if updated_at is invalid
+      let updatedDate = sessionItem.updated_at ? new Date(sessionItem.updated_at) : null;
+      if (!updatedDate || isNaN(updatedDate.getTime())) {
+        // If updated_at is invalid, try created_at
+        updatedDate = sessionItem.created_at ? new Date(sessionItem.created_at) : new Date();
+        // If still invalid, use current time
+        if (!updatedDate || isNaN(updatedDate.getTime())) {
+          updatedDate = new Date();
+        }
+      }
+      
+      let createdDate = sessionItem.created_at ? new Date(sessionItem.created_at) : updatedDate;
+      if (!createdDate || isNaN(createdDate.getTime())) {
+        // Fallback to current date if created_at is also invalid
+        createdDate = new Date();
+      }
       
       // Count messages from conversation history if available
       let messageCount = 0;
@@ -194,8 +208,9 @@ export function useSession() {
       }
     });
 
-    // Sort thisWeekSessions by most recently updated and limit to 3
-    const sortedThisWeekSessions = thisWeekSessions
+    // Combine today and this week sessions for "Recent Chats"
+    // Sort all recent sessions by most recently updated and limit to 3
+    const allRecentSessions = [...todaySessions, ...thisWeekSessions]
       .sort((a, b) => {
         const dateA = a.updatedAt ? new Date(a.updatedAt).getTime() : 0;
         const dateB = b.updatedAt ? new Date(b.updatedAt).getTime() : 0;
@@ -205,12 +220,9 @@ export function useSession() {
 
     const groups: ConversationGroup[] = [];
     
-    if (todaySessions.length > 0) {
-      groups.push({ label: 'Today', items: todaySessions });
-    }
-    
-    if (sortedThisWeekSessions.length > 0) {
-      groups.push({ label: 'Recent Chats', items: sortedThisWeekSessions });
+    // Show "Recent Chats" if there are any sessions from this week (including today)
+    if (allRecentSessions.length > 0) {
+      groups.push({ label: 'Recent Chats', items: allRecentSessions });
     }
     
     if (olderSessions.length > 0) {
@@ -224,19 +236,36 @@ export function useSession() {
   const formatTimeAgo = (date: Date, messageCount: number): string => {
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
+    
+    // Handle invalid dates or future dates
+    if (isNaN(diffMs) || diffMs < 0) {
+      return messageCount > 0 ? `${messageCount} messages` : 'Unknown time';
+    }
+    
+    const diffMinutes = Math.floor(diffMs / (1000 * 60));
     const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-    const diffDays = Math.floor(diffHours / 24);
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
 
-    if (diffHours < 1) {
-      return 'Just now';
+    if (diffMinutes < 1) {
+      return messageCount > 0 ? `Just now · ${messageCount} messages` : 'Just now';
+    } else if (diffMinutes < 60) {
+      return messageCount > 0 
+        ? `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago · ${messageCount} messages`
+        : `${diffMinutes} minute${diffMinutes !== 1 ? 's' : ''} ago`;
     } else if (diffHours < 24) {
-      return `${diffHours} hours ago · ${messageCount} messages`;
+      return messageCount > 0 
+        ? `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago · ${messageCount} messages`
+        : `${diffHours} hour${diffHours !== 1 ? 's' : ''} ago`;
     } else if (diffDays === 1) {
-      return 'Yesterday';
+      return messageCount > 0 ? `Yesterday · ${messageCount} messages` : 'Yesterday';
     } else if (diffDays < 7) {
-      return `${diffDays} days ago · ${messageCount} messages`;
+      return messageCount > 0 
+        ? `${diffDays} days ago · ${messageCount} messages`
+        : `${diffDays} days ago`;
     } else {
-      return date.toLocaleDateString();
+      return messageCount > 0 
+        ? `${date.toLocaleDateString()} · ${messageCount} messages`
+        : date.toLocaleDateString();
     }
   };
 

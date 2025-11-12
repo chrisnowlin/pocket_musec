@@ -70,23 +70,6 @@ export interface DraftItem {
   updatedAt: string;
 }
 
-export interface TemplateItem {
-  id: string;
-  name: string;
-  description: string;
-  content: string;
-  grade: string;
-  strand: string;
-  standardId?: string;
-  standardCode?: string;
-  standardTitle?: string;
-  objective?: string;
-  lessonDuration?: string;
-  classSize?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export interface DraftsModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -106,15 +89,6 @@ export interface ExportModalProps {
   draft: DraftItem | null;
   onExport: (format: ExportFormat) => void;
   isLoading: boolean;
-}
-
-export interface TemplatesModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  templates: TemplateItem[];
-  isLoading: boolean;
-  onSelectTemplate: (templateId: string) => void;
-  onDeleteTemplate: (templateId: string) => void;
 }
 
 export interface LessonEditorProps {

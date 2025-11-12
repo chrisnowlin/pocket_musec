@@ -178,6 +178,16 @@ class SessionRepository:
         finally:
             conn.close()
 
+    def delete_all_sessions(self, user_id: str) -> int:
+        """Delete all sessions for a user. Returns the number of sessions deleted."""
+        conn = self.db_manager.get_connection()
+        try:
+            cursor = conn.execute("DELETE FROM sessions WHERE user_id = ?", (user_id,))
+            conn.commit()
+            return cursor.rowcount
+        finally:
+            conn.close()
+
     def _row_to_session(self, row: sqlite3.Row) -> Session:
         # Helper to safely get optional columns
         def safe_get(row, key: str, default=None):

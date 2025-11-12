@@ -168,31 +168,3 @@ class DraftResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-# Template Models
-class TemplateCreateRequest(BaseModel):
-    """Request to create a new template"""
-    title: str
-    content: str
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class TemplateUpdateRequest(BaseModel):
-    """Request to update an existing template"""
-    title: Optional[str] = None
-    content: Optional[str] = None
-    metadata: Optional[Dict[str, Any]] = None
-
-
-class TemplateResponse(BaseModel):
-    """Template response for the frontend"""
-    id: str
-    title: str
-    content: str
-    metadata: Dict[str, Any] = {}
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
-
-    class Config:
-        from_attributes = True

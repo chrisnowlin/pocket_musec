@@ -131,7 +131,6 @@ const conversationGroups = [
 ];
 
 const quickAccessLinks = [
-  { label: 'Templates', hint: 'Saved song maps' },
   { label: 'Saved Drafts', hint: '8 drafts' },
 ];
 

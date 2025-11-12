@@ -112,6 +112,7 @@ const api = {
     apiClient.post<ChatResponsePayload>(`/sessions/${sessionId}/messages`, payload),
   getSession: (sessionId: string) => apiClient.get<SessionResponsePayload>(`/sessions/${sessionId}`),
   deleteSession: (sessionId: string) => apiClient.delete<{ message: string }>(`/sessions/${sessionId}`),
+  deleteAllSessions: () => apiClient.delete<{ message: string; count: number }>('/sessions'),
   generateLesson: (request: unknown) => apiClient.post('/lessons/generate', request),
   getLesson: (sessionId: string) => apiClient.get(`/lessons/${sessionId}`),
   getLessonBySession: async (sessionId: string): Promise<ApiResult<DraftItem[]>> => {

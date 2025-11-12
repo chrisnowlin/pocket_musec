@@ -1,4 +1,4 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException, Form
+from fastapi import APIRouter, UploadFile, File, HTTPException, Form, Query, Depends
 from fastapi.responses import JSONResponse
 from typing import Optional, Dict, Any
 import os
@@ -11,6 +11,8 @@ from backend.pocketflow.ingestion_agent import IngestionAgent
 from backend.pocketflow.flow import Flow
 from backend.pocketflow.store import Store
 from backend.repositories.database import DatabaseManager
+from ..dependencies import get_current_user
+from ...auth import User
 
 router = APIRouter(prefix="/ingestion", tags=["ingestion"])
 
@@ -291,7 +293,34 @@ async def get_ingestion_stats():
 
         # Calculate total documents (approximate)
         stats["total_documents"] = stats.get("standards_count", 0)
-        stats["last_updated"] = "2025-01-11T10:00:00Z"  # Would be dynamic in production
+        
+        # Get the most recent ingestion date from any table
+        try:
+            last_updated = None
+            # Check standards table
+            result = conn.execute("""
+                SELECT MAX(ingestion_date) FROM standards WHERE ingestion_date IS NOT NULL
+            """).fetchone()
+            if result and result[0]:
+                last_updated = result[0]
+            
+            # Check other tables for more recent dates
+            for table in ['objectives', 'teaching_strategies', 'assessment_guidance', 
+                         'alignment_relationships', 'progression_mappings', 
+                         'glossary_entries', 'faq_entries', 'resource_entries']:
+                try:
+                    result = conn.execute(f"""
+                        SELECT MAX(ingestion_date) FROM {table} WHERE ingestion_date IS NOT NULL
+                    """).fetchone()
+                    if result and result[0]:
+                        if not last_updated or result[0] > last_updated:
+                            last_updated = result[0]
+                except:
+                    pass  # Table might not exist or have ingestion_date column
+            
+            stats["last_updated"] = last_updated or "2025-01-11T10:00:00Z"
+        except:
+            stats["last_updated"] = "2025-01-11T10:00:00Z"
 
         return {"success": True, "stats": stats}
 
@@ -312,6 +341,204 @@ async def get_ingestion_stats():
             "last_updated": "2025-01-11T10:00:00Z",
         }
         return {"success": True, "stats": default_stats}
+
+
+@router.get("/items/{content_type}")
+async def get_content_items(
+    content_type: str,
+    limit: int = Query(100, gt=0, le=500),
+    current_user: User = Depends(get_current_user),
+):
+    """Get detailed items for a specific content type"""
+    import json
+    
+    db_manager = DatabaseManager()
+    items = []
+    
+    try:
+        with db_manager.get_connection() as conn:
+            if content_type == "standards":
+                cursor = conn.execute("""
+                    SELECT standard_id, grade_level, strand_code, strand_name, 
+                           standard_text, source_document, ingestion_date
+                    FROM standards
+                    ORDER BY grade_level, strand_code, standard_id
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "grade_level": row[1],
+                        "strand_code": row[2],
+                        "strand_name": row[3],
+                        "text": row[4],
+                        "source_document": row[5],
+                        "ingestion_date": row[6],
+                    })
+            
+            elif content_type == "objectives":
+                cursor = conn.execute("""
+                    SELECT objective_id, standard_id, objective_text
+                    FROM objectives
+                    ORDER BY standard_id, objective_id
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "standard_id": row[1],
+                        "text": row[2],
+                    })
+            
+            elif content_type == "strategies":
+                cursor = conn.execute("""
+                    SELECT strategy_id, section_id, grade_level, strand_code,
+                           strategy_text, source_document, page_number
+                    FROM teaching_strategies
+                    ORDER BY grade_level, strand_code, strategy_id
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "section_id": row[1],
+                        "grade_level": row[2],
+                        "strand_code": row[3],
+                        "text": row[4],
+                        "source_document": row[5],
+                        "page_number": row[6],
+                    })
+            
+            elif content_type == "guidance":
+                cursor = conn.execute("""
+                    SELECT guidance_id, section_id, grade_level, strand_code,
+                           guidance_text, source_document, page_number
+                    FROM assessment_guidance
+                    ORDER BY grade_level, strand_code, guidance_id
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "section_id": row[1],
+                        "grade_level": row[2],
+                        "strand_code": row[3],
+                        "text": row[4],
+                        "source_document": row[5],
+                        "page_number": row[6],
+                    })
+            
+            elif content_type == "relationships":
+                cursor = conn.execute("""
+                    SELECT relationship_id, standard_id, related_standard_ids,
+                           relationship_type, grade_level, strand_code, description,
+                           source_document, page_number
+                    FROM alignment_relationships
+                    ORDER BY grade_level, strand_code, relationship_id
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "standard_id": row[1],
+                        "related_standard_ids": json.loads(row[2]) if row[2] else [],
+                        "relationship_type": row[3],
+                        "grade_level": row[4],
+                        "strand_code": row[5],
+                        "description": row[6],
+                        "source_document": row[7],
+                        "page_number": row[8],
+                    })
+            
+            elif content_type == "mappings":
+                cursor = conn.execute("""
+                    SELECT mapping_id, skill_name, grade_levels, standard_mappings,
+                           progression_notes, source_document, page_number
+                    FROM progression_mappings
+                    ORDER BY skill_name, mapping_id
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "skill_name": row[1],
+                        "grade_levels": json.loads(row[2]) if row[2] else [],
+                        "standard_mappings": json.loads(row[3]) if row[3] else {},
+                        "progression_notes": row[4],
+                        "source_document": row[5],
+                        "page_number": row[6],
+                    })
+            
+            elif content_type == "glossary":
+                cursor = conn.execute("""
+                    SELECT entry_id, term, definition, page_number, related_standards,
+                           source_document
+                    FROM glossary_entries
+                    ORDER BY term
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "term": row[1],
+                        "definition": row[2],
+                        "page_number": row[3],
+                        "related_standards": json.loads(row[4]) if row[4] else [],
+                        "source_document": row[5],
+                    })
+            
+            elif content_type == "faq":
+                cursor = conn.execute("""
+                    SELECT entry_id, question, answer, page_number, category,
+                           source_document
+                    FROM faq_entries
+                    ORDER BY category, entry_id
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "question": row[1],
+                        "answer": row[2],
+                        "page_number": row[3],
+                        "category": row[4],
+                        "source_document": row[5],
+                    })
+            
+            elif content_type == "resources":
+                cursor = conn.execute("""
+                    SELECT entry_id, resource_type, resource_name, description,
+                           url, source_document, page_number
+                    FROM resource_entries
+                    ORDER BY resource_type, resource_name
+                    LIMIT ?
+                """, (limit,))
+                for row in cursor.fetchall():
+                    items.append({
+                        "id": row[0],
+                        "resource_type": row[1],
+                        "resource_name": row[2],
+                        "description": row[3],
+                        "url": row[4],
+                        "source_document": row[5],
+                        "page_number": row[6],
+                    })
+            
+            else:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Unknown content type: {content_type}. Valid types: standards, objectives, strategies, guidance, relationships, mappings, glossary, faq, resources"
+                )
+        
+        return {"success": True, "items": items, "count": len(items)}
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to fetch {content_type} items: {str(e)}"
+        )
 
 
 def _get_document_type_label(doc_type: DocumentType) -> str:

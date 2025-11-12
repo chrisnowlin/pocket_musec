@@ -16,9 +16,6 @@ interface SidebarProps {
   // Draft management props
   onOpenDraftsModal: () => void;
   draftCount: number;
-  // Template management props
-  onOpenTemplatesModal: () => void;
-  templateCount: number;
   // Conversation menu props
   onDeleteConversation: (sessionId: string) => void;
   onOpenConversationEditor: (sessionId: string) => void;
@@ -37,8 +34,6 @@ export default function Sidebar({
   isLoadingSessions,
   onOpenDraftsModal,
   draftCount,
-  onOpenTemplatesModal,
-  templateCount,
   onDeleteConversation,
   onOpenConversationEditor,
 }: SidebarProps) {
@@ -156,16 +151,6 @@ export default function Sidebar({
             Quick Access
           </h3>
           <div className="space-y-1 mb-4">
-            {quickAccessLinks.map((link) => (
-              <button
-                key={link.label}
-                onClick={link.label === 'Templates' ? onOpenTemplatesModal : undefined}
-                className="flex items-center gap-3 px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100 w-full"
-              >
-                <span className="text-sm">{link.label}</span>
-                <span className="ml-auto text-xs text-parchment-400">{link.hint}</span>
-              </button>
-            ))}
             <button
               onClick={onOpenDraftsModal}
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100 w-full"
@@ -173,15 +158,6 @@ export default function Sidebar({
               <span className="text-sm">Saved Drafts</span>
               <span className="ml-auto text-xs text-parchment-400">
                 {draftCount > 0 ? `${draftCount} draft${draftCount !== 1 ? 's' : ''}` : 'No drafts'}
-              </span>
-            </button>
-            <button
-              onClick={onOpenTemplatesModal}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100 w-full"
-            >
-              <span className="text-sm">📋 Lesson Templates</span>
-              <span className="ml-auto text-xs text-parchment-400">
-                {templateCount > 0 ? `${templateCount} template${templateCount !== 1 ? 's' : ''}` : 'No templates'}
               </span>
             </button>
           </div>

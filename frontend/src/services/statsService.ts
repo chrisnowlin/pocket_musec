@@ -17,7 +17,9 @@ class StatsService {
   private baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
   async getIngestionStats(): Promise<DatabaseStats> {
-    const response = await fetch(`${this.baseUrl}/ingestion/stats`);
+    const response = await fetch(`${this.baseUrl}/ingestion/stats`, {
+      credentials: 'include',
+    });
     
     if (!response.ok) {
       throw new Error(`Failed to get stats: ${response.statusText}`);
@@ -42,6 +44,19 @@ class StatsService {
       total_documents: 0,
       last_updated: new Date().toISOString(),
     };
+  }
+
+  async getContentItems(contentType: string, limit: number = 100): Promise<any[]> {
+    const response = await fetch(`${this.baseUrl}/ingestion/items/${contentType}?limit=${limit}`, {
+      credentials: 'include',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get ${contentType} items: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    return result.items || [];
   }
 }
 
