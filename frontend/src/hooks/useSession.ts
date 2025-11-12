@@ -57,12 +57,27 @@ export function useSession() {
   }, []);
 
   const initSession = useCallback(
-    async (defaultGrade: string = 'Grade 3', defaultStrand: string = 'Connect') => {
+    async (
+      defaultGrade: string = 'Grade 3',
+      defaultStrand: string = 'Connect',
+      standardId?: string | null,
+      additionalContext?: string | null
+    ) => {
       try {
-        const result = await api.createSession({
+        const payload: any = {
           grade_level: defaultGrade,
           strand_code: defaultStrand,
-        });
+        };
+        
+        if (standardId) {
+          payload.standard_id = standardId;
+        }
+        
+        if (additionalContext) {
+          payload.additional_context = additionalContext;
+        }
+        
+        const result = await api.createSession(payload);
 
         if (result.ok) {
           const transformedSession = transformSession(result.data);

@@ -110,6 +110,7 @@ export default function UnifiedPage() {
     initSession,
     loadSessions,
     loadStandards,
+    sessions,
   } = useSession();
   const {
     messages,
@@ -167,7 +168,9 @@ export default function UnifiedPage() {
     // This allows users to set grade/strand in the right panel before starting a conversation
     const newSession = await initSession(
       lessonSettings.selectedGrade,
-      lessonSettings.selectedStrand
+      lessonSettings.selectedStrand,
+      lessonSettings.selectedStandard?.id || null,
+      lessonSettings.lessonContext || null
     );
     
     if (newSession) {
@@ -619,6 +622,8 @@ export default function UnifiedPage() {
           mode={uiState.mode}
           messageCount={messages.length}
           storageInfo={imageHooks.storageInfo}
+          draftCount={draftCount}
+          lessonsCount={sessions.length}
           isRetryingSession={isRetryingSession}
           retrySuccess={retrySuccess}
           retryMessage={retryMessage}
@@ -630,6 +635,25 @@ export default function UnifiedPage() {
           onLessonDurationChange={(duration) => updateLessonSettings({ lessonDuration: duration })}
           onClassSizeChange={(size) => updateLessonSettings({ classSize: size })}
           onBrowseStandards={() => updateUIState({ mode: 'browse' })}
+          onViewConversations={() => {
+            updateUIState({ mode: 'chat' });
+            // Scroll to sidebar conversations if needed
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) {
+              sidebar.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }}
+          onViewMessages={() => {
+            updateUIState({ mode: 'chat' });
+            // Scroll to the bottom of the messages container to show latest messages
+            setTimeout(() => {
+              const messageContainer = document.getElementById('chatMessagesContainer');
+              if (messageContainer) {
+                messageContainer.scrollTo({ top: messageContainer.scrollHeight, behavior: 'smooth' });
+              }
+            }, 100);
+          }}
+          onViewDrafts={handleOpenDraftsModal}
           onRetrySession={() => retrySession(lessonSettings.selectedGrade, lessonSettings.selectedStrand)}
         />
       </div>

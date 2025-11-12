@@ -1,6 +1,6 @@
 import type { StandardRecord, SessionResponsePayload } from '../../lib/types';
 import type { ViewMode, StorageInfo } from '../../types/unified';
-import { gradeOptions, strandOptions, quickStats } from '../../constants/unified';
+import { gradeOptions, strandOptions } from '../../constants/unified';
 
 interface RightPanelProps {
   width: number;
@@ -17,6 +17,8 @@ interface RightPanelProps {
   mode: ViewMode;
   messageCount: number;
   storageInfo: StorageInfo | null;
+  draftCount: number;
+  lessonsCount: number;
   isRetryingSession?: boolean;
   retrySuccess?: boolean | null;
   retryMessage?: string;
@@ -28,6 +30,9 @@ interface RightPanelProps {
   onLessonDurationChange: (duration: string) => void;
   onClassSizeChange: (size: string) => void;
   onBrowseStandards: () => void;
+  onViewConversations?: () => void;
+  onViewMessages?: () => void;
+  onViewDrafts?: () => void;
   onRetrySession?: () => Promise<SessionResponsePayload | null>;
 }
 
@@ -46,6 +51,8 @@ export default function RightPanel({
   mode,
   messageCount,
   storageInfo,
+  draftCount,
+  lessonsCount,
   isRetryingSession = false,
   retrySuccess = null,
   retryMessage = '',
@@ -57,6 +64,9 @@ export default function RightPanel({
   onLessonDurationChange,
   onClassSizeChange,
   onBrowseStandards,
+  onViewConversations,
+  onViewMessages,
+  onViewDrafts,
   onRetrySession,
 }: RightPanelProps) {
   const sessionStatusLabel = session
@@ -289,18 +299,45 @@ export default function RightPanel({
           <div className="border-t border-ink-300 pt-3">
             <h3 className="font-semibold text-ink-800 mb-2 text-xs">Your Activity</h3>
             <div className="grid grid-cols-3 gap-2">
-              <div className="bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300">
+              <button
+                onClick={onViewMessages}
+                disabled={!onViewMessages || messageCount === 0}
+                className={`bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300 text-left transition-colors ${
+                  onViewMessages && messageCount > 0
+                    ? 'hover:from-parchment-300 hover:to-parchment-400 hover:border-ink-400 cursor-pointer'
+                    : 'cursor-default'
+                } ${!onViewMessages || messageCount === 0 ? 'opacity-60' : ''}`}
+                title={messageCount > 0 ? `View ${messageCount} message${messageCount !== 1 ? 's' : ''} in chat` : 'No messages available'}
+              >
                 <div className="text-lg font-bold text-ink-700">{messageCount}</div>
                 <div className="text-xs text-ink-600 leading-tight">Messages</div>
-              </div>
-              <div className="bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300">
-                <div className="text-lg font-bold text-ink-700">{quickStats.lessonsCreated}</div>
+              </button>
+              <button
+                onClick={onViewConversations}
+                disabled={!onViewConversations || lessonsCount === 0}
+                className={`bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300 text-left transition-colors ${
+                  onViewConversations && lessonsCount > 0
+                    ? 'hover:from-parchment-300 hover:to-parchment-400 hover:border-ink-400 cursor-pointer'
+                    : 'cursor-default'
+                } ${!onViewConversations || lessonsCount === 0 ? 'opacity-60' : ''}`}
+                title={lessonsCount > 0 ? `View ${lessonsCount} lesson${lessonsCount !== 1 ? 's' : ''} in sidebar` : 'No lessons available'}
+              >
+                <div className="text-lg font-bold text-ink-700">{lessonsCount}</div>
                 <div className="text-xs text-ink-600 leading-tight">Lessons</div>
-              </div>
-              <div className="bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300">
-                <div className="text-lg font-bold text-ink-600">{quickStats.activeDrafts}</div>
+              </button>
+              <button
+                onClick={onViewDrafts}
+                disabled={!onViewDrafts || draftCount === 0}
+                className={`bg-gradient-to-br from-parchment-200 to-parchment-300 rounded-lg p-2 border border-ink-300 text-left transition-colors ${
+                  onViewDrafts && draftCount > 0
+                    ? 'hover:from-parchment-300 hover:to-parchment-400 hover:border-ink-400 cursor-pointer'
+                    : 'cursor-default'
+                } ${!onViewDrafts || draftCount === 0 ? 'opacity-60' : ''}`}
+                title={draftCount > 0 ? `View ${draftCount} draft${draftCount !== 1 ? 's' : ''}` : 'No drafts available'}
+              >
+                <div className="text-lg font-bold text-ink-600">{draftCount}</div>
                 <div className="text-xs text-ink-600 leading-tight">Drafts</div>
-              </div>
+              </button>
             </div>
             <div className="mt-2 text-xs text-ink-600 leading-tight">
               <span>{storageInfo?.image_count ?? 0} images</span>

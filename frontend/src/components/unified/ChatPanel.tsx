@@ -52,6 +52,7 @@ export default function ChatPanel({
         />
         <div
           ref={messageContainerRef}
+          id="chatMessagesContainer"
           className="flex-1 scrollable px-6 py-4 space-y-4 workspace-card"
           style={messageContainerHeight ? { height: `${messageContainerHeight}px`, flexShrink: 0 } : {}}
         >
