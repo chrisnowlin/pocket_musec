@@ -1098,16 +1098,44 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
     def chat(self, message: str) -> str:
         """Main chat interface - routes to appropriate state handler"""
         try:
+            # Store user message in conversation history
+            self.conversation_history.append({
+                "role": "user",
+                "content": message,
+                "state": self.current_state,
+                "timestamp": self._get_timestamp()
+            })
+
             current_state = self.get_state()
             handler = self.state_handlers.get(current_state)
 
             if handler:
-                return handler(message)
+                response = handler(message)
             else:
                 # Fallback to lesson planning
                 self.set_state("lesson_planning")
-                return self._handle_lesson_planning(message)
+                response = self._handle_lesson_planning(message)
+
+            # Store assistant response in conversation history
+            self.conversation_history.append({
+                "role": "assistant",
+                "content": response,
+                "state": self.current_state,
+                "timestamp": self._get_timestamp()
+            })
+
+            return response
 
         except Exception as e:
             logger.error(f"Error in chat: {e}")
-            return f"I apologize, but I encountered an error: {str(e)}. Could you please rephrase that or try a different approach?"
+            error_response = f"I apologize, but I encountered an error: {str(e)}. Could you please rephrase that or try a different approach?"
+
+            # Store error response in history
+            self.conversation_history.append({
+                "role": "assistant",
+                "content": error_response,
+                "state": self.current_state,
+                "timestamp": self._get_timestamp()
+            })
+
+            return error_response
