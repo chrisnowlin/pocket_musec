@@ -201,64 +201,6 @@ Focus on musical education context. If information isn't present, use null."""
         topic_lower = topic.lower()
         return term_mapping.get(topic_lower, [])
 
-    def _format_standards_suggestions(self, standards: List[Standard]) -> str:
-        """Format standards suggestions with better visual structure"""
-        if not standards:
-            return ""
-
-        formatted = "\n### 🎯 Relevant Standards for Your Lesson\n\n"
-        for i, standard in enumerate(standards[:3], 1):  # Show top 3
-            formatted += f"**{i}. {standard.standard_id}** - {standard.strand_name}\n"
-            formatted += f"*{standard.standard_text[:120]}{'...' if len(standard.standard_text) > 120 else ''}*\n\n"
-
-        if len(standards) > 3:
-            formatted += f"*... and {len(standards) - 3} more relevant standards*\n"
-
-        return formatted
-
-    def _format_activity_suggestions(self, extracted_info: Dict[str, Any]) -> str:
-        """Format activity suggestions based on extracted info"""
-        suggestions = []
-
-        # Add suggestions based on musical topics
-        topics = extracted_info.get("musical_topics", [])
-        if topics:
-            suggestions.append("### 🎵 Activity Ideas\n\n")
-            for topic in topics[:3]:  # Top 3 topics
-                topic_lower = topic.lower()
-                if "rhythm" in topic_lower:
-                    suggestions.append(
-                        "• • **Rhythm Circle Time** - Students create rhythmic patterns using body percussion and instruments\n"
-                    )
-                    suggestions.append(
-                        "• • **Beat Detective** - Listen and identify steady beats in music\n"
-                    )
-                elif "melody" in topic_lower:
-                    suggestions.append(
-                        "• • **Melody Maker** - Students create simple melodies using xylophones or recorders\n"
-                    )
-                    suggestions.append(
-                        "• • **Pitch Matching Games** - Call and response singing activities\n"
-                    )
-                elif "harmony" in topic_lower:
-                    suggestions.append(
-                        "• • **Chord Building** - Explore harmony using classroom instruments\n"
-                    )
-                    suggestions.append(
-                        "• • **Partner Songs** - Simple two-part harmony exercises\n"
-                    )
-
-        # Add suggestions based on available resources
-        resources = extracted_info.get("resources", [])
-        if resources:
-            suggestions.append("\n### 🥁 Using Your Available Resources\n\n")
-            for resource in resources[:3]:
-                suggestions.append(
-                    f"• • **{resource.title()} Integration** - Incorporate these instruments throughout the lesson\n"
-                )
-
-        return "".join(suggestions)
-
     def _generate_conversational_response(
         self,
         message: str,
@@ -295,22 +237,24 @@ Context from our conversation: {json.dumps(context_info, indent=2)}
 Guidelines for your response:
 1. Acknowledge what they shared and show understanding
 2. Ask thoughtful follow-up questions if needed
-3. Suggest relevant standards that match their interests
-4. Offer specific activity ideas or teaching strategies
+3. When relevant standards are provided in the context, naturally weave them into your response with their ID, strand, and key details
+4. Offer specific, age-appropriate activity ideas or teaching strategies based on the musical topics discussed
 5. Be helpful and encouraging, not rigid or form-like
-6. If you have enough information, offer to create a lesson plan
+6. If you have enough information, offer to create a lesson plan and tell them to say "generate lesson plan"
 7. Keep it conversational and build on what they've told you
 
 FORMATTING REQUIREMENTS:
 - Use emojis to make responses engaging and visually appealing (🎵, 🎶, 🥁, 🎹, 🎤, 🎼, ✨, 💡, 🎯, 📚, 🎨, 🌟)
 - Use markdown formatting for better readability:
-  - Use **bold** for emphasis on key concepts
+  - Use **bold** for emphasis on key concepts and standard IDs
   - Use *italics* for activity suggestions
-  - Use bullet points (•) for lists of ideas or standards
-  - Use section headers with ### for organizing information
+  - Use bullet points (• or -) for lists of ideas, standards, or activities
+  - Use section headers with ### for organizing information (e.g., "### 🎯 Relevant Standards", "### 🎵 Activity Ideas")
 - Keep paragraphs short and easy to read
 - Use line breaks to separate ideas
 - Make it scannable with clear visual hierarchy
+- Include standards naturally in a dedicated section when available
+- Include specific activity suggestions based on the musical topics and resources mentioned
 
 Write your response as if you're talking to a fellow music educator. Be warm, knowledgeable, and helpful."""
 
@@ -325,35 +269,15 @@ Write your response as if you're talking to a fellow music educator. Be warm, kn
 
         # Debug logging to check response type
         logger.debug(f"Generate response type: {type(response)}")
-        
-        # Enhance the response with better formatting
+
         # Handle both ChatResponse object and dictionary
+        # Return the LLM response directly - let it handle all formatting naturally
         if hasattr(response, 'content'):
-            enhanced_response = response.content
+            return response.content
         elif isinstance(response, dict):
-            enhanced_response = response.get('content', str(response))
+            return response.get('content', str(response))
         else:
-            enhanced_response = str(response)
-
-        # Add formatted standards suggestions if available
-        if relevant_standards:
-            standards_section = self._format_standards_suggestions(relevant_standards)
-            if standards_section and "🎯" not in enhanced_response:
-                enhanced_response += "\n" + standards_section
-
-        # Add activity suggestions based on extracted info
-        activity_section = self._format_activity_suggestions(extracted_info)
-        if activity_section and "🎵" not in enhanced_response:
-            enhanced_response += "\n" + activity_section
-
-        # Add a friendly closing if not present
-        if (
-            "ready to create" in enhanced_response.lower()
-            or "generate lesson" in enhanced_response.lower()
-        ):
-            enhanced_response += "\n\n### 🚀 Ready to Create?\n\nWhen you're ready, just say **'generate lesson plan'** and I'll create a personalized lesson based on our conversation! ✨"
-
-        return enhanced_response
+            return str(response)
 
     def _handle_conversational_welcome(self, message: str) -> str:
         """Handle the initial conversational exchange"""
