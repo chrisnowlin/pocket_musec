@@ -57,6 +57,7 @@ def _session_to_response(session, repo: StandardsRepository) -> SessionResponse:
         strand_code=session.strand_code,
         selected_standard=standard_resp,
         additional_context=session.additional_context,
+        conversation_history=session.conversation_history,
         created_at=session.created_at,
         updated_at=session.updated_at,
     )
@@ -98,6 +99,20 @@ async def list_sessions(
     standard_repo = StandardsRepository()
     sessions = repo.list_sessions(current_user.id)
     return [_session_to_response(session, standard_repo) for session in sessions]
+
+
+@router.get("/{session_id}", response_model=SessionResponse)
+async def get_session(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+) -> SessionResponse:
+    repo = SessionRepository()
+    session = repo.get_session(session_id)
+    if not session or session.user_id != current_user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
+    
+    standard_repo = StandardsRepository()
+    return _session_to_response(session, standard_repo)
 
 
 @router.put("/{session_id}", response_model=SessionResponse)
@@ -272,6 +287,7 @@ async def send_message(
         content=plan["content"],
         metadata=json.dumps(plan["metadata"]),
         processing_mode=current_user.processing_mode.value,
+        is_draft=True,  # Save all generated lessons as drafts by default
     )
 
     session_repo.touch_session(session_id)
@@ -326,6 +342,7 @@ async def stream_message(
         content=plan["content"],
         metadata=json.dumps(plan["metadata"]),
         processing_mode=current_user.processing_mode.value,
+        is_draft=True,  # Save all generated lessons as drafts by default
     )
 
     session_repo.touch_session(session_id)

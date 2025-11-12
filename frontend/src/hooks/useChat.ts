@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import api from '../lib/api';
 import type { ChatMessage, ChatSender } from '../types/unified';
 import type { SessionResponsePayload, ChatResponsePayload } from '../lib/types';
@@ -20,6 +20,7 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
 
   const appendMessage = useCallback((sender: ChatSender, text: string, id?: string) => {
     const messageId = id ?? `${sender}-${Date.now()}`;
@@ -126,6 +127,58 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     ]);
   }, []);
 
+  const loadConversationMessages = useCallback(async (sessionData: SessionResponsePayload) => {
+    if (!sessionData.conversation_history) {
+      resetMessages();
+      return;
+    }
+
+    setIsLoadingConversation(true);
+    try {
+      const conversationHistory = JSON.parse(sessionData.conversation_history);
+      const restoredMessages: ChatMessage[] = [
+        {
+          id: 'welcome',
+          sender: 'ai',
+          text: "👋 Welcome! I'm your PocketMusec AI assistant. I'll help you craft engaging, standards-aligned music lessons.",
+          timestamp: new Date().toISOString(),
+        },
+      ];
+
+      conversationHistory.forEach((message: any, index: number) => {
+        if (message.role === 'user') {
+          restoredMessages.push({
+            id: `user-${index}-${Date.now()}`,
+            sender: 'user',
+            text: message.content,
+            timestamp: new Date().toISOString(),
+          });
+        } else if (message.role === 'assistant') {
+          restoredMessages.push({
+            id: `ai-${index}-${Date.now()}`,
+            sender: 'ai',
+            text: message.content,
+            timestamp: new Date().toISOString(),
+          });
+        }
+      });
+
+      setMessages(restoredMessages);
+    } catch (error) {
+      console.error('Failed to load conversation history:', error);
+      resetMessages();
+    } finally {
+      setIsLoadingConversation(false);
+    }
+  }, [resetMessages]);
+
+  // Load conversation messages when session changes
+  useEffect(() => {
+    if (session) {
+      loadConversationMessages(session);
+    }
+  }, [session, loadConversationMessages]);
+
   return {
     messages,
     isTyping,
@@ -134,5 +187,7 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     processChatMessage,
     resetMessages,
     setChatError,
+    isLoadingConversation,
+    loadConversationMessages,
   };
 }

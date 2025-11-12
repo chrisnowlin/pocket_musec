@@ -109,6 +109,7 @@ class SessionResponse(BaseModel):
     strand_code: Optional[str]
     selected_standard: Optional[StandardResponse]
     additional_context: Optional[str]
+    conversation_history: Optional[str] = None
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
 
@@ -135,3 +136,63 @@ class ChatResponse(BaseModel):
     response: str
     lesson: LessonSummary
     session: SessionResponse
+
+
+# Draft Models
+class DraftCreateRequest(BaseModel):
+    """Request to create a new draft"""
+    session_id: str
+    title: str
+    content: str
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class DraftUpdateRequest(BaseModel):
+    """Request to update an existing draft"""
+    title: Optional[str] = None
+    content: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class DraftResponse(BaseModel):
+    """Draft response for the frontend"""
+    id: str
+    title: str
+    content: str
+    metadata: Dict[str, Any] = {}
+    grade: Optional[str] = None
+    strand: Optional[str] = None
+    standard: Optional[str] = None
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+# Template Models
+class TemplateCreateRequest(BaseModel):
+    """Request to create a new template"""
+    title: str
+    content: str
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class TemplateUpdateRequest(BaseModel):
+    """Request to update an existing template"""
+    title: Optional[str] = None
+    content: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None
+
+
+class TemplateResponse(BaseModel):
+    """Template response for the frontend"""
+    id: str
+    title: str
+    content: str
+    metadata: Dict[str, Any] = {}
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+    class Config:
+        from_attributes = True

@@ -1,5 +1,5 @@
-import type { ViewMode } from '../../types/unified';
-import { conversationGroups, quickAccessLinks } from '../../constants/unified';
+import type { ViewMode, ConversationGroup } from '../../types/unified';
+import { quickAccessLinks } from '../../constants/unified';
 
 interface SidebarProps {
   width: number;
@@ -9,6 +9,15 @@ interface SidebarProps {
   onUploadDocuments: () => void;
   onUploadImages: () => void;
   onOpenSettings: () => void;
+  conversationGroups: ConversationGroup[];
+  onSelectConversation: (sessionId: string) => Promise<void>;
+  isLoadingSessions: boolean;
+  // Draft management props
+  onOpenDraftsModal: () => void;
+  draftCount: number;
+  // Template management props
+  onOpenTemplatesModal: () => void;
+  templateCount: number;
 }
 
 export default function Sidebar({
@@ -19,6 +28,13 @@ export default function Sidebar({
   onUploadDocuments,
   onUploadImages,
   onOpenSettings,
+  conversationGroups,
+  onSelectConversation,
+  isLoadingSessions,
+  onOpenDraftsModal,
+  draftCount,
+  onOpenTemplatesModal,
+  templateCount,
 }: SidebarProps) {
   return (
     <aside
@@ -80,29 +96,43 @@ export default function Sidebar({
       </div>
 
       <nav className="flex-1 scrollable p-3 space-y-1">
-        {mode === 'chat' &&
-          conversationGroups.map((group) => (
-            <div key={group.label} className="mb-4">
-              <h3 className="px-3 text-xs font-semibold text-parchment-300 uppercase mb-2">
-                {group.label}
-              </h3>
-              <div className="space-y-1">
-                {group.items.map((item) => (
-                  <button
-                    key={item.title}
-                    className={`w-full text-left px-3 py-2 rounded-lg ${
-                      item.active
-                        ? 'bg-ink-700 text-parchment-100'
-                        : 'text-parchment-200 hover:bg-ink-700 hover:text-parchment-100'
-                    }`}
-                  >
-                    <div className="text-sm font-medium truncate">{item.title}</div>
-                    <div className="text-xs text-parchment-400">{item.hint}</div>
-                  </button>
-                ))}
+        {mode === 'chat' && (
+          <>
+            {isLoadingSessions ? (
+              <div className="px-3 py-2 text-parchment-400 text-sm">
+                Loading conversations...
               </div>
-            </div>
-          ))}
+            ) : conversationGroups.length === 0 ? (
+              <div className="px-3 py-2 text-parchment-400 text-sm">
+                No previous conversations
+              </div>
+            ) : (
+              conversationGroups.map((group) => (
+                <div key={group.label} className="mb-4">
+                  <h3 className="px-3 text-xs font-semibold text-parchment-300 uppercase mb-2">
+                    {group.label}
+                  </h3>
+                  <div className="space-y-1">
+                    {group.items.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => onSelectConversation(item.id)}
+                        className={`w-full text-left px-3 py-2 rounded-lg transition-colors ${
+                          item.active
+                            ? 'bg-ink-700 text-parchment-100'
+                            : 'text-parchment-200 hover:bg-ink-700 hover:text-parchment-100'
+                        }`}
+                      >
+                        <div className="text-sm font-medium truncate">{item.title}</div>
+                        <div className="text-xs text-parchment-400">{item.hint}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </>
+        )}
 
         <div className="pt-4 mt-4 border-t border-ink-700">
           <h3 className="px-3 text-xs font-semibold text-parchment-300 uppercase mb-2">
@@ -112,12 +142,31 @@ export default function Sidebar({
             {quickAccessLinks.map((link) => (
               <button
                 key={link.label}
+                onClick={link.label === 'Templates' ? onOpenTemplatesModal : undefined}
                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100 w-full"
               >
                 <span className="text-sm">{link.label}</span>
                 <span className="ml-auto text-xs text-parchment-400">{link.hint}</span>
               </button>
             ))}
+            <button
+              onClick={onOpenDraftsModal}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100 w-full"
+            >
+              <span className="text-sm">Saved Drafts</span>
+              <span className="ml-auto text-xs text-parchment-400">
+                {draftCount > 0 ? `${draftCount} draft${draftCount !== 1 ? 's' : ''}` : 'No drafts'}
+              </span>
+            </button>
+            <button
+              onClick={onOpenTemplatesModal}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-parchment-200 hover:bg-ink-700 hover:text-parchment-100 w-full"
+            >
+              <span className="text-sm">📋 Lesson Templates</span>
+              <span className="ml-auto text-xs text-parchment-400">
+                {templateCount > 0 ? `${templateCount} template${templateCount !== 1 ? 's' : ''}` : 'No templates'}
+              </span>
+            </button>
           </div>
 
           <h3 className="px-3 text-xs font-semibold text-parchment-300 uppercase mb-2 mt-4">

@@ -55,13 +55,81 @@ class MigrationManager:
         logger.info("Starting database migration...")
         
         # Run core migrations
+        self.migrate_standards_table()
         self.migrate_to_milestone3()
         self.migrate_to_v4_session_persistence()
         
         # Run extended migrations
         self.migrate_to_extended_schema()
         
+        # Run drafts migration
+        self.migrate_to_drafts_support()
+        
         logger.info("All migrations completed successfully")
+
+    def migrate_standards_table(self) -> None:
+        """
+        Create standards and objectives tables if they don't exist
+        
+        Adds:
+        - standards table for music education standards
+        - objectives table for learning objectives
+        """
+        current_version = self.get_schema_version()
+
+        if current_version >= 1:
+            logger.info(
+                f"Database already at version {current_version}, skipping standards migration"
+            )
+            return
+
+        logger.info("Starting standards table migration...")
+
+        conn = self.get_connection()
+        try:
+            # Create standards table
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS standards (
+                    standard_id TEXT PRIMARY KEY,
+                    grade_level TEXT NOT NULL,
+                    strand_code TEXT NOT NULL,
+                    strand_name TEXT NOT NULL,
+                    strand_description TEXT,
+                    standard_text TEXT NOT NULL,
+                    source_document TEXT,
+                    ingestion_date TEXT,
+                    version TEXT DEFAULT '1.0'
+                )
+            """)
+
+            # Create objectives table
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS objectives (
+                    objective_id TEXT PRIMARY KEY,
+                    standard_id TEXT NOT NULL,
+                    objective_text TEXT NOT NULL,
+                    FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
+                )
+            """)
+
+            # Create indexes for performance
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_standards_grade ON standards(grade_level)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_standards_strand ON standards(strand_code)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_objectives_standard ON objectives(standard_id)")
+
+            conn.commit()
+
+            # Update schema version
+            self.set_schema_version(1)
+
+            logger.info("Standards table migration completed successfully")
+
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Standards migration failed: {e}")
+            raise
+        finally:
+            conn.close()
 
     def migrate_to_milestone3(self) -> None:
         """
@@ -133,6 +201,7 @@ class MigrationManager:
                     content TEXT NOT NULL,
                     metadata TEXT,
                     processing_mode TEXT DEFAULT 'cloud',
+                    is_draft INTEGER DEFAULT 0,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
@@ -593,6 +662,51 @@ class MigrationManager:
         except Exception as e:
             conn.rollback()
             logger.error(f"Failed to clear extended data: {e}")
+            raise
+        finally:
+            conn.close()
+
+    def migrate_to_drafts_support(self) -> None:
+        """
+        Migrate to version 5: Add drafts support to lessons table
+        
+        Adds:
+        - is_draft column to lessons table for distinguishing drafts from published lessons
+        """
+        current_version = self.get_schema_version()
+
+        if current_version >= 5:
+            logger.info(
+                f"Database already at version {current_version}, skipping drafts migration"
+            )
+            return
+
+        logger.info("Starting version 5 database migration (drafts support)...")
+
+        conn = self.get_connection()
+        try:
+            # Add is_draft column to lessons table
+            try:
+                conn.execute("""
+                    ALTER TABLE lessons
+                    ADD COLUMN is_draft INTEGER DEFAULT 0
+                """)
+                logger.info("Added is_draft column to lessons table")
+            except sqlite3.OperationalError as e:
+                if "duplicate column name" not in str(e).lower():
+                    raise
+                logger.info("is_draft column already exists")
+
+            conn.commit()
+
+            # Update schema version
+            self.set_schema_version(5)
+
+            logger.info("Version 5 migration completed successfully")
+
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Migration v5 failed: {e}")
             raise
         finally:
             conn.close()

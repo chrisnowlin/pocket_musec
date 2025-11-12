@@ -4,6 +4,7 @@ import type {
   SessionResponsePayload,
   ChatResponsePayload,
 } from './types'
+import type { DraftItem } from '../types/unified'
 
 const DEFAULT_API_BASE = '/api'
 
@@ -140,6 +141,14 @@ const api = {
       credentials: 'include',
       body: JSON.stringify(payload),
     }),
+  // Draft operations
+  getDrafts: () => apiClient.get<DraftItem[]>('/drafts'),
+  getDraft: (draftId: string) => apiClient.get<DraftItem>(`/drafts/${draftId}`),
+  deleteDraft: (draftId: string) => apiClient.delete(`/drafts/${draftId}`),
+  createDraft: (payload: { session_id: string; title: string; content: string; metadata?: Record<string, unknown> }) =>
+    apiClient.post<DraftItem>('/drafts', payload),
+  updateDraft: (draftId: string, payload: { title?: string; content?: string; metadata?: Record<string, unknown> }) =>
+    apiClient.put<DraftItem>(`/drafts/${draftId}`, payload),
 }
 
 export default api

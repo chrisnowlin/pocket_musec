@@ -23,6 +23,7 @@ class LessonRepository:
         content: str,
         metadata: Optional[str] = None,
         processing_mode: str = "cloud",
+        is_draft: bool = False,
     ) -> Lesson:
         lesson_id = str(uuid.uuid4())
         now = datetime.utcnow().isoformat()
@@ -31,8 +32,8 @@ class LessonRepository:
         try:
             conn.execute(
                 """
-                INSERT INTO lessons (id, session_id, user_id, title, content, metadata, processing_mode, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO lessons (id, session_id, user_id, title, content, metadata, processing_mode, is_draft, created_at, updated_at)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     lesson_id,
@@ -42,6 +43,7 @@ class LessonRepository:
                     content,
                     metadata,
                     processing_mode,
+                    1 if is_draft else 0,
                     now,
                     now,
                 ),
@@ -62,15 +64,23 @@ class LessonRepository:
         finally:
             conn.close()
 
-    def list_lessons_for_user(self, user_id: str, limit: int = 20) -> List[Lesson]:
+    def list_lessons_for_user(self, user_id: str, limit: int = 20, is_draft: Optional[bool] = None) -> List[Lesson]:
         conn = self.db_manager.get_connection()
         try:
-            cursor = conn.execute(
-                """
-                SELECT * FROM lessons WHERE user_id = ? ORDER BY updated_at DESC LIMIT ?
-                """,
-                (user_id, limit),
-            )
+            if is_draft is not None:
+                cursor = conn.execute(
+                    """
+                    SELECT * FROM lessons WHERE user_id = ? AND is_draft = ? ORDER BY updated_at DESC LIMIT ?
+                    """,
+                    (user_id, 1 if is_draft else 0, limit),
+                )
+            else:
+                cursor = conn.execute(
+                    """
+                    SELECT * FROM lessons WHERE user_id = ? ORDER BY updated_at DESC LIMIT ?
+                    """,
+                    (user_id, limit),
+                )
             return [self._row_to_lesson(row) for row in cursor.fetchall()]
         finally:
             conn.close()
@@ -96,6 +106,7 @@ class LessonRepository:
         title: Optional[str] = None,
         content: Optional[str] = None,
         metadata: Optional[str] = None,
+        is_draft: Optional[bool] = None,
     ) -> Optional[Lesson]:
         assignments = []
         params: List[Optional[str]] = []
@@ -108,6 +119,9 @@ class LessonRepository:
         if metadata is not None:
             assignments.append("metadata = ?")
             params.append(metadata)
+        if is_draft is not None:
+            assignments.append("is_draft = ?")
+            params.append(1 if is_draft else 0)
 
         if not assignments:
             return self.get_lesson(lesson_id)
@@ -145,6 +159,7 @@ class LessonRepository:
             content=row["content"],
             metadata=row["metadata"],
             processing_mode=row["processing_mode"],
+            is_draft=bool(row["is_draft"]),
             created_at=datetime.fromisoformat(row["created_at"])
             if row["created_at"]
             else None,

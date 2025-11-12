@@ -88,6 +88,7 @@ class Lesson:
     content: str
     metadata: Optional[str] = None
     processing_mode: ProcessingMode = ProcessingMode.CLOUD
+    is_draft: bool = False
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
