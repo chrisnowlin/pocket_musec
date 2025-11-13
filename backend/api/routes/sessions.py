@@ -207,12 +207,33 @@ def _create_lesson_agent(session: Any, use_conversational: bool = True) -> Lesso
     store = Store()
     standard_repo = StandardsRepository()
 
+    # Import web search service and config
+    from ...services.web_search_service import WebSearchService
+    from ...config import get_config
+
+    # Get web search configuration
+    config = get_config()
+    web_search_config = config.web_search
+    
+    # Initialize web search service if API key is available
+    web_search_service = None
+    web_search_enabled = bool(web_search_config.api_key)
+    
+    if web_search_enabled:
+        try:
+            web_search_service = WebSearchService(web_search_config)
+        except Exception as e:
+            logger.warning(f"Failed to initialize WebSearchService: {e}")
+            web_search_enabled = False
+
     # Use conversational mode by default for more natural interaction
     agent = LessonAgent(
         flow=flow,
         store=store,
         standards_repo=standard_repo,
         conversational_mode=use_conversational,
+        web_search_enabled=web_search_enabled,
+        web_search_service=web_search_service,
     )
 
     # Try to restore agent state from session if available

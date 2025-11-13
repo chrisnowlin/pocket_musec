@@ -13,6 +13,8 @@ Welcome to the PocketMusec documentation hub. PocketMusec is an AI-powered lesso
 - **[CLI Commands Reference](CLI_COMMANDS.md)** - Complete command documentation
 - **[Developer Setup Guide](DEVELOPER_SETUP.md)** - Development environment and contribution guide
 - **[API Documentation](#api-documentation)** - Technical API reference
+- **[Web Search Integration](WEB_SEARCH_INTEGRATION.md)** - Comprehensive web search capabilities guide
+- **[Web Search Configuration](WEB_SEARCH_CONFIGURATION.md)** - Quick reference for search configuration
 - **[File Storage System](FILE_STORAGE_SYSTEM.md)** - Comprehensive file storage documentation
 - **[Developer File Storage Guide](DEVELOPER_FILE_STORAGE.md)** - Developer guide for file storage
 
@@ -63,6 +65,7 @@ That's it! You're ready to create standards-aligned music lessons.
 - ✅ **Four Music Strands** - Covers Creating, Performing, Responding, and Critical Response
 - ✅ **Web-Based** - Access from any browser with no installation required
 - ✅ **Enhanced Search** - Semantic search with advanced filtering and pagination
+- ✅ **Web Search Integration** - Real-time educational content from trusted sources
 - ✅ **Usage Analytics** - Track your lesson planning patterns and preferences
 
 ### Key Features
@@ -74,6 +77,7 @@ That's it! You're ready to create standards-aligned music lessons.
 - **Image Processing** - Upload and analyze sheet music with OCR and AI
 - **File Storage System** - Permanent file storage with duplicate detection and organized directory structure
 - **Embeddings Management** - Advanced semantic search with usage analytics
+- **Web-Enhanced Lessons** - Integration of current educational content and research
 - **Export Capabilities** - Download lessons and data in multiple formats
 
 ### Getting Started
@@ -253,6 +257,14 @@ FILE_CLEANUP_ENABLED=true
 LOG_LEVEL=INFO
 DEBUG_MODE=false
 
+# Optional: Web Search Configuration
+BRAVE_SEARCH_API_KEY=your_brave_search_api_key_here
+BRAVE_SEARCH_CACHE_TTL=3600
+BRAVE_SEARCH_MAX_CACHE_SIZE=100
+BRAVE_SEARCH_TIMEOUT=30
+BRAVE_SEARCH_EDUCATIONAL_ONLY=true
+BRAVE_SEARCH_MIN_RELEVANCE_SCORE=0.5
+
 # Optional: Security Configuration
 JWT_SECRET_KEY=your_jwt_secret_key_here
 ```
@@ -268,6 +280,7 @@ The unified configuration system organizes settings into logical sections:
 - **OllamaConfig**: Local AI provider settings
 - **ImageProcessingConfig**: File handling and storage limits
 - **FileStorageConfig**: File storage settings and security configurations
+- **WebSearchConfig**: Brave Search API and educational filtering settings
 - **LoggingConfig**: Log levels, rotation, and formatting
 - **SecurityConfig**: Authentication and demo mode settings
 - **PathConfig**: Directory paths and file locations
@@ -504,9 +517,11 @@ uv run python -m pdb main.py generate lesson
 ### Tips for Better Performance
 
 1. **Use embeddings search** - Faster than browsing standards manually
-2. **Batch lesson generation** - Plan multiple lessons at once
-3. **Local database** - Standards cached locally for fast access
-4. **Optimize batch size** - Adjust `--batch-size` for your system
+2. **Enable web search caching** - Configure longer TTL for frequently used searches
+3. **Batch lesson generation** - Plan multiple lessons at once
+4. **Local database** - Standards cached locally for fast access
+5. **Optimize batch size** - Adjust `--batch-size` for your system
+6. **Monitor web search performance** - Check cache hit rates and response times
 
 ### System Optimization
 ```bash

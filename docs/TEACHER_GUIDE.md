@@ -1,28 +1,30 @@
-# PocketMusec Teacher Guide
+# PocketMusec Teacher Guide - Web Interface
 
 ## Welcome to PocketMusec! 🎵
 
-PocketMusec is your AI-powered lesson planning assistant designed specifically for music education. Whether you're teaching kindergarten music or high school band, PocketMusec helps you create standards-aligned lesson plans quickly and easily.
+PocketMusec is your AI-powered lesson planning assistant designed specifically for music education. Whether you're teaching kindergarten music or high school band, PocketMusec helps you create standards-aligned lesson plans quickly and easily through an intuitive web interface.
 
 ## Quick Start
 
-### 1. Install the Program
-```bash
-# Download and install (your IT department will help with this)
-uv install
-```
+### 1. Access the Web Interface
+1. Open your web browser
+2. Navigate to `http://localhost:5173` (or your school's deployed URL)
+3. The web interface will load with the main dashboard
 
-### 2. Import NC Music Standards
-```bash
-pocketflow ingest standards "NC Music Standards.pdf"
-```
+### 2. Configure Your Settings
+1. Click **"Settings"** in the sidebar
+2. Choose your preferred processing mode:
+   - **Cloud Mode**: Fast processing with internet connection
+   - **Local Mode**: Private processing on your machine
+3. Download required models if using Local mode
 
 ### 3. Generate Your First Lesson
-```bash
-pocketflow generate lesson
-```
+1. Click **"New Lesson"** in the sidebar
+2. Follow the on-screen prompts to create your first lesson
+3. Review and customize the generated content
+4. Export your lesson in your preferred format
 
-That's it! You're ready to create amazing music lessons.
+That's it! You're ready to create amazing music lessons through the web interface.
 
 ---
 
@@ -166,71 +168,72 @@ PocketMusec automatically saves all your versions:
 
 ## Saving and Organizing Lessons
 
-### Automatic Saving Options
-- **Save during generation** - Use `--output filename.md`
-- **Save after editing** - Choose filename when prompted
-- **Multiple formats** - Lessons saved as Markdown files
+### Web-Based Organization
+The web interface provides powerful organization features:
 
-### File Naming Tips
+1. **Automatic Saving**: All lessons are saved automatically as you work
+2. **Descriptive Naming**: The system suggests clear, descriptive names
+3. **Tagging System**: Add tags for easy searching and filtering
+4. **Folder Organization**: Create folders by grade, strand, or topic
+5. **Search and Filter**: Find lessons quickly with advanced search
+
+### Lesson Organization Tips
 ```
-good_examples:
-- "K_Music_Rhythm_Basic.md"
-- "3rd_Grade_Composition_Holiday.md" 
-- "HS_Band_Ensemble_Techniques.md"
+Good naming examples:
+- "Kindergarten_Rhythm_Basic_Beat"
+- "3rd_Grade_Composition_Holiday_Themes"
+- "High_School_Band_Ensemble_Techniques"
 
-avoid:
-- "lesson.md" (too generic)
-- "file1.md" (not descriptive)
+Useful tags:
+- Grade level: "K", "3rd", "HS"
+- Strand: "Creating", "Performing", "Responding", "Critical"
+- Topic: "Rhythm", "Composition", "Ensemble", "Holiday"
+- Season: "Fall", "Winter", "Spring", "Summer"
 ```
 
-### Lesson File Structure
-Each saved lesson includes:
-```markdown
-# Music Education Lesson Plan
-
-## Lesson Information
-- Grade Level: 2nd Grade
-- Strand: PR - Performing Music  
-- Standard: PR.2.1
-- Standard Text: [Full standard text]
-
-## Learning Objectives
-1. [Objective 1]
-2. [Objective 2]
-
-## Additional Context  
-[Any context you provided]
-
-## Generated Lesson Plan
-[Complete lesson content]
-```
+### Lesson Structure in Web Interface
+Each lesson includes organized sections:
+- **Lesson Information**: Grade, strand, standard, objectives
+- **Context and Requirements**: Class details, resources, constraints
+- **Generated Content**: Complete lesson plan with activities
+- **Assessment Methods**: Evaluation strategies and rubrics
+- **Differentiation**: Strategies for diverse learners
+- **Materials and Resources**: Required items and preparation
 
 ---
 
 ## Advanced Features
 
-### Search Standards with Natural Language
-Find standards without knowing the exact codes:
-```bash
-pocketflow embeddings search "rhythm activities for kindergarten"
-pocketflow embeddings search "music composition" --grade "8th Grade"  
-pocketflow embeddings search "performance assessment" --strand "PR"
-```
+### Semantic Search with Natural Language
+Find standards without knowing exact codes through the web interface:
 
-### Batch Lesson Generation
-Create multiple lessons at once (for curriculum planning):
-```bash
-# Generate lessons for an entire unit
-for grade in "Kindergarten" "1st Grade" "2nd Grade"; do
-    pocketflow generate lesson --output "${grade}_rhythm_unit.md"
-done
-```
+1. Navigate to **"Embeddings"** → **"Search"** tab
+2. Type natural language queries like:
+   - "rhythm activities for kindergarten"
+   - "music composition for 8th grade"
+   - "performance assessment strategies"
+3. Use filters to narrow results:
+   - Grade level selection
+   - Strand filtering (Creating, Performing, Responding, Critical)
+   - Similarity threshold adjustment
+4. Browse results with similarity scores and pagination
 
-### Embeddings for Smart Search
-The system creates "embeddings" - mathematical representations of standards that enable:
-- **Semantic search** - Find standards by meaning, not just keywords
-- **Intelligent matching** - AI understands educational concepts
-- **Quick discovery** - Find relevant standards instantly
+### Batch Lesson Planning
+Create multiple related lessons efficiently:
+
+1. **Generate First Lesson**: Create your initial lesson
+2. **Use "Similar Lessons"**: The system suggests related standards
+3. **Quick Generation**: One-click generation for similar lessons
+4. **Unit Planning**: Organize multiple lessons into cohesive units
+5. **Export Entire Unit**: Download all lessons together
+
+### Enhanced Embeddings System
+The web interface provides advanced embeddings management:
+- **Visual Statistics**: Charts showing embedding counts and usage
+- **Generation Progress**: Real-time tracking for large operations
+- **Usage Analytics**: Track your search patterns and preferences
+- **Export Capabilities**: Download data in CSV or JSON formats
+- **Batch Operations**: Regenerate or clear embeddings efficiently
 
 ---
 
@@ -299,24 +302,36 @@ Generated lesson includes:
 ## Troubleshooting Common Issues
 
 ### "I don't see my grade level"
-- The system includes K-12 music education
+- The web interface includes all K-12 music education levels
 - If you teach combined grades, choose the primary grade level
-- Add context about multi-grade teaching
+- Use the context field to describe multi-grade teaching situations
+- Create separate lessons for different grade groups if needed
 
 ### "The lesson seems too generic"
-- Add more specific context about your students
-- Mention your available resources and constraints  
-- Edit the lesson to add your personal touch
+- Add specific context in the lesson creation form
+- Describe your students' needs and abilities
+- Mention your available resources and classroom constraints
+- Use the editing tools to add your personal teaching style
+- Include specific examples relevant to your students
 
 ### "I can't find the right standard"
-- Try searching by topic instead of browsing
-- Use natural language: "teaching music notation to beginners"
-- The AI will match the closest standards
+- Use the semantic search with natural language descriptions
+- Try different search terms: "rhythm" vs "beat" vs "pulse"
+- Filter by strand and grade level to narrow options
+- Contact your curriculum coordinator for standard clarification
 
-### "The editor won't open"
-- Check that you have a text editor installed
-- Try setting the EDITOR environment variable
-- Contact your IT department for assistance
+### "The web interface won't load"
+- Check your internet connection
+- Try refreshing the page
+- Clear your browser cache and cookies
+- Try a different browser (Chrome, Firefox, Safari, Edge)
+- Contact your IT department for network issues
+
+### "My lesson didn't save properly"
+- Check for auto-save notifications
+- Look for the lesson in your session history
+- Verify you have sufficient storage quota
+- Try manually saving using the export button
 
 ---
 
@@ -344,34 +359,34 @@ A: Yes. The generated lessons include all required elements for formal lesson pl
 
 ## Sample Lesson Workflow
 
-Here's how a typical teacher uses PocketMusec:
+Here's how a typical teacher uses PocketMusec's web interface:
 
 ### Monday: Plan the Week
-```bash
-pocketflow generate lesson
-# Follow prompts for 3rd Grade rhythm lesson
-# Edit to add school-specific requirements
-# Save as "3rd_Grade_Rhythm_Week1.md"
-```
+1. Open the web interface and click **"New Lesson"**
+2. Select **3rd Grade** and **Performing Music** strand
+3. Search for **"rhythm activities"** and select relevant standards
+4. Add context about your class size and available instruments
+5. Generate and edit the lesson to add school-specific requirements
+6. Save with the tag **"Week1"** and **"Rhythm"**
 
 ### Tuesday: Generate Companion Lesson
-```bash
-pocketflow generate lesson  
-# Choose same grade, different strand
-# Save as "3rd_Grade_Music_Appreciation_Week1.md"
-```
+1. Click **"New Lesson"** again
+2. Choose the same **3rd Grade** but select **Responding to Music** strand
+3. Use the **"Similar Lessons"** feature to find related content
+4. Generate and save with the tag **"Week1"** and **"Appreciation"**
 
 ### Wednesday: Differentiate for Special Needs
-```bash
-pocketflow generate lesson
-# Same standard, add context: "Include modifications for students with hearing impairments"
-# Edit and save as "3rd_Grade_Rhythm_Adapted.md"
-```
+1. Open Monday's rhythm lesson
+2. Click **"Create Variation"**
+3. Add context: "Include modifications for students with hearing impairments"
+4. Generate adapted version
+5. Save with tags **"Week1"**, **"Rhythm"**, and **"Differentiated"**
 
 ### Friday: Review and Refine
-- Open all three lessons in your editor
-- Make final adjustments based on student response
-- Save final versions for your teaching portfolio
+1. Navigate to **"Sessions"** to see all week's lessons
+2. Use the **compare view** to see progression
+3. Make final adjustments based on student response
+4. Export the complete unit as a PDF for your teaching portfolio
 
 ---
 

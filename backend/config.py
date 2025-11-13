@@ -122,6 +122,18 @@ class LoggingConfig:
 
 
 @dataclass
+class WebSearchConfig:
+    """Web search service configuration for Brave Search MCP integration"""
+    api_key: Optional[str] = field(default_factory=lambda: os.getenv("BRAVE_SEARCH_API_KEY"))
+    cache_ttl: int = field(default_factory=lambda: int(os.getenv("WEB_SEARCH_CACHE_TTL", "3600")))  # 1 hour
+    max_cache_size: int = field(default_factory=lambda: int(os.getenv("WEB_SEARCH_MAX_CACHE_SIZE", "100")))
+    timeout: int = field(default_factory=lambda: int(os.getenv("WEB_SEARCH_TIMEOUT", "30")))  # 30 seconds
+    educational_only: bool = field(default_factory=lambda: os.getenv("WEB_SEARCH_EDUCATIONAL_ONLY", "false").lower() == "true")
+    min_relevance_score: float = field(default_factory=lambda: float(os.getenv("WEB_SEARCH_MIN_RELEVANCE_SCORE", "0.3")))
+    max_results: int = field(default_factory=lambda: int(os.getenv("WEB_SEARCH_MAX_RESULTS", "10")))
+
+
+@dataclass
 class FileStorageConfig:
     """File storage configuration"""
     storage_root: str = field(default_factory=lambda: os.getenv("FILE_STORAGE_ROOT", "data/uploads"))
@@ -212,6 +224,7 @@ class Config:
         self.security = SecurityConfig()
         self.paths = PathConfig()
         self.file_storage = FileStorageConfig()
+        self.web_search = WebSearchConfig()
         
         # Validate configuration
         self.validate()
@@ -353,3 +366,10 @@ ALLOWED_EXTENSIONS = config.file_storage.allowed_extensions
 DUPLICATE_DETECTION = config.file_storage.duplicate_detection
 FILE_RETENTION_DAYS = config.file_storage.retention_days
 FILE_CLEANUP_ENABLED = config.file_storage.cleanup_enabled
+BRAVE_SEARCH_API_KEY = config.web_search.api_key
+WEB_SEARCH_CACHE_TTL = config.web_search.cache_ttl
+WEB_SEARCH_MAX_CACHE_SIZE = config.web_search.max_cache_size
+WEB_SEARCH_TIMEOUT = config.web_search.timeout
+WEB_SEARCH_EDUCATIONAL_ONLY = config.web_search.educational_only
+WEB_SEARCH_MIN_RELEVANCE_SCORE = config.web_search.min_relevance_score
+WEB_SEARCH_MAX_RESULTS = config.web_search.max_results

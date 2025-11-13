@@ -1043,3 +1043,97 @@ The embeddings system includes several enhancements for improved usability and p
 - **Performance Optimization:** Server-side caching and efficient query patterns
 - **Progress Tracking:** Real-time progress monitoring for long-running operations
 - **Error Resilience:** Graceful error handling with user-friendly messages
+
+---
+
+## Web Search Configuration
+
+Web search functionality is integrated into the lesson generation system and configured through environment variables. There are no direct web search endpoints, as the feature is automatically utilized during lesson generation.
+
+### Configuration Options
+
+Web search behavior is controlled through the following environment variables:
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `BRAVE_SEARCH_API_KEY` | string | Required | Brave Search API authentication key |
+| `BRAVE_SEARCH_CACHE_TTL` | integer | 3600 | Cache time-to-live in seconds |
+| `BRAVE_SEARCH_MAX_CACHE_SIZE` | integer | 100 | Maximum number of cached searches |
+| `BRAVE_SEARCH_TIMEOUT` | integer | 30 | API request timeout in seconds |
+| `BRAVE_SEARCH_EDUCATIONAL_ONLY` | boolean | true | Filter to educational domains only |
+| `BRAVE_SEARCH_MIN_RELEVANCE_SCORE` | float | 0.5 | Minimum relevance score threshold |
+
+### Web Search Integration in Lesson Generation
+
+Web search functionality is automatically integrated into the lesson generation process through existing session endpoints. When web search is enabled and configured, lesson generation responses include enhanced web search context.
+
+#### Enhanced Lesson Response Format
+
+When web search is enabled and successful, the lesson response includes:
+
+```json
+{
+  "lesson_content": "Generated lesson with web-enhanced content...",
+  "web_search_summary": {
+    "query": "grade 3 rhythm music education",
+    "results_found": 5,
+    "educational_sources": 3,
+    "relevance_scores": [0.87, 0.82, 0.78, 0.74, 0.69],
+    "search_time": 0.8
+  },
+  "generation_time": 4.2,
+  "cache_hit": false
+}
+```
+
+### Web Search Error Handling
+
+The API gracefully handles web search failures:
+
+#### Search Disabled Response
+```json
+{
+  "lesson_content": "Generated lesson using RAG only...",
+  "web_search_summary": {
+    "status": "disabled",
+    "reason": "API key not configured"
+  },
+  "fallback_mode": "rag_only"
+}
+```
+
+#### Search Failed Response
+```json
+{
+  "lesson_content": "Generated lesson with RAG fallback...",
+  "web_search_summary": {
+    "status": "failed",
+    "reason": "API timeout",
+    "fallback_used": true
+  },
+  "generation_time": 3.4,
+  "web_search_time": 30.0
+}
+```
+
+---
+
+## Web Search Best Practices
+
+### API Usage Guidelines
+
+1. **Configuration**: Set up `BRAVE_SEARCH_API_KEY` in environment variables
+2. **Cache Optimization**: Configure appropriate TTL for your usage patterns
+3. **Error Handling**: Implement fallback handling for web search failures
+4. **Performance Monitoring**: Monitor search times and success rates
+
+### Performance Optimization
+
+1. **Cache Utilization**: Higher TTL reduces API calls but may sacrifice freshness
+2. **Relevance Threshold**: Increase `BRAVE_SEARCH_MIN_RELEVANCE_SCORE` for higher quality results
+3. **Educational Filtering**: Keep `BRAVE_SEARCH_EDUCATIONAL_ONLY=true` for educational content
+4. **Timeout Configuration**: Adjust timeout based on network conditions
+
+For detailed web search configuration and troubleshooting, see the [Web Search Integration Guide](WEB_SEARCH_INTEGRATION.md) and [Web Search Configuration](WEB_SEARCH_CONFIGURATION.md) documentation.
+
+---

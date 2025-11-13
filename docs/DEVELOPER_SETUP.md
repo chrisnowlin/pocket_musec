@@ -2,7 +2,7 @@
 
 ## Overview
 
-PocketMusec is a Python-based CLI application for AI-powered music lesson planning. This guide covers everything developers need to set up, develop, test, and contribute to the project.
+PocketMusec is a web-based AI-powered music lesson planning application. This guide covers everything developers need to set up, develop, test, and contribute to the project. The application now features a modern web interface with comprehensive embeddings management and enhanced user experience.
 
 ## System Requirements
 
@@ -53,8 +53,18 @@ cp .env.example .env
 
 ### 5. Verify Installation
 ```bash
-uv run python main.py --help
+# Start the development servers
+uv run make dev
+
+# Or start manually:
+# Terminal 1: Backend
+uv run python run_api.py
+
+# Terminal 2: Frontend
+cd frontend && uv run npm run dev
 ```
+
+Then navigate to `http://localhost:5173` to verify the web interface is working.
 
 ---
 
@@ -115,7 +125,7 @@ API_RELOAD=true
 CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 # Optional: Database Configuration
-DATABASE_PATH=./data/standards/standards.db
+DATABASE_PATH=./data/pocket_musec.db
 
 # Optional: LLM Configuration
 DEFAULT_MODEL=Qwen/Qwen3-VL-235B-A22B-Instruct
@@ -133,6 +143,14 @@ IMAGE_STORAGE_PATH=./data/images
 # Optional: Logging Configuration
 LOG_LEVEL=INFO
 DEBUG_MODE=false
+
+# Optional: Web Search Configuration
+BRAVE_SEARCH_API_KEY=your_brave_search_api_key_here
+BRAVE_SEARCH_CACHE_TTL=3600
+BRAVE_SEARCH_MAX_CACHE_SIZE=100
+BRAVE_SEARCH_TIMEOUT=30
+BRAVE_SEARCH_EDUCATIONAL_ONLY=true
+BRAVE_SEARCH_MIN_RELEVANCE_SCORE=0.5
 
 # Optional: Security Configuration
 JWT_SECRET_KEY=your_jwt_secret_key_here
@@ -171,6 +189,12 @@ The unified configuration system organizes settings into logical sections:
 - Allowed formats and compression
 - Thumbnail generation settings
 
+#### WebSearchConfig
+- Brave Search API configuration and authentication
+- Educational content filtering settings
+- Cache management and performance optimization
+- Relevance scoring and content quality controls
+
 #### LoggingConfig
 - Log levels and rotation
 - File and console formatting
@@ -193,9 +217,14 @@ The unified configuration system organizes settings into logical sections:
    - Create account and generate API key
    - Add key to `.env` file
 
-2. **Testing API Keys:**
-   - Use test keys for development
-   - Never commit real API keys to repository
+2. **Brave Search API:**
+    - Visit https://brave.com/search/api/
+    - Create account and generate API key
+    - Add key to `.env` file as `BRAVE_SEARCH_API_KEY`
+
+3. **Testing API Keys:**
+    - Use test keys for development
+    - Never commit real API keys to repository
 
 ### Database Setup
 
@@ -211,10 +240,10 @@ uv run python main.py ingest standards path/to/standards.pdf
 #### Custom Database Location
 ```bash
 # Set custom path in .env
-DATABASE_PATH=/custom/path/standards.db
+DATABASE_PATH=/custom/path/pocket_musec.db
 
 # Or use command line option
-pocketflow ingest standards standards.pdf --db-path /custom/path/standards.db
+pocketflow ingest standards standards.pdf --db-path /custom/path/pocket_musec.db
 ```
 
 ---
@@ -225,14 +254,25 @@ pocketflow ingest standards standards.pdf --db-path /custom/path/standards.db
 ```
 pocket_musec/
 ├── backend/                 # Core application logic
-│   ├── ingestion/          # PDF parsing and standards ingestion
-│   ├── llm/               # AI/LLM integration
-│   ├── pocketflow/        # Conversation flow framework
-│   ├── repositories/      # Database layer
-│   └── utils/             # Utility functions
-├── cli/                   # Command-line interface
-│   ├── commands/         # CLI command implementations
-│   └── main.py          # CLI entry point
+│   ├── api/               # FastAPI routes and middleware
+│   │   └── routes/        # API endpoint implementations
+│   ├── auth/              # Authentication (disabled in demo mode)
+│   ├── citations/         # Citation tracking and formatting
+│   ├── config.py          # Unified configuration system
+│   ├── image_processing/  # OCR and vision AI
+│   ├── pocketflow/       # Conversation flow framework
+│   ├── repositories/     # Database layer
+│   └── utils/            # Utility functions
+├── frontend/              # React web application
+│   ├── src/
+│   │   ├── components/   # React components
+│   │   │   ├── unified/  # Main interface components
+│   │   │   └── VirtualScroller.tsx # Virtual scrolling
+│   │   ├── pages/        # Page components
+│   │   ├── services/     # API client services
+│   │   ├── hooks/        # Custom React hooks
+│   │   └── types/        # TypeScript interfaces
+│   └── package.json
 ├── tests/                # Test suite
 │   ├── test_integration/
 │   ├── test_regression/
@@ -246,12 +286,18 @@ pocket_musec/
 
 #### Development Mode
 ```bash
-# Run CLI with uv
-uv run python main.py --help
+# Start both backend and frontend with Make
+uv run make dev
 
-# Or activate environment first
-source .venv/bin/activate
-python main.py --help
+# Or start servers manually:
+# Terminal 1: Backend API server
+uv run python run_api.py
+
+# Terminal 2: Frontend development server
+cd frontend
+uv run npm run dev
+
+# Access the application at http://localhost:5173
 ```
 
 #### Testing Commands
@@ -600,10 +646,10 @@ class MigrationManager:
 
 ```bash
 # Run all migrations
-python -c "from backend.repositories.migrations import MigrationManager; MigrationManager('data/standards/standards.db').migrate()"
+python -c "from backend.repositories.migrations import MigrationManager; MigrationManager('data/pocket_musec.db').migrate()"
 
 # Check migration status
-python -c "from backend.repositories.migrations import MigrationManager; print(MigrationManager('data/standards/standards.db').get_migration_status())"
+python -c "from backend.repositories.migrations import MigrationManager; print(MigrationManager('data/pocket_musec.db').get_migration_status())"
 ```
 
 #### Migration History
@@ -1010,7 +1056,7 @@ ENTRYPOINT ["python", "main.py"]
 # .env.development
 DEBUG=True
 LOG_LEVEL=DEBUG
-DATABASE_PATH=./data/dev_standards.db
+DATABASE_PATH=./data/dev_pocket_musec.db
 CHUTES_BASE_URL=https://api-staging.chutes.ai
 ```
 
@@ -1019,7 +1065,7 @@ CHUTES_BASE_URL=https://api-staging.chutes.ai
 # .env.production
 DEBUG=False
 LOG_LEVEL=INFO
-DATABASE_PATH=/var/lib/pocketmusec/standards.db
+DATABASE_PATH=/var/lib/pocketmusec/pocket_musec.db
 CHUTES_BASE_URL=https://api.chutes.ai
 ```
 
@@ -1090,7 +1136,9 @@ uv install
 cp .env.example .env
 
 # Development
-uv run python main.py --help
+uv run make dev              # Start both backend and frontend
+uv run make dev-backend       # Start backend only
+uv run make dev-frontend      # Start frontend only
 uv run pytest
 uv run ruff check --fix
 
@@ -1099,23 +1147,34 @@ uv run pytest tests/test_integration/
 uv run pytest --cov=backend
 
 # Building
-uv run pyinstaller --onefile main.py
+uv run make build             # Build both backend and frontend
+uv run make build-frontend    # Build frontend for production
 ```
 
 ### Common File Locations
-- **Main entry point:** `cli/main.py`
-- **CLI commands:** `cli/commands/`
+- **Backend entry point:** `run_api.py`
+- **Frontend entry point:** `frontend/src/main.tsx`
+- **API routes:** `backend/api/routes/`
+- **Web components:** `frontend/src/components/`
 - **Core logic:** `backend/`
 - **Tests:** `tests/`
 - **Documentation:** `docs/`
-- **Configuration:** `.env`
+- **Configuration:** `.env` and `backend/config.py`
 
 ### Environment Variables
 - `CHUTES_API_KEY`: Required for AI functionality
 - `DATABASE_PATH`: SQLite database location
 - `LOG_LEVEL`: Logging verbosity (DEBUG, INFO, WARNING, ERROR)
 - `DEBUG`: Enable debug mode (True/False)
+- `API_HOST`: Backend server host (default: 0.0.0.0)
+- `API_PORT`: Backend server port (default: 8000)
 
 ---
 
-This setup guide provides everything developers need to start working with PocketMusec. For specific implementation details, refer to the inline code documentation and existing test cases.
+This setup guide provides everything developers need to start working with PocketMusec's web-based architecture. For specific implementation details, refer to:
+
+- **Web Interface Guide:** `docs/USER_GUIDE.md`
+- **API Documentation:** `docs/API.md`
+- **CLI Migration Details:** `docs/CLI_REMOVAL_COMPLETE.md`
+- **Embeddings Enhancements:** `docs/EMBEDDINGS_ENHANCEMENTS_COMPLETE.md`
+- **Inline code documentation and existing test cases**

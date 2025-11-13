@@ -1,6 +1,6 @@
-# PocketMusec Setup Guide - Milestone 3
+# PocketMusec Setup Guide - Web-Only Architecture
 
-Complete installation and configuration guide for PocketMusec with all Milestone 3 features.
+Complete installation and configuration guide for PocketMusec with web-only architecture and enhanced features.
 
 ## Quick Setup with Make
 
@@ -18,6 +18,8 @@ make help
 ```
 
 For a full list of Make commands, see the [Makefile](../Makefile) or run `make help`.
+
+**Note:** PocketMusec is now a web-only application. All functionality is accessed through the web interface at `http://localhost:5173` after starting the development servers.
 
 ## Prerequisites
 
@@ -268,31 +270,57 @@ serve -s dist -l 3000
 
 ## Verification Steps
 
-### 1. Test Authentication
+### 1. Access the Web Interface
 
-Navigate to `http://localhost:5173` and log in with:
-- Email: `admin@example.com`
-- Password: `Admin123` (or whatever you set)
+Navigate to `http://localhost:5173` in your browser. The web interface provides access to all PocketMusec functionality without requiring CLI commands.
 
-You should see the dashboard.
+### 2. Test Core Features
 
-### 2. Test Image Upload
-
-1. Click "Upload Images" on the dashboard
+#### Image Upload and Processing
+1. Click "Upload Images" in the sidebar
 2. Drag and drop a sheet music image or diagram
 3. Wait for OCR and vision AI processing
-4. Verify extracted text and analysis appear
+4. Verify extracted text and analysis appear in the results
+
+#### Lesson Generation
+1. Click "New Lesson" to start creating a lesson
+2. Add context with uploaded images
+3. Receive AI-generated, standards-aligned content
+4. Export the lesson as Markdown or PDF
+
+#### Embeddings Management
+1. Navigate to "Embeddings" in the sidebar
+2. Generate embeddings for standards and objectives
+3. Perform semantic searches with advanced filtering
+4. View usage statistics and export data
 
 ### 3. Test Processing Mode Toggle
 
-1. Go to Settings
-2. Switch between Cloud and Local modes
+1. Go to Settings in the sidebar
+2. Switch between Cloud and Local processing modes
 3. For Local mode:
    - Ensure Ollama is running: `ollama list`
    - Verify model status shows "Installed"
    - If not installed, click "Download Local Model"
 
-### 4. Demo Mode
+### 4. Test Enhanced Features
+
+#### Virtual Scrolling
+1. Perform a search that returns many results (>20 items)
+2. Enable virtual scrolling using the toggle button
+3. Verify smooth scrolling performance
+
+#### Export Functionality
+1. Go to Embeddings → Statistics tab
+2. Click "Export as CSV" or "Export as JSON"
+3. Verify the file downloads correctly
+
+#### Batch Operations
+1. Go to Embeddings → Batch tab
+2. Select a batch operation (e.g., "Regenerate All")
+3. Monitor progress tracking
+
+### 5. Demo Mode
 
 PocketMusec runs in single-user demo mode with no authentication required. All features are available immediately without login or user management.
 
@@ -468,10 +496,11 @@ See the [Makefile](../Makefile) for the complete list of commands.
 
 ## Next Steps
 
-1. **Read the API documentation**: See `docs/API.md` for endpoint details
-2. **Explore features**: Try image upload, citations, mode switching
-3. **Configure preferences**: Adjust storage quotas, models, etc.
-4. **Integrate with lesson generation**: Use images and citations in lessons
+1. **Read the User Guide**: See `docs/USER_GUIDE.md` for comprehensive web interface instructions
+2. **Read the API documentation**: See `docs/API.md` for endpoint details
+3. **Explore features**: Try image upload, embeddings management, lesson generation
+4. **Configure preferences**: Adjust storage quotas, processing modes, etc.
+5. **Review Teacher Guide**: See `docs/TEACHER_GUIDE.md` for educational usage tips
 
 ## Support
 
@@ -479,4 +508,5 @@ For issues or questions:
 - Check troubleshooting section above
 - Review error logs in `./logs/`
 - See `README.md` for feature documentation
-- Check `openspec/changes/implement-milestone3-advanced-features/` for implementation details
+- Check `docs/USER_GUIDE.md` for web interface guidance
+- Check `docs/CLI_REMOVAL_COMPLETE.md` for migration details from CLI
