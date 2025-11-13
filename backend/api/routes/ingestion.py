@@ -21,7 +21,7 @@ from ..dependencies import get_current_user
 from ...auth import User
 from ...config import config
 
-router = APIRouter(prefix="/ingestion", tags=["ingestion"])
+router = APIRouter(prefix="/api/ingestion", tags=["ingestion"])
 
 # Initialize components
 document_classifier = DocumentClassifier()

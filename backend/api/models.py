@@ -121,7 +121,7 @@ class LessonSummary(BaseModel):
     summary: str
     content: str
     metadata: Dict[str, Any]
-    citations: List[str] = []
+    citations: List[str] = Field(default_factory=list)
 
 
 class ChatMessageRequest(BaseModel):
@@ -159,7 +159,7 @@ class DraftResponse(BaseModel):
     id: str
     title: str
     content: str
-    metadata: Dict[str, Any] = {}
+    metadata: Dict[str, Any] = Field(default_factory=dict)
     grade: Optional[str] = None
     strand: Optional[str] = None
     standard: Optional[str] = None

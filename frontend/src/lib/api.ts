@@ -115,19 +115,8 @@ const api = {
   deleteAllSessions: () => apiClient.delete<{ message: string; count: number }>('/sessions'),
   generateLesson: (request: unknown) => apiClient.post('/lessons/generate', request),
   getLesson: (sessionId: string) => apiClient.get(`/lessons/${sessionId}`),
-  getLessonBySession: async (sessionId: string): Promise<ApiResult<DraftItem[]>> => {
-    // Get all drafts and filter by session_id on client side
-    const result = await apiClient.get<DraftItem[]>('/drafts');
-    if (result.ok) {
-      const filtered = result.data.filter(draft => {
-        // Check metadata for session_id
-        const metadata = draft.metadata as any;
-        return metadata?.session_id === sessionId;
-      });
-      return { ...result, data: filtered };
-    }
-    return result;
-  },
+  getLessonBySession: (sessionId: string) =>
+    apiClient.get<DraftItem[]>('/drafts', { params: { session_id: sessionId } }),
   getImages: () => apiClient.get('/images'),
   getImageStorageInfo: () => apiClient.get('/images/storage/info'),
   uploadImages: (formData: FormData, onUploadProgress?: (progress: number) => void) =>

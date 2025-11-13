@@ -3,6 +3,15 @@ import api from '../lib/api';
 import type { ChatMessage, ChatSender } from '../types/unified';
 import type { SessionResponsePayload, ChatResponsePayload } from '../lib/types';
 
+const WELCOME_MESSAGE_TEXT = "👋 Welcome! I'm your PocketMusec AI assistant. I'll help you craft engaging, standards-aligned music lessons.";
+
+const buildWelcomeMessage = (): ChatMessage => ({
+  id: 'welcome',
+  sender: 'ai',
+  text: WELCOME_MESSAGE_TEXT,
+  timestamp: new Date().toISOString(),
+});
+
 interface UseChatProps {
   session: SessionResponsePayload | null;
   lessonDuration: string;
@@ -16,12 +25,7 @@ interface MessageStatus {
 
 export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'welcome',
-      sender: 'ai',
-      text: "👋 Welcome! I'm your PocketMusec AI assistant. I'll help you craft engaging, standards-aligned music lessons.",
-      timestamp: new Date().toISOString(),
-    },
+    buildWelcomeMessage(),
   ]);
   const [isTyping, setIsTyping] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
@@ -211,15 +215,42 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
   );
 
   const resetMessages = useCallback(() => {
-    setMessages([
-      {
-        id: 'welcome',
-        sender: 'ai',
-        text: "👋 Welcome! I'm your PocketMusec AI assistant. I'll help you craft engaging, standards-aligned music lessons.",
-        timestamp: new Date().toISOString(),
-      },
-    ]);
+    setMessages([buildWelcomeMessage()]);
   }, []);
+
+  const loadDraftContent = useCallback((draftTitle: string, draftContent: string) => {
+    const introText = draftTitle
+      ? `📄 Loaded draft "${draftTitle}". Continue refining it here or ask for updates.`
+      : '📄 Loaded draft content. Continue refining it here or ask for updates.';
+
+    const introId = generateMessageId('ai', introText);
+    const draftMessageId = generateMessageId('ai', draftContent);
+    const now = new Date().toISOString();
+
+    const draftMessages: ChatMessage[] = [
+      buildWelcomeMessage(),
+      {
+        id: introId,
+        sender: 'ai',
+        text: introText,
+        timestamp: now,
+      },
+      {
+        id: draftMessageId,
+        sender: 'ai',
+        text: draftContent,
+        timestamp: now,
+      },
+    ];
+
+    setMessages(draftMessages);
+    setMessageStatuses({
+      [introId]: { isPersisted: false, hasError: false },
+      [draftMessageId]: { isPersisted: false, hasError: false },
+    });
+    setChatError(null);
+    lastLoadedSessionRef.current = null;
+  }, [generateMessageId]);
 
   const loadConversationMessages = useCallback(async (sessionData: SessionResponsePayload) => {
     // Skip if same session was already loaded
@@ -238,14 +269,7 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
       const conversationHistory = JSON.parse(sessionData.conversation_history);
       
       // Start with welcome message
-      const restoredMessages: ChatMessage[] = [
-        {
-          id: 'welcome',
-          sender: 'ai',
-          text: "👋 Welcome! I'm your PocketMusec AI assistant. I'll help you craft engaging, standards-aligned music lessons.",
-          timestamp: new Date().toISOString(),
-        },
-      ];
+      const restoredMessages: ChatMessage[] = [buildWelcomeMessage()];
 
       // Build message status map for persisted messages
       const newMessageStatuses: Record<string, MessageStatus> = {};
@@ -320,5 +344,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     updateMessageText,
     updateMessageWithMetadata,
     generateMessageId,
+    loadDraftContent,
   };
 }

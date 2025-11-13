@@ -3,7 +3,7 @@
 import asyncio
 import json
 import logging
-from typing import List, Dict, Any, Optional, Union
+from typing import List, Dict, Any, Optional, Union, Tuple
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -14,6 +14,7 @@ from ...repositories.standards_repository import StandardsRepository
 from ...pocketflow.lesson_agent import LessonAgent
 from ...pocketflow.flow import Flow
 from ...pocketflow.store import Store
+from ...utils.standards import format_grade_display
 from ..models import (
     SessionCreateRequest,
     SessionUpdateRequest,
@@ -33,16 +34,12 @@ router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
 def _standard_to_response(standard, repo: StandardsRepository) -> StandardResponse:
     objectives = repo.get_objectives_for_standard(standard.standard_id)
-    learning_objectives = [obj.objective_text for obj in objectives][:3]
+    # Include objective codes in the format "code - text" to match standards display
+    learning_objectives = [f"{obj.objective_id} - {obj.objective_text}" for obj in objectives][:3]
     # Convert database grade format to frontend display format
     # Database stores: "0", "1", "2", "3", etc.
     # Frontend expects: "Kindergarten", "Grade 1", "Grade 2", "Grade 3", etc.
-    grade_display = standard.grade_level
-    if grade_display == "0" or grade_display == "K":
-        grade_display = "Kindergarten"
-    elif grade_display and grade_display.isdigit():
-        # Convert numeric grades to "Grade X" format
-        grade_display = f"Grade {grade_display}"
+    grade_display = format_grade_display(standard.grade_level)
     return StandardResponse(
         id=standard.standard_id,
         code=standard.standard_id,
@@ -288,6 +285,34 @@ def _save_agent_state(
     )
 
 
+def _persist_user_message(
+    session_id: str,
+    agent: LessonAgent,
+    session_repo: SessionRepository,
+    message_text: str,
+) -> None:
+    """Persist the user message and current agent state"""
+    conversation_history = agent.get_conversation_history()
+    conversation_history.append({"role": "user", "content": message_text})
+
+    agent_state_json = agent.serialize_state()
+    conversation_history_json = json.dumps(conversation_history)
+    current_state = agent.get_state()
+
+    saved_session = session_repo.save_agent_state(
+        session_id=session_id,
+        agent_state=agent_state_json,
+        conversation_history=conversation_history_json,
+        current_state=current_state,
+    )
+
+    if not saved_session:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save conversation history",
+        )
+
+
 def _compose_lesson_from_agent(
     agent: LessonAgent, current_user: User
 ) -> Dict[str, Any]:
@@ -353,6 +378,41 @@ def _compose_lesson_from_agent(
     }
 
 
+def _generate_draft_payload(
+    agent: LessonAgent,
+    session: Any,
+    current_user: User,
+    response_text: str,
+    lesson_repo: LessonRepository,
+    session_repo: SessionRepository,
+    standard_repo: StandardsRepository,
+) -> Tuple[LessonSummary, SessionResponse]:
+    """Create or update the draft lesson and session response"""
+    plan = _compose_lesson_from_agent(agent, current_user)
+
+    lesson = lesson_repo.create_lesson(
+        session_id=session.id,
+        user_id=current_user.id,
+        title=plan["title"],
+        content=plan["content"],
+        metadata=json.dumps(plan["metadata"]),
+        processing_mode=current_user.processing_mode.value,
+        is_draft=True,
+    )
+
+    session_repo.touch_session(session.id)
+    updated_session = session_repo.get_session(session.id)
+
+    lesson_summary = _lesson_to_summary(
+        lesson=lesson,
+        summary_text=response_text,
+        metadata=plan.get("metadata"),
+        citations=plan.get("citations", []),
+    )
+
+    return lesson_summary, _session_to_response(updated_session, standard_repo)
+
+
 @router.post("/{session_id}/messages", response_model=ChatResponse)
 async def send_message(
     session_id: str,
@@ -369,64 +429,26 @@ async def send_message(
     lesson_repo = LessonRepository()
 
     try:
-        # Add user message to conversation history BEFORE generating response
-        conversation_history = agent.get_conversation_history()
-        conversation_history.append({"role": "user", "content": request.message})
-        
-        # Save conversation history with user message first
-        agent_state_json = agent.serialize_state()
-        conversation_history_json = json.dumps(conversation_history)
-        current_state = agent.get_state()
-
-        # Transactional save: ensure conversation history is saved before proceeding
-        saved_session = session_repo.save_agent_state(
-            session_id=session_id,
-            agent_state=agent_state_json,
-            conversation_history=conversation_history_json,
-            current_state=current_state,
-        )
-        
-        if not saved_session:
-            raise HTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to save conversation history"
-            )
-        
+        _persist_user_message(session_id, agent, session_repo, request.message)
         logger.info(f"Conversation history saved for session {session_id}")
 
-        # Process message through the agent
         response_text = agent.chat(request.message)
-
-        # Save final agent state with AI response
         _save_agent_state(session_id, agent, session_repo)
 
-        # Compose lesson from agent's current state
-        plan = _compose_lesson_from_agent(agent, current_user)
-
-        lesson = lesson_repo.create_lesson(
-            session_id=session.id,
-            user_id=current_user.id,
-            title=plan["title"],
-            content=plan["content"],
-            metadata=json.dumps(plan["metadata"]),
-            processing_mode=current_user.processing_mode.value,
-            is_draft=True,  # Save all generated lessons as drafts by default
-        )
-
-        session_repo.touch_session(session_id)
-        updated_session = session_repo.get_session(session_id)
-
-        lesson_summary = _lesson_to_summary(
-            lesson=lesson,
-            summary_text=response_text,
-            metadata=plan.get("metadata"),
-            citations=plan.get("citations", []),
+        lesson_summary, session_payload = _generate_draft_payload(
+            agent=agent,
+            session=session,
+            current_user=current_user,
+            response_text=response_text,
+            lesson_repo=lesson_repo,
+            session_repo=session_repo,
+            standard_repo=standard_repo,
         )
 
         return ChatResponse(
             response=response_text,
             lesson=lesson_summary,
-            session=_session_to_response(updated_session, standard_repo),
+            session=session_payload,
         )
 
     except Exception as e:
@@ -469,29 +491,7 @@ async def stream_message(
     lesson_repo = LessonRepository()
 
     try:
-        # Add user message to conversation history BEFORE generating response
-        conversation_history = agent.get_conversation_history()
-        conversation_history.append({"role": "user", "content": request.message})
-        
-        # Save conversation history with user message first
-        agent_state_json = agent.serialize_state()
-        conversation_history_json = json.dumps(conversation_history)
-        current_state = agent.get_state()
-
-        # Transactional save: ensure conversation history is saved before proceeding
-        saved_session = session_repo.save_agent_state(
-            session_id=session_id,
-            agent_state=agent_state_json,
-            conversation_history=conversation_history_json,
-            current_state=current_state,
-        )
-        
-        if not saved_session:
-            raise HTTPException(
-                status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Failed to save conversation history"
-            )
-        
+        _persist_user_message(session_id, agent, session_repo, request.message)
         logger.info(f"Conversation history saved for session {session_id}")
 
         # Now process message through the agent
@@ -517,26 +517,14 @@ async def stream_message(
             logger.error(f"Failed to save final conversation state for session {session_id}")
             # Don't fail the request, but log the error
 
-        # Compose lesson from agent's current state
-        plan = _compose_lesson_from_agent(agent, current_user)
-
-        lesson = lesson_repo.create_lesson(
-            session_id=session.id,
-            user_id=current_user.id,
-            title=plan["title"],
-            content=plan["content"],
-            metadata=json.dumps(plan["metadata"]),
-            processing_mode=current_user.processing_mode.value,
-            is_draft=True,  # Save all generated lessons as drafts by default
-        )
-
-        session_repo.touch_session(session_id)
-        updated_session = session_repo.get_session(session_id)
-        lesson_summary = _lesson_to_summary(
-            lesson=lesson,
-            summary_text=response_text,
-            metadata=plan.get("metadata"),
-            citations=plan.get("citations", []),
+        lesson_summary, session_payload = _generate_draft_payload(
+            agent=agent,
+            session=session,
+            current_user=current_user,
+            response_text=response_text,
+            lesson_repo=lesson_repo,
+            session_repo=session_repo,
+            standard_repo=standard_repo,
         )
 
         async def event_stream():
@@ -562,7 +550,7 @@ async def stream_message(
             payload = ChatResponse(
                 response=response_text,
                 lesson=lesson_summary,
-                session=_session_to_response(updated_session, standard_repo),
+                session=session_payload,
             )
             yield _sse_event(
                 {"type": "complete", "payload": json.loads(payload.model_dump_json())}

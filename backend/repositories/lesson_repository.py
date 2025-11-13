@@ -64,23 +64,33 @@ class LessonRepository:
         finally:
             conn.close()
 
-    def list_lessons_for_user(self, user_id: str, limit: int = 20, is_draft: Optional[bool] = None) -> List[Lesson]:
+    def list_lessons_for_user(
+        self,
+        user_id: str,
+        limit: int = 20,
+        is_draft: Optional[bool] = None,
+        session_id: Optional[str] = None,
+    ) -> List[Lesson]:
         conn = self.db_manager.get_connection()
         try:
+            base_query = [
+                "SELECT * FROM lessons",
+                "WHERE user_id = ?",
+            ]
+            params: List[object] = [user_id]
+
             if is_draft is not None:
-                cursor = conn.execute(
-                    """
-                    SELECT * FROM lessons WHERE user_id = ? AND is_draft = ? ORDER BY updated_at DESC LIMIT ?
-                    """,
-                    (user_id, 1 if is_draft else 0, limit),
-                )
-            else:
-                cursor = conn.execute(
-                    """
-                    SELECT * FROM lessons WHERE user_id = ? ORDER BY updated_at DESC LIMIT ?
-                    """,
-                    (user_id, limit),
-                )
+                base_query.append("AND is_draft = ?")
+                params.append(1 if is_draft else 0)
+
+            if session_id:
+                base_query.append("AND session_id = ?")
+                params.append(session_id)
+
+            base_query.append("ORDER BY updated_at DESC LIMIT ?")
+            params.append(limit)
+
+            cursor = conn.execute(" ".join(base_query), tuple(params))
             return [self._row_to_lesson(row) for row in cursor.fetchall()]
         finally:
             conn.close()

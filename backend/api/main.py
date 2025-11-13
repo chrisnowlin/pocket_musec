@@ -4,10 +4,7 @@ from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
-import os
 import logging
-import signal
-import sys
 from pathlib import Path
 
 from .routes import images, settings, sessions, standards, ingestion, drafts, embeddings
@@ -16,10 +13,12 @@ from .middleware import (
     SecurityHeadersMiddleware,
 )
 from ..repositories.migrations import MigrationManager
+from ..config import config
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    level=getattr(logging, config.logging.level.upper(), logging.INFO),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
 )
 logger = logging.getLogger(__name__)
 
@@ -27,10 +26,10 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="PocketMusec API",
     description="AI-powered lesson planning assistant for music teachers",
-    version="0.3.0",
-    docs_url="/api/docs",
-    redoc_url="/api/redoc",
-    openapi_url="/api/openapi.json",
+    version=config.api.version,
+    docs_url=config.api.docs_url,
+    redoc_url=config.api.redoc_url,
+    openapi_url=config.api.openapi_url,
 )
 
 
@@ -42,10 +41,7 @@ app.add_middleware(RateLimitMiddleware, requests_per_minute=60)
 app.add_middleware(SecurityHeadersMiddleware)
 
 # CORS middleware - must be added last so it runs first
-cors_origins = os.getenv(
-    "CORS_ORIGINS",
-    "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173",
-).split(",")
+cors_origins = config.api.cors_origins
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[origin.strip() for origin in cors_origins],
@@ -93,7 +89,7 @@ async def startup_event():
     logger.info("Starting PocketMusec API...")
 
     # Check database and run migrations
-    db_path = os.getenv("DATABASE_PATH", "data/pocket_musec.db")
+    db_path = config.database.path
     migration_manager = MigrationManager(db_path)
 
     # Ensure database directory exists
@@ -133,10 +129,10 @@ async def root():
 if __name__ == "__main__":
     import uvicorn
 
-    # Get configuration from environment
-    host = os.getenv("API_HOST", "0.0.0.0")
-    port = int(os.getenv("API_PORT", "8000"))
-    reload = os.getenv("API_RELOAD", "true").lower() == "true"
+    # Get configuration from centralized settings
+    host = config.api.host
+    port = config.api.port
+    reload = config.api.reload
 
     uvicorn.run(
         "backend.api.main:app", host=host, port=port, reload=reload, log_level="info"

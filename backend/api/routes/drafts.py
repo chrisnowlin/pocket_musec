@@ -3,7 +3,7 @@
 import json
 from typing import List, Dict, Any, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 from ...repositories.lesson_repository import LessonRepository
 from ...repositories.session_repository import SessionRepository
@@ -18,19 +18,24 @@ from ...auth import User
 router = APIRouter(prefix="/api/drafts", tags=["drafts"])
 
 
+def _parse_metadata(raw_metadata: Optional[str]) -> Dict[str, Any]:
+    """Safely parse JSON metadata stored on a lesson"""
+    if not raw_metadata:
+        return {}
+    try:
+        return json.loads(raw_metadata)
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+
 def _lesson_to_draft_response(lesson, session_repo: SessionRepository) -> DraftResponse:
     """Convert a lesson to a draft response format"""
-    
+
     # Get session information for metadata
     session = session_repo.get_session(lesson.session_id)
-    
+
     # Parse metadata if available
-    metadata = {}
-    if lesson.metadata:
-        try:
-            metadata = json.loads(lesson.metadata)
-        except (json.JSONDecodeError, TypeError):
-            metadata = {}
+    metadata = _parse_metadata(lesson.metadata)
     
     return DraftResponse(
         id=lesson.id,
@@ -47,15 +52,20 @@ def _lesson_to_draft_response(lesson, session_repo: SessionRepository) -> DraftR
 
 @router.get("", response_model=List[DraftResponse])
 async def list_drafts(
+    session_id: Optional[str] = Query(None),
     current_user: User = Depends(get_current_user),
 ) -> List[DraftResponse]:
     """List all drafts for the current user"""
     lesson_repo = LessonRepository()
     session_repo = SessionRepository()
-    
+
     # Get only draft lessons for the user
-    lessons = lesson_repo.list_lessons_for_user(current_user.id, is_draft=True)
-    
+    lessons = lesson_repo.list_lessons_for_user(
+        current_user.id,
+        is_draft=True,
+        session_id=session_id,
+    )
+
     return [_lesson_to_draft_response(lesson, session_repo) for lesson in lessons]
 
 
@@ -128,11 +138,17 @@ async def update_draft(
         )
     
     # Update the draft
+    metadata_payload = None
+    if request.metadata is not None:
+        existing_metadata = _parse_metadata(lesson.metadata)
+        merged_metadata = {**existing_metadata, **request.metadata}
+        metadata_payload = json.dumps(merged_metadata)
+
     updated_lesson = lesson_repo.update_lesson(
         lesson_id=draft_id,
         title=request.title,
         content=request.content,
-        metadata=json.dumps(request.metadata) if request.metadata is not None else None,
+        metadata=metadata_payload,
         is_draft=True,  # Ensure it remains a draft
     )
     

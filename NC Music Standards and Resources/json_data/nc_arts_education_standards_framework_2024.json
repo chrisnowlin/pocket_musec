@@ -1,0 +1,309 @@
+{
+  "document": {
+    "title": "2024 NCSCOS Arts Education Standards Framework",
+    "revision_date": "Rev. July 9, 2024",
+    "note": "Disciplinary differences highlighted pink",
+    "source": "Final NCSCOS Arts Education Framework - Google Docs.pdf",
+    "organization": "North Carolina Department of PUBLIC INSTRUCTION"
+  },
+  "strands": [
+    {
+      "code": "CONNECT",
+      "name": "Connect",
+      "description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+      "essential_question": "How do I build background knowledge to apply to my field of art?"
+    },
+    {
+      "code": "CREATE",
+      "name": "Create",
+      "description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+      "essential_question": "How do I express original ideas through the creation of art, considering copyright and fair use laws?"
+    },
+    {
+      "code": "PRESENT",
+      "name": "Present",
+      "description": "Present, perform, produce, and develop artistic ideas and works.",
+      "essential_question": "How do I build technique and skill to present works of art to an audience effectively?"
+    },
+    {
+      "code": "RESPOND",
+      "name": "Respond",
+      "description": "Analyze and evaluate how the arts communicate.",
+      "essential_question": "How do I discuss, evaluate, and provide feedback on works of art?"
+    }
+  ],
+  "disciplines": {
+    "dance": {
+      "name": "Dance",
+      "standards": {
+        "connect": {
+          "strand": "CONNECT",
+          "standards": [
+            {
+              "code": "CN.1",
+              "category": "Relate",
+              "text": "Relate dance ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups."
+            },
+            {
+              "code": "CN.2",
+              "category": "Explore",
+              "text": "Explore advancements in the field of dance."
+            }
+          ]
+        },
+        "create": {
+          "strand": "CREATE",
+          "standards": [
+            {
+              "code": "CR.1",
+              "category": "Originate",
+              "text": "Create original dance movements and works that communicate ideas, experiences, feelings, or images, independently and collaboratively."
+            },
+            {
+              "code": "CR.2",
+              "category": "Adapt",
+              "text": "Adapt original dance ideas and works, and those of peers and other artists, independently and collaboratively."
+            }
+          ]
+        },
+        "present": {
+          "strand": "PRESENT",
+          "standards": [
+            {
+              "code": "PR.1",
+              "category": "Present",
+              "text": "Perform dance works from a variety of styles, cultures, and genres."
+            },
+            {
+              "code": "PR.2",
+              "category": "Develop",
+              "text": "Develop dance presentations."
+            }
+          ]
+        },
+        "respond": {
+          "strand": "RESPOND",
+          "standards": [
+            {
+              "code": "RE.1",
+              "category": "Analyze",
+              "text": "Analyze dance from a variety of styles, cultures, and genres using content-specific vocabulary."
+            },
+            {
+              "code": "RE.2",
+              "category": "Evaluate",
+              "text": "Evaluate dance works using content-specific vocabulary."
+            }
+          ]
+        }
+      }
+    },
+    "music": {
+      "name": "Music",
+      "standards": {
+        "connect": {
+          "strand": "CONNECT",
+          "standards": [
+            {
+              "code": "CN.1",
+              "category": "Relate",
+              "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups."
+            },
+            {
+              "code": "CN.2",
+              "category": "Explore",
+              "text": "Explore advancements in the field of music."
+            }
+          ]
+        },
+        "create": {
+          "strand": "CREATE",
+          "standards": [
+            {
+              "code": "CR.1",
+              "category": "Originate",
+              "text": "Create original musical ideas and works, independently and collaboratively."
+            },
+            {
+              "code": "CR.2",
+              "category": "Adapt",
+              "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively."
+            }
+          ]
+        },
+        "present": {
+          "strand": "PRESENT",
+          "standards": [
+            {
+              "code": "PR.1",
+              "category": "Present",
+              "text": "Perform music from a variety of styles, cultures, and genres."
+            },
+            {
+              "code": "PR.2",
+              "category": "Develop",
+              "text": "Develop musical presentations."
+            }
+          ]
+        },
+        "respond": {
+          "strand": "RESPOND",
+          "standards": [
+            {
+              "code": "RE.1",
+              "category": "Analyze",
+              "text": "Analyze musical works from a variety of styles, cultures, and genres using content-specific vocabulary.",
+              "variants": [
+                {
+                  "type": "GM",
+                  "type_full": "General Music",
+                  "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary."
+                },
+                {
+                  "type": "VIM",
+                  "type_full": "Vocal/Instrumental Music",
+                  "text": "Analyze aural and written works of music from a variety of styles, cultures, and genres using content-specific vocabulary."
+                }
+              ]
+            },
+            {
+              "code": "RE.2",
+              "category": "Evaluate",
+              "text": "Evaluate musical works using content-specific vocabulary."
+            }
+          ]
+        }
+      }
+    },
+    "theatre": {
+      "name": "Theatre",
+      "standards": {
+        "connect": {
+          "strand": "CONNECT",
+          "standards": [
+            {
+              "code": "CN.1",
+              "category": "Relate",
+              "text": "Relate theatrical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups."
+            },
+            {
+              "code": "CN.2",
+              "category": "Explore",
+              "text": "Explore advancements in the field of theatre arts."
+            }
+          ]
+        },
+        "create": {
+          "strand": "CREATE",
+          "standards": [
+            {
+              "code": "CR.1",
+              "category": "Originate",
+              "text": "Create original theatrical ideas and works, independently and collaboratively."
+            },
+            {
+              "code": "CR.2",
+              "category": "Adapt",
+              "text": "Adapt original theatrical ideas and works, and those of peers and other artists, independently and collaboratively."
+            }
+          ]
+        },
+        "present": {
+          "strand": "PRESENT",
+          "standards": [
+            {
+              "code": "PR.1",
+              "category": "Present",
+              "text": "Perform theatrical works from a variety of styles, cultures, and genres."
+            },
+            {
+              "code": "PR.2",
+              "category": "Develop",
+              "text": "Develop theatrical presentations."
+            }
+          ]
+        },
+        "respond": {
+          "strand": "RESPOND",
+          "standards": [
+            {
+              "code": "RE.1",
+              "category": "Analyze",
+              "text": "Analyze theatrical works from a variety of styles, cultures, and genres using content-specific vocabulary."
+            },
+            {
+              "code": "RE.2",
+              "category": "Evaluate",
+              "text": "Evaluate theatrical works using content-specific vocabulary."
+            }
+          ]
+        }
+      }
+    },
+    "visual_arts": {
+      "name": "Visual Arts",
+      "standards": {
+        "connect": {
+          "strand": "CONNECT",
+          "standards": [
+            {
+              "code": "CN.1",
+              "category": "Relate",
+              "text": "Relate visual arts ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups."
+            },
+            {
+              "code": "CN.2",
+              "category": "Explore",
+              "text": "Explore advancements in the field of visual arts."
+            }
+          ]
+        },
+        "create": {
+          "strand": "CREATE",
+          "standards": [
+            {
+              "code": "CR.1",
+              "category": "Originate",
+              "text": "Create original visual arts ideas and 2-D and 3-D artworks, including drawing, painting, printmaking, fibers, sculpture, ceramics, and digital media, using tools safely and appropriately, independently and collaboratively."
+            },
+            {
+              "code": "CR.2",
+              "category": "Adapt",
+              "text": "Adapt original visual arts ideas and work, and those of peers and other artists, independently and collaboratively."
+            }
+          ]
+        },
+        "present": {
+          "strand": "PRESENT",
+          "standards": [
+            {
+              "code": "PR.1",
+              "category": "Present",
+              "text": "Present visual artworks."
+            },
+            {
+              "code": "PR.2",
+              "category": "Develop",
+              "text": "Develop visual arts presentations."
+            }
+          ]
+        },
+        "respond": {
+          "strand": "RESPOND",
+          "standards": [
+            {
+              "code": "RE.1",
+              "category": "Analyze",
+              "text": "Analyze visual artworks from a variety of styles, cultures, and genres using content-specific vocabulary."
+            },
+            {
+              "code": "RE.2",
+              "category": "Evaluate",
+              "text": "Evaluate visual artworks using content-specific vocabulary."
+            }
+          ]
+        }
+      }
+    }
+  }
+}

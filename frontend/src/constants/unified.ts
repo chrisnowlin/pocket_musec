@@ -11,6 +11,12 @@ export const gradeOptions = [
   'Grade 6',
   'Grade 7',
   'Grade 8',
+  // Proficiency levels for high school
+  'Novice',
+  'Developing',
+  'Intermediate',
+  'Accomplished',
+  'Advanced',
 ];
 
 export const strandOptions = ['Connect', 'Create', 'Respond', 'Present'];

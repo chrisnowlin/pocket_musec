@@ -1,0 +1,2660 @@
+{
+  "document": {
+    "title": "2024 North Carolina Standard Course of Study - K-12 Music (Expanded)",
+    "revision_date": "May 16, 2024",
+    "source": "Final Music NCSCOS - Google Docs.pdf",
+    "organization": "North Carolina Department of Public Instruction",
+    "description": "The 2024 North Carolina Standard Course of Study for music is intended to provide a Comprehensive Arts Education while developing students as artists. The abilities to create, present, respond to, and make connections with music build competence by expanding foundational knowledge and skills within each grade band and proficiency level."
+  },
+  "introduction": {
+    "context": "Skills progress at different levels due to a number of factors, including continuity and quality of instruction; informal exposure to music through community interaction; opportunities to access music programs in K-12 education; student developmental level and ability; motivation and resources available for individual practice; etc.",
+    "note_k5": "The K-5 music standards and objectives are written for elementary students who are taught by a licensed music educator for at least 50 minutes per week.",
+    "note_6_8": "The grade 6-8 standards and objectives are written for middle school students who are taught by a licensed music educator for at least 90 minutes per week.",
+    "note_high_school": "Levels Beginning through Advanced courses for high school credit are intended to develop proficiency in the artform of a students' choice and to support a well-rounded education. These courses meet for as long as other high school courses meet and are also taught by a licensed music educator.",
+    "proficiency_organization": "To account for variations in skill progression, as well as to embed multiple entry points across the K-12 spectrum, the objectives in vocal and instrumental music and the high school general music NCSCOS are organized by proficiency level, rather than grade level."
+  },
+  "general_music": {
+    "description": "K-12 General Music standards organized by grade level (K-8) and proficiency level (Beginning, Accomplished for high school)",
+    "grade_levels": {
+      "kindergarten": {
+        "grade": "Kindergarten",
+        "code": "K",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "K.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "K.CN.1.1",
+                    "text": "Identify the similarities and differences of music representing diverse global communities."
+                  },
+                  {
+                    "code": "K.CN.1.2",
+                    "text": "Identify how music is used in school and in daily life."
+                  },
+                  {
+                    "code": "K.CN.1.3",
+                    "text": "Describe how music is used in personal experiences."
+                  }
+                ]
+              },
+              {
+                "code": "K.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "K.CN.2.1",
+                    "text": "Identify the various roles of individuals that contribute to the creation and production of music, such as singers, instrumentalists, composers, conductors, etc."
+                  },
+                  {
+                    "code": "K.CN.2.2",
+                    "text": "Identify music that is created with technology tools."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "K.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "K.CR.1.1",
+                    "text": "Improvise rhythmic patterns and 2-pitch melodic patterns."
+                  },
+                  {
+                    "code": "K.CR.1.2",
+                    "text": "Notate 4-8 beats of original rhythmic ideas using iconic notation that incorporate grade-level appropriate rhythms."
+                  }
+                ]
+              },
+              {
+                "code": "K.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "K.CR.2.1",
+                    "text": "Create soundscapes using a variety of traditional and non-traditional sound sources."
+                  },
+                  {
+                    "code": "K.CR.2.2",
+                    "text": "Explain the difference between original and copied musical ideas or works."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "K.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "K.PR.1.1",
+                    "text": "Improve musical skills by incorporating feedback from instructors."
+                  },
+                  {
+                    "code": "K.PR.1.2",
+                    "text": "Read iconic notation to sing or play melodic patterns with at least two pitches and rhythmic patterns with quarter note and beamed eighth pairs in a variety of meters."
+                  },
+                  {
+                    "code": "K.PR.1.3",
+                    "text": "Perform a steady beat in isolation and when singing or playing in unison."
+                  },
+                  {
+                    "code": "K.PR.1.4",
+                    "text": "Demonstrate opposites in tempos, form, texture, and dynamics."
+                  }
+                ]
+              },
+              {
+                "code": "K.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "K.PR.2.1",
+                    "text": "Name the production elements needed to develop formal and informal performances."
+                  },
+                  {
+                    "code": "K.PR.2.2",
+                    "text": "Identify appropriate audience and performer etiquette."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "K.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "K.RE.1.1",
+                    "text": "Identify opposites in tempos, form, texture, and dynamics in aural or written musical works."
+                  },
+                  {
+                    "code": "K.RE.1.2",
+                    "text": "Describe emotions evoked by a given musical work."
+                  },
+                  {
+                    "code": "K.RE.1.3",
+                    "text": "Identify a variety of instruments and vocal timbre types by sound, including sing, speak, whisper, and shout."
+                  }
+                ]
+              },
+              {
+                "code": "K.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "K.RE.2.1",
+                    "text": "Describe personal preferences for musical works."
+                  },
+                  {
+                    "code": "K.RE.2.2",
+                    "text": "Provide positive feedback for others."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "grade_1": {
+        "grade": "First Grade",
+        "code": "1",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "1.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "1.CN.1.1",
+                    "text": "Explain how music can reflect culture, values, and ideas."
+                  },
+                  {
+                    "code": "1.CN.1.2",
+                    "text": "Identify cross-curricular connections between music and other arts disciplines."
+                  },
+                  {
+                    "code": "1.CN.1.3",
+                    "text": "Describe how music exists in local community traditions, celebrations, entertainment, or other uses."
+                  }
+                ]
+              },
+              {
+                "code": "1.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "1.CN.2.1",
+                    "text": "Identify the various roles of individuals that contribute to the support and consumption of music."
+                  },
+                  {
+                    "code": "1.CN.2.2",
+                    "text": "Describe how innovations and technology are used to create and present music."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "1.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "1.CR.1.1",
+                    "text": "Improvise 4-8 beat rhythmic patterns and 3-pitch melodic patterns."
+                  },
+                  {
+                    "code": "1.CR.1.2",
+                    "text": "Notate 4-8 beats of original rhythmic ideas using iconic or standard notation that incorporate grade-level appropriate rhythms."
+                  }
+                ]
+              },
+              {
+                "code": "1.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "1.CR.2.1",
+                    "text": "Accompany readings, stories, or dramatizations with corresponding traditional and non-traditional sound sources."
+                  },
+                  {
+                    "code": "1.CR.2.2",
+                    "text": "Explain how and when to give credit to others when creating work that borrows from other musicians."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "1.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "1.PR.1.1",
+                    "text": "Improve musical skills by incorporating feedback from instructors and peers."
+                  },
+                  {
+                    "code": "1.PR.1.2",
+                    "text": "Read iconic or standard notation to sing or play music with at least three pitches and rhythms with quarter rests in 2/4 and 4/4 meters."
+                  },
+                  {
+                    "code": "1.PR.1.3",
+                    "text": "Sing or play in unison with simple accompaniments."
+                  },
+                  {
+                    "code": "1.PR.1.4",
+                    "text": "Demonstrate opposites in tempos, form, texture, articulations, and dynamics."
+                  }
+                ]
+              },
+              {
+                "code": "1.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "1.PR.2.1",
+                    "text": "Identify the production elements needed to develop formal and informal performances."
+                  },
+                  {
+                    "code": "1.PR.2.2",
+                    "text": "Contrast audience and performer etiquette."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "1.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "1.RE.1.1",
+                    "text": "Identify opposites in tempos, form, texture, articulations, and dynamics in aural or written musical works."
+                  },
+                  {
+                    "code": "1.RE.1.2",
+                    "text": "Explain how musical works are used to communicate meaning."
+                  },
+                  {
+                    "code": "1.RE.1.3",
+                    "text": "Identify a variety of instruments and voices by sound, including available classroom instruments."
+                  }
+                ]
+              },
+              {
+                "code": "1.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "1.RE.2.1",
+                    "text": "Describe personal preferences for music."
+                  },
+                  {
+                    "code": "1.RE.2.2",
+                    "text": "Provide positive feedback and areas for improvement for others."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "grade_2": {
+        "grade": "Second Grade",
+        "code": "2",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "2.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "2.CN.1.1",
+                    "text": "Describe how American music reflects the heritage, customs, and traditions of people in the United States, including various indigenous and cultural groups."
+                  },
+                  {
+                    "code": "2.CN.1.2",
+                    "text": "Identify cross-curricular connections between music and other content areas."
+                  },
+                  {
+                    "code": "2.CN.1.3",
+                    "text": "Describe how music exists in national traditions, celebrations, entertainment, or other uses."
+                  }
+                ]
+              },
+              {
+                "code": "2.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "2.CN.2.1",
+                    "text": "Compare the roles of various individuals that contribute to the creation, production, and consumption of music."
+                  },
+                  {
+                    "code": "2.CN.2.2",
+                    "text": "Explain why innovative technologies are used in music."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "2.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "2.CR.1.1",
+                    "text": "Improvise 8-12 beats of rhythmic patterns and melodic patterns."
+                  },
+                  {
+                    "code": "2.CR.1.2",
+                    "text": "Notate 8-12 beats of original rhythmic ideas using iconic or standard notation that incorporate grade-level appropriate rhythms."
+                  }
+                ]
+              },
+              {
+                "code": "2.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "2.CR.2.1",
+                    "text": "Accompany readings, stories, or dramatizations with corresponding vocal or instrumental sounds."
+                  },
+                  {
+                    "code": "2.CR.2.2",
+                    "text": "Explain how to share music fairly."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "2.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "2.PR.1.1",
+                    "text": "Improve musical skills by applying feedback from instructors, peers, and self."
+                  },
+                  {
+                    "code": "2.PR.1.2",
+                    "text": "Read iconic or standard notation to sing or play music with three or more pitches, and half notes, half rests, and tied rhythms in 2/4 and 4/4 meters."
+                  },
+                  {
+                    "code": "2.PR.1.3",
+                    "text": "Sing or play in rounds and ostinatos."
+                  },
+                  {
+                    "code": "2.PR.1.4",
+                    "text": "Demonstrate changes in tempos, form, texture, articulations, phrasing, and dynamics."
+                  }
+                ]
+              },
+              {
+                "code": "2.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "2.PR.2.1",
+                    "text": "Describe the production elements needed to develop formal and informal performances."
+                  },
+                  {
+                    "code": "2.PR.2.2",
+                    "text": "Demonstrate appropriate audience and performer etiquette."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "2.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "2.RE.1.1",
+                    "text": "Identify changes in tempos, form, texture, articulations, phrasing, and dynamics in aural and written musical works."
+                  },
+                  {
+                    "code": "2.RE.1.2",
+                    "text": "Identify a \"story\" told in a work of music."
+                  },
+                  {
+                    "code": "2.RE.1.3",
+                    "text": "Describe the timbres of a variety of instruments and voices, and the way in which the sound is produced."
+                  }
+                ]
+              },
+              {
+                "code": "2.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "2.RE.2.1",
+                    "text": "Explain why some music is valued over others by different individuals, communities, and cultures."
+                  },
+                  {
+                    "code": "2.RE.2.2",
+                    "text": "Provide positive feedback to self and others."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "grade_3": {
+        "grade": "Third Grade",
+        "code": "3",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "3.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "3.CN.1.1",
+                    "text": "Describe music found in the local community or region."
+                  },
+                  {
+                    "code": "3.CN.1.2",
+                    "text": "Compare elements of music with elements of other disciplines."
+                  },
+                  {
+                    "code": "3.CN.1.3",
+                    "text": "Describe personal emotions evoked by a variety of music."
+                  }
+                ]
+              },
+              {
+                "code": "3.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "3.CN.2.1",
+                    "text": "Identify music careers in the local community."
+                  },
+                  {
+                    "code": "3.CN.2.2",
+                    "text": "Describe how music has changed over time with the introduction of new technology."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "3.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "3.CR.1.1",
+                    "text": "Improvise stylistically appropriate responses to given rhythmic or melodic phrases."
+                  },
+                  {
+                    "code": "3.CR.1.2",
+                    "text": "Notate 4-8 measures of original rhythmic ideas and melodic ideas using iconic or standard notation that incorporate grade-level appropriate rhythms and pitches."
+                  }
+                ]
+              },
+              {
+                "code": "3.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "3.CR.2.1",
+                    "text": "Arrange an existing piece by changing one or more musical elements."
+                  },
+                  {
+                    "code": "3.CR.2.2",
+                    "text": "Identify music that can be used by everyone fairly."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "3.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "3.PR.1.1",
+                    "text": "Improve compositions and musical skills by applying formal or informal feedback."
+                  },
+                  {
+                    "code": "3.PR.1.2",
+                    "text": "Read iconic or standard notation to sing or play music using any pentatonic scale, and whole note, dotted half note, whole rest, and beamed sixteenth note rhythms in 2/4, 3/4, and 4/4 meters."
+                  },
+                  {
+                    "code": "3.PR.1.3",
+                    "text": "Sing or play partner songs."
+                  },
+                  {
+                    "code": "3.PR.1.4",
+                    "text": "Demonstrate the meaning of symbols and terminology for a variety of tempos, articulations, forms, and dynamics when performing music."
+                  }
+                ]
+              },
+              {
+                "code": "3.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "3.PR.2.1",
+                    "text": "Compare, with guidance, music to perform and the production elements needed to support a performance."
+                  },
+                  {
+                    "code": "3.PR.2.2",
+                    "text": "Identify how audience and performer etiquette changes based on the context."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "3.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "3.RE.1.1",
+                    "text": "Identify symbols and terminology for a variety of tempos, articulations, forms, and dynamics in aural and written musical works."
+                  },
+                  {
+                    "code": "3.RE.1.2",
+                    "text": "Infer meaning from musical works using musical vocabulary."
+                  },
+                  {
+                    "code": "3.RE.1.3",
+                    "text": "Identify a variety of instruments and voices by sound, including folk and orchestral instruments."
+                  }
+                ]
+              },
+              {
+                "code": "3.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "3.RE.2.1",
+                    "text": "Contrast individual preferences for particular works or genres of music with preferences of peers."
+                  },
+                  {
+                    "code": "3.RE.2.2",
+                    "text": "Apply specific criteria to construct respectful feedback about music and composition."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "grade_4": {
+        "grade": "Fourth Grade",
+        "code": "4",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "4.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "4.CN.1.1",
+                    "text": "Describe styles and musicians who have influenced, or been influenced by, the customs and traditions of indigenous and other cultural groups in North Carolina."
+                  },
+                  {
+                    "code": "4.CN.1.2",
+                    "text": "Describe how other content areas can inspire programmatic music, soundscapes, or concepts."
+                  },
+                  {
+                    "code": "4.CN.1.3",
+                    "text": "Describe personal emotions and memories evoked by a variety of music."
+                  }
+                ]
+              },
+              {
+                "code": "4.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "4.CN.2.1",
+                    "text": "Describe music careers in North Carolina."
+                  },
+                  {
+                    "code": "4.CN.2.2",
+                    "text": "Compare how music has changed and remained the same with advances in technology and digital media."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "4.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "4.CR.1.1",
+                    "text": "Improvise pentatonic melodies over an ostinato."
+                  },
+                  {
+                    "code": "4.CR.1.2",
+                    "text": "Notate or record 4-8 measures of original rhythmic ideas and melodic ideas for two or more performers that incorporate grade-level appropriate rhythms and pitches."
+                  }
+                ]
+              },
+              {
+                "code": "4.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "4.CR.2.1",
+                    "text": "Align original poetry with a pre-existing melody; or a pre-existing piece of poetry with an original melody."
+                  },
+                  {
+                    "code": "4.CR.2.2",
+                    "text": "Identify how to responsibly use resources for online access of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "4.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "4.PR.1.1",
+                    "text": "Improve compositions and musical skills by applying feedback from peers or self based on student-generated criteria."
+                  },
+                  {
+                    "code": "4.PR.1.2",
+                    "text": "Read standard notation to sing or play music using any major key, and dotted quarters and groups of three eighth notes and rests in 6/8 meter, and beamed sixteenth and eighth note rhythms in 2/4, 3/4, and 4/4 meters."
+                  },
+                  {
+                    "code": "4.PR.1.3",
+                    "text": "Sing or play songs with occasional harmonizations."
+                  },
+                  {
+                    "code": "4.PR.1.4",
+                    "text": "Demonstrate the meaning of symbols and terminology for the continua of tempos and dynamics, including crescendos and decrescendos, and a variety of forms and articulations when performing music."
+                  }
+                ]
+              },
+              {
+                "code": "4.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "4.PR.2.1",
+                    "text": "Compare, with guidance, music to perform and the production elements needed to support the context and purpose of a performance."
+                  },
+                  {
+                    "code": "4.PR.2.2",
+                    "text": "Create criteria for audience and performer etiquette in a variety of contexts."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "4.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "4.RE.1.1",
+                    "text": "Identify symbols and terminology for tempos, dynamics, including crescendos and decrescendos, and a variety of forms and articulations in aural and written musical works."
+                  },
+                  {
+                    "code": "4.RE.1.2",
+                    "text": "Compare different interpretations of the same musical work using musical vocabulary."
+                  },
+                  {
+                    "code": "4.RE.1.3",
+                    "text": "Describe the timbres of a variety of instruments and voices used in diverse types of ensembles."
+                  }
+                ]
+              },
+              {
+                "code": "4.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "4.RE.2.1",
+                    "text": "Compare personal responses to a musical work before and after engaging with similar musical works."
+                  },
+                  {
+                    "code": "4.RE.2.2",
+                    "text": "Generate criteria in collaboration with others for evaluating musical performances and compositions."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "grade_5": {
+        "grade": "Fifth Grade",
+        "code": "5",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "5.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "5.CN.1.1",
+                    "text": "Describe styles and musicians who have influenced, or been influenced by, the customs and traditions of indigenous and other cultural groups in the United States."
+                  },
+                  {
+                    "code": "5.CN.1.2",
+                    "text": "Describe how other disciplines inspire, and can be a part of, music creation or performance."
+                  },
+                  {
+                    "code": "5.CN.1.3",
+                    "text": "Identify how music is used in the media to evoke emotions."
+                  }
+                ]
+              },
+              {
+                "code": "5.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "5.CN.2.1",
+                    "text": "Identify the characteristics and behaviors of musicians that connect to college, career, and post-secondary skills."
+                  },
+                  {
+                    "code": "5.CN.2.2",
+                    "text": "Cite examples of musical works or musicians that were innovative for their time."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "5.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "5.CR.1.1",
+                    "text": "Improvise a 4-12 measure melody over a changing harmonic accompaniment."
+                  },
+                  {
+                    "code": "5.CR.1.2",
+                    "text": "Notate or record original rhythmic ideas and melodic ideas using several voices or instruments that incorporate grade-level appropriate rhythms and pitches."
+                  }
+                ]
+              },
+              {
+                "code": "5.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "5.CR.2.1",
+                    "text": "Accompany an existing melody with an original rhythmic or melodic ostinato."
+                  },
+                  {
+                    "code": "5.CR.2.2",
+                    "text": "Cite artists correctly when utilizing or adapting their original music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "5.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "5.PR.1.1",
+                    "text": "Improve compositions and musical skills by applying feedback from peers or self based on student-generated criteria."
+                  },
+                  {
+                    "code": "5.PR.1.2",
+                    "text": "Read standard notation to sing or play music using any major or minor key, and syncopation in 2/4, 3/4, or common time meters, including rhythms in 6/8 meter."
+                  },
+                  {
+                    "code": "5.PR.1.3",
+                    "text": "Sing or play songs with two-part harmony."
+                  },
+                  {
+                    "code": "5.PR.1.4",
+                    "text": "Demonstrate the meaning of symbols and terminology for the continua of tempos and dynamics, and a variety of forms and articulations independently when performing music."
+                  }
+                ]
+              },
+              {
+                "code": "5.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "5.PR.2.1",
+                    "text": "Compare music to perform and the production elements needed to support the context and purpose of a performance, working collaboratively."
+                  },
+                  {
+                    "code": "5.PR.2.2",
+                    "text": "Evaluate the etiquette of the audience and performers in a variety of contexts."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "5.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "5.RE.1.1",
+                    "text": "Analyze symbols and terminology for the continua of tempos and dynamics, and a variety of forms and articulations in aural and written musical works."
+                  },
+                  {
+                    "code": "5.RE.1.2",
+                    "text": "Speculate on the composer's purpose in choosing specific qualities for a musical work using musical vocabulary."
+                  },
+                  {
+                    "code": "5.RE.1.3",
+                    "text": "Analyze the timbres of a variety of instruments and voices within a musical work."
+                  }
+                ]
+              },
+              {
+                "code": "5.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "5.RE.2.1",
+                    "text": "Defend personal preferences for particular musical works."
+                  },
+                  {
+                    "code": "5.RE.2.2",
+                    "text": "Evaluate musical performances and compositions using student-generated criteria."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "grade_6": {
+        "grade": "Sixth Grade",
+        "code": "6",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "6.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "6.CN.1.1",
+                    "text": "Explain how music expresses and reflects the values of civilizations around the world."
+                  },
+                  {
+                    "code": "6.CN.1.2",
+                    "text": "Explain how the development of musical ideas can be informed and inspired by concepts from other content areas."
+                  },
+                  {
+                    "code": "6.CN.1.3",
+                    "text": "Describe sensory, emotional, personal, or intellectual responses to a variety of music."
+                  }
+                ]
+              },
+              {
+                "code": "6.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "6.CN.2.1",
+                    "text": "Identify the musical skills, characteristics, and behaviors needed for success in music careers."
+                  },
+                  {
+                    "code": "6.CN.2.2",
+                    "text": "Compare how innovative tools and ideas have been used in a variety of musical works."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "6.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "6.CR.1.1",
+                    "text": "Improvise rhythmic patterns over a rhythmic or harmonic accompaniment."
+                  },
+                  {
+                    "code": "6.CR.1.2",
+                    "text": "Compose 4-8 measures of original rhythmic ideas and melodic ideas through notation or recording that incorporate grade-level appropriate rhythms and pitches."
+                  }
+                ]
+              },
+              {
+                "code": "6.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "6.CR.2.1",
+                    "text": "Arrange an existing piece of music, changing two or more musical elements."
+                  },
+                  {
+                    "code": "6.CR.2.2",
+                    "text": "Describe how fair use, copyright, public domain, open source, and creative commons affect the ability of musicians to create original and arranged music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "6.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "6.PR.1.1",
+                    "text": "Apply feedback from instructors to refine musical presentations, compositions, or ideas."
+                  },
+                  {
+                    "code": "6.PR.1.2",
+                    "text": "Read standard notation to perform or produce music using any major or minor key and triplet rhythms in 2/4, 3/4, 4/4, 6/8, and 12/8 meters."
+                  },
+                  {
+                    "code": "6.PR.1.3",
+                    "text": "Perform or produce a variety of music in unison or simple harmony, using rounds, canons, or partner songs."
+                  },
+                  {
+                    "code": "6.PR.1.4",
+                    "text": "Demonstrate the meaning of symbols and terminology for the continua of tempos of dynamics, and an expanded range of forms and articulations with appropriate technique when performing or producing music."
+                  }
+                ]
+              },
+              {
+                "code": "6.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "6.PR.2.1",
+                    "text": "Compare, with guidance, production elements, and how they enhance a musical presentation."
+                  },
+                  {
+                    "code": "6.PR.2.2",
+                    "text": "Demonstrate audience or performer etiquette appropriate in a variety of contexts."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "6.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "6.RE.1.1",
+                    "text": "Identify symbols and terminology for the continua of tempos and dynamics, and an expanded range of forms and articulations in aural and written musical works."
+                  },
+                  {
+                    "code": "6.RE.1.2",
+                    "text": "Identify multiple meanings for musical works, citing evidence."
+                  },
+                  {
+                    "code": "6.RE.1.3",
+                    "text": "Identify the timbres of a variety of instruments and voices heard in traditional, contemporary, and world music."
+                  }
+                ]
+              },
+              {
+                "code": "6.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "6.RE.2.1",
+                    "text": "Identify appealing qualities and effective portions of musical works."
+                  },
+                  {
+                    "code": "6.RE.2.2",
+                    "text": "Evaluate musical presentations, compositions, and musical ideas using given criteria."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "grade_7": {
+        "grade": "Seventh Grade",
+        "code": "7",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "7.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "7.CN.1.1",
+                    "text": "Analyze how individuals and groups of musicians have influenced various cultures."
+                  },
+                  {
+                    "code": "7.CN.1.2",
+                    "text": "Identify musical skills and processes that are a part of, and can be applied to, daily life."
+                  },
+                  {
+                    "code": "7.CN.1.3",
+                    "text": "Explain why musical choices are made to evoke sensory, emotional, personal, or intellectual responses in media."
+                  }
+                ]
+              },
+              {
+                "code": "7.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "7.CN.2.1",
+                    "text": "Identify musical skills, characteristics, and behaviors that contribute to success in college, career, and post-secondary skills."
+                  },
+                  {
+                    "code": "7.CN.2.2",
+                    "text": "Identify how various tools and innovations can be used to create, edit, and present music."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "7.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "7.CR.1.1",
+                    "text": "Improvise short melodic patterns over a rhythmic or harmonic accompaniment."
+                  },
+                  {
+                    "code": "7.CR.1.2",
+                    "text": "Compose original rhythmic ideas and melodic ideas using simple musical forms through notation or recording that incorporate grade-level appropriate rhythms and pitches."
+                  }
+                ]
+              },
+              {
+                "code": "7.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "7.CR.2.1",
+                    "text": "Arrange a rhythmic variation on a given musical phrase."
+                  },
+                  {
+                    "code": "7.CR.2.2",
+                    "text": "Identify the legal and ethical issues for creating arrangements of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "7.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "7.PR.1.1",
+                    "text": "Apply feedback from instructor, peers, and self to refine musical presentations, compositions."
+                  },
+                  {
+                    "code": "7.PR.1.2",
+                    "text": "Read standard notation to perform or produce music in treble or bass clef in mixed meters where the beat remains consistent."
+                  },
+                  {
+                    "code": "7.PR.1.3",
+                    "text": "Perform or produce a variety of music in two-part harmony focused on a monophonic texture."
+                  },
+                  {
+                    "code": "7.PR.1.4",
+                    "text": "Demonstrate the meaning of symbols and terminology for changes in tempos, dynamics, and articulations in an expanded range of forms with appropriate technique when performing or producing music."
+                  }
+                ]
+              },
+              {
+                "code": "7.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "7.PR.2.1",
+                    "text": "Compare selections for a musical presentation based on a distinct purpose or context."
+                  },
+                  {
+                    "code": "7.PR.2.2",
+                    "text": "Use student-generated criteria to evaluate audience or performer etiquette appropriate for a variety of contexts."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "7.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "7.RE.1.1",
+                    "text": "Identify symbols and terminology for changes in tempos, dynamics, and articulations in an expanded range of forms in aural and written musical works."
+                  },
+                  {
+                    "code": "7.RE.1.2",
+                    "text": "Describe how personal experiences and perspectives influence interpretations of music."
+                  },
+                  {
+                    "code": "7.RE.1.3",
+                    "text": "Classify a variety of instruments and voices by timbre, including those heard in diverse types of traditional, contemporary, and world music."
+                  }
+                ]
+              },
+              {
+                "code": "7.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "7.RE.2.1",
+                    "text": "Compare personal preferences for multiple musical works."
+                  },
+                  {
+                    "code": "7.RE.2.2",
+                    "text": "Evaluate personal musical presentations, compositions, and musical ideas, using given criteria."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "grade_8": {
+        "grade": "Eighth Grade",
+        "code": "8",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "8.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "8.CN.1.1",
+                    "text": "Identify the influence of North Carolinian styles and musicians on the broader music community."
+                  },
+                  {
+                    "code": "8.CN.1.2",
+                    "text": "Explain how musical skills and processes can be applied to solve a variety of problems."
+                  },
+                  {
+                    "code": "8.CN.1.3",
+                    "text": "Choose music that evokes specific personal emotions."
+                  }
+                ]
+              },
+              {
+                "code": "8.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "8.CN.2.1",
+                    "text": "Explain how musical skills, characteristics, and behaviors contribute to success in a broad range of careers."
+                  },
+                  {
+                    "code": "8.CN.2.2",
+                    "text": "Describe various tools, innovations, or processes that could be used in the creation of musical works."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "8.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "8.CR.1.1",
+                    "text": "Improvise extended melodies over a rhythmic or harmonic accompaniment."
+                  },
+                  {
+                    "code": "8.CR.1.2",
+                    "text": "Compose original rhythmic ideas and melodic ideas using simple musical forms through notation or recording that incorporate grade-level appropriate rhythms and pitches."
+                  }
+                ]
+              },
+              {
+                "code": "8.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "8.CR.2.1",
+                    "text": "Arrange a melodic or harmonic accompaniment to go with an existing piece of music."
+                  },
+                  {
+                    "code": "8.CR.2.2",
+                    "text": "Explain how to share works of music legally and ethically in both physical and digital spaces."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "8.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "8.PR.1.1",
+                    "text": "Apply feedback from peers or self based on provided criteria to refine musical presentations, compositions, or ideas."
+                  },
+                  {
+                    "code": "8.PR.1.2",
+                    "text": "Read standard notation to perform or produce music with ledger lines and all previously learned rhythms in new metrical contexts, including 3/8 and alla breve."
+                  },
+                  {
+                    "code": "8.PR.1.3",
+                    "text": "Perform or produce a variety of music in two or three-part harmony with polyphonic textures."
+                  },
+                  {
+                    "code": "8.PR.1.4",
+                    "text": "Demonstrate the meaning of symbols and terminology for changes in tempos, dynamics, and articulations in an expanded range of forms with appropriate technique when performing or producing music."
+                  }
+                ]
+              },
+              {
+                "code": "8.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "8.PR.2.1",
+                    "text": "Develop criteria for selecting music and production elements for a distinct purpose or context."
+                  },
+                  {
+                    "code": "8.PR.2.2",
+                    "text": "Make recommendations to improve active listening and etiquette for various music performances."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "8.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "8.RE.1.1",
+                    "text": "Analyze symbols and terminology for changes in tempos, dynamics, and articulations in an expanded range of forms in aural and written musical works."
+                  },
+                  {
+                    "code": "8.RE.1.2",
+                    "text": "Explain how a musician's artistic choices are influenced by culture and environment."
+                  },
+                  {
+                    "code": "8.RE.1.3",
+                    "text": "Describe the customary instrumental and vocal timbres heard in diverse traditional, contemporary, and world music."
+                  }
+                ]
+              },
+              {
+                "code": "8.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "8.RE.2.1",
+                    "text": "Explain how personal preferences are influenced by culture, environment, and commercial music."
+                  },
+                  {
+                    "code": "8.RE.2.2",
+                    "text": "Evaluate musical presentations, compositions, arrangements, and improvisations by applying specific criteria appropriate for the style of the music."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "proficiency_levels": {
+      "beginning": {
+        "level": "Beginning",
+        "code": "B",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "B.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "B.CN.1.1",
+                    "text": "Describe how the emergence of music as an art form has influenced society."
+                  },
+                  {
+                    "code": "B.CN.1.2",
+                    "text": "Identify how the creation and performance of music is supported by concepts from other content areas."
+                  },
+                  {
+                    "code": "B.CN.1.3",
+                    "text": "Explain how music evokes sensory, emotional, personal, and intellectual responses in everyday life."
+                  }
+                ]
+              },
+              {
+                "code": "B.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "B.CN.2.1",
+                    "text": "Describe how various individuals contribute to the creation, production, design, and marketing of music."
+                  },
+                  {
+                    "code": "B.CN.2.2",
+                    "text": "Describe how various tools and innovations influence the development and consumption of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "B.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "B.CR.1.1",
+                    "text": "Improvise melodies based on a diatonic scale."
+                  },
+                  {
+                    "code": "B.CR.1.2",
+                    "text": "Compose original rhythmic ideas and melodic ideas that incorporate notation for rhythms or pitches that are appropriate to the proficiency level."
+                  }
+                ]
+              },
+              {
+                "code": "B.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "B.CR.2.1",
+                    "text": "Arrange an existing musical work, changing three or more musical elements."
+                  },
+                  {
+                    "code": "B.CR.2.2",
+                    "text": "Compare artistic adaptation, appropriation, fair use, copyright, public domain, open source, and creative commons in music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "B.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "B.PR.1.1",
+                    "text": "Apply feedback from instructors, peers, and self to refine musical technique, presentations, compositions, or ideas."
+                  },
+                  {
+                    "code": "B.PR.1.2",
+                    "text": "Read standard notation to perform music in treble or bass clef with whole, half, dotted half, quarter, dotted quarter, eighths, sixteenths, equivalent rests, and basic syncopation and tied rhythms in 2/4, 3/4, 4/4, and 6/8 meters."
+                  },
+                  {
+                    "code": "B.PR.1.3",
+                    "text": "Perform or produce rounds, canons, and partner songs in unison and simple harmony."
+                  },
+                  {
+                    "code": "B.PR.1.4",
+                    "text": "Demonstrate the meaning of symbols and terminology for a variety of tempos, dynamics, articulations, phrasing, and forms with appropriate technique when performing or producing music."
+                  }
+                ]
+              },
+              {
+                "code": "B.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "B.PR.2.1",
+                    "text": "Compare music and production elements and how they enhance a musical presentation."
+                  },
+                  {
+                    "code": "B.PR.2.2",
+                    "text": "Define active listening and etiquette appropriate for both formal and informal performances."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "B.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "B.RE.1.1",
+                    "text": "Identify symbols and terminology for a variety of tempos, dynamics, articulations, phrasing, and forms in aural and written musical works."
+                  },
+                  {
+                    "code": "B.RE.1.2",
+                    "text": "Infer possible artistic intentions of the composer, producer, creator, or performer in a variety of musical works."
+                  },
+                  {
+                    "code": "B.RE.1.3",
+                    "text": "Describe the timbres of a variety of instruments and voices, including a range of traditional, contemporary, and world music."
+                  }
+                ]
+              },
+              {
+                "code": "B.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "B.RE.2.1",
+                    "text": "Explain how personal preferences can influence evaluation of musical works."
+                  },
+                  {
+                    "code": "B.RE.2.2",
+                    "text": "Evaluate the quality and effectiveness of personal musical efforts, using specific criteria."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "accomplished": {
+        "level": "Accomplished",
+        "code": "AC",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "AC.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "AC.CN.1.1",
+                    "text": "Analyze the development of music throughout historical time periods."
+                  },
+                  {
+                    "code": "AC.CN.1.2",
+                    "text": "Evaluate how skills honed in music strengthen work in other academic or professional domains."
+                  },
+                  {
+                    "code": "AC.CN.1.3",
+                    "text": "Choose music to elicit a sensory, emotional, personal, or intellectual response."
+                  }
+                ]
+              },
+              {
+                "code": "AC.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "AC.CN.2.1",
+                    "text": "Describe how the creative process and the process of making music connect to college, career, and post-secondary skills."
+                  },
+                  {
+                    "code": "AC.CN.2.2",
+                    "text": "Analyze how technological developments and innovations impact the field of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "AC.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "AC.CR.1.1",
+                    "text": "Improvise musical ideas over a changing harmonic accompaniment."
+                  },
+                  {
+                    "code": "AC.CR.1.2",
+                    "text": "Compose an original work that uses multiple layers or tone colors to express a mood, emotion, idea, or experience in a formalized structure."
+                  }
+                ]
+              },
+              {
+                "code": "AC.CR.2",
+                "text": "Adapt original musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "AC.CR.2.1",
+                    "text": "Arrange personal musical ideas into an existing piece of music that communicate the musical elements of expression, such as tension and release, unity and variety, and balance."
+                  },
+                  {
+                    "code": "AC.CR.2.2",
+                    "text": "Compare how parody, adaptation, and artificial intelligence relate to copyright and fair use of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "AC.PR.1",
+                "text": "Perform music from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "AC.PR.1.1",
+                    "text": "Apply personally-developed criteria to refine musical technique, presentations, compositions, or ideas."
+                  },
+                  {
+                    "code": "AC.PR.1.2",
+                    "text": "Read standard notation to perform or produce music in a variety of clefs and tonalities with hemiolas and syncopation in simple, compound, mixed, and asymmetrical meters."
+                  },
+                  {
+                    "code": "AC.PR.1.3",
+                    "text": "Perform or produce music from a variety of global musical styles."
+                  },
+                  {
+                    "code": "AC.PR.1.4",
+                    "text": "Demonstrate the meaning of symbols and terminology for a continua of tempos and dynamics and a variety of articulations, phrasing, and forms with appropriate technique when performing or producing music."
+                  }
+                ]
+              },
+              {
+                "code": "AC.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "AC.PR.2.1",
+                    "text": "Develop musical presentations, compositions, or ideas based on a distinct purpose or context, as well as personal interest and abilities."
+                  },
+                  {
+                    "code": "AC.PR.2.2",
+                    "text": "Discuss how audience and performer etiquette impact the experience of a performance within a variety of contexts."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "AC.RE.1",
+                "text": "Analyze musical works from a variety of styles, cultures, and genres including response through moving, singing, playing instruments, or content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "AC.RE.1.1",
+                    "text": "Analyze symbols and terminology for a continua of tempos and dynamics, a variety of articulations and phrasing, in a variety of forms in aural and written musical works."
+                  },
+                  {
+                    "code": "AC.RE.1.2",
+                    "text": "Compare interpretations of the artistic intent of composers, producers, creators, or performers based on historical information or context."
+                  },
+                  {
+                    "code": "AC.RE.1.3",
+                    "text": "Analyze the qualities and characteristics of a variety of instruments and voices, including diverse traditional, contemporary, and world music."
+                  }
+                ]
+              },
+              {
+                "code": "AC.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "AC.RE.2.1",
+                    "text": "Describe the impact of commercial marketing on personal preferences for musical works."
+                  },
+                  {
+                    "code": "AC.RE.2.2",
+                    "text": "Evaluate musical performances, compositions, and ideas using personally-developed criteria, including how music is used to evoke feelings and emotions."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  },
+  "vocal_instrumental_music": {
+    "description": "K-12 Vocal and Instrumental Music standards organized by proficiency level (Novice, Developing, Intermediate, Accomplished, Advanced)",
+    "proficiency_levels": {
+      "novice": {
+        "level": "Novice",
+        "code": "N",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "N.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "N.CN.1.1",
+                    "text": "Explain how music expresses and reflects the values of civilizations around the world."
+                  },
+                  {
+                    "code": "N.CN.1.2",
+                    "text": "Explain how concepts from other content areas can inspire the development of musical ideas."
+                  },
+                  {
+                    "code": "N.CN.1.3",
+                    "text": "Name potential physical and psychological health issues that affect musicians."
+                  }
+                ]
+              },
+              {
+                "code": "N.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "N.CN.2.1",
+                    "text": "Identify musical skills, characteristics, and behaviors that contribute to post-secondary education and career readiness."
+                  },
+                  {
+                    "code": "N.CN.2.2",
+                    "text": "Compare how various innovative tools and ideas have been used in a variety of musical works."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "N.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "N.CR.1.1",
+                    "text": "Improvise short rhythmic phrases."
+                  },
+                  {
+                    "code": "N.CR.1.2",
+                    "text": "Compose simple original rhythmic ideas using an appropriate standard notation system."
+                  }
+                ]
+              },
+              {
+                "code": "N.CR.2",
+                "text": "Adapt musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "N.CR.2.1",
+                    "text": "Arrange a simple musical variation on a given musical phrase."
+                  },
+                  {
+                    "code": "N.CR.2.2",
+                    "text": "Describe how fair use, copyright, public domain, open source, and creative commons affect the ability of musicians to create original, transcribed, and arranged music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "N.PR.1",
+                "text": "Perform musical works from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "N.PR.1.1",
+                    "text": "Identify strategies to improve personal musical technique based on feedback."
+                  },
+                  {
+                    "code": "N.PR.1.2",
+                    "text": "Reproduce appropriate musical technique with support."
+                  },
+                  {
+                    "code": "N.PR.1.3",
+                    "text": "Sing or play audiated rhythms and pitches accurately."
+                  },
+                  {
+                    "code": "N.PR.1.4",
+                    "text": "Sight-read musical patterns."
+                  },
+                  {
+                    "code": "N.PR.1.5",
+                    "text": "Sing or play simple scales, syncopated rhythms, whole, half, dotted half, quarter, dotted quarter, eighth, and sixteenth note and rests in 2/4, 3/4, and 4/4 meters in unison or two-part repertoire."
+                  },
+                  {
+                    "code": "N.PR.1.6",
+                    "text": "Demonstrate the meaning of music symbols, terminology, and gestures of a conductor when applicable, in the performance of tempos, forms, articulations, and dynamics found in novice repertoire."
+                  }
+                ]
+              },
+              {
+                "code": "N.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "N.PR.2.1",
+                    "text": "List the processes that are a part of programming a musical performance."
+                  },
+                  {
+                    "code": "N.PR.2.2",
+                    "text": "Define active listening and etiquette appropriate in both formal and informal performances."
+                  },
+                  {
+                    "code": "N.PR.2.3",
+                    "text": "Identify the elements of design, production, and equipment as it pertains to developing a music performance."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "N.RE.1",
+                "text": "Analyze aural and written works of music from a variety of styles and genres using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "N.RE.1.1",
+                    "text": "Identify form and dynamics in aural and written works of music."
+                  },
+                  {
+                    "code": "N.RE.1.2",
+                    "text": "Identify the artistic choices made by peers and others."
+                  }
+                ]
+              },
+              {
+                "code": "N.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "N.RE.2.1",
+                    "text": "Compare personal responses to a variety of music."
+                  },
+                  {
+                    "code": "N.RE.2.2",
+                    "text": "Evaluate musical performances, compositions, and technique using specific criteria."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "developing": {
+        "level": "Developing",
+        "code": "D",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "D.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "D.CN.1.1",
+                    "text": "Identify the influences and contributions the music of North Carolina and the United States has had on the broader music community."
+                  },
+                  {
+                    "code": "D.CN.1.2",
+                    "text": "Explain how music skills and processes can be applied to solve a variety of musical problems."
+                  },
+                  {
+                    "code": "D.CN.1.3",
+                    "text": "Identify activities that could cause physical and psychological health issues for musicians."
+                  }
+                ]
+              },
+              {
+                "code": "D.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "D.CN.2.1",
+                    "text": "Identify music skills, characteristics, and behaviors needed to create, produce, design, and market music."
+                  },
+                  {
+                    "code": "D.CN.2.2",
+                    "text": "Identify how various tools, innovations, and processes influence the development of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "D.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "D.CR.1.1",
+                    "text": "Improvise short melodic phrases."
+                  },
+                  {
+                    "code": "D.CR.1.2",
+                    "text": "Compose simple original melodic ideas in a given clef using an appropriate standard notation system."
+                  }
+                ]
+              },
+              {
+                "code": "D.CR.2",
+                "text": "Adapt musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "D.CR.2.1",
+                    "text": "Arrange an expanded musical variation on a given musical phrase."
+                  },
+                  {
+                    "code": "D.CR.2.2",
+                    "text": "Explain how to share works of music legally and ethically, both in physical and digital spaces."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "D.PR.1",
+                "text": "Perform musical works from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "D.PR.1.1",
+                    "text": "Apply the evaluations from instructor, peers, and self to improve a musical technique or performance."
+                  },
+                  {
+                    "code": "D.PR.1.2",
+                    "text": "Demonstrate appropriate musical technique with support."
+                  },
+                  {
+                    "code": "D.PR.1.3",
+                    "text": "Distinguish the auditory differences between consonant and dissonant tonalities."
+                  },
+                  {
+                    "code": "D.PR.1.4",
+                    "text": "Sight-read rhythms and melodies."
+                  },
+                  {
+                    "code": "D.PR.1.5",
+                    "text": "Sing or play various scales, accidentals, small intervals, ties within a measure, and anacrusis in 2/4, 3/4, 4/4, and 6/8 meters in unison or multi-part repertoire."
+                  },
+                  {
+                    "code": "D.PR.1.6",
+                    "text": "Demonstrate the meaning of music symbols, terminology, and gestures of a conductor, when applicable, in the performance of tempos, forms, articulations, and dynamics found in developing repertoire."
+                  }
+                ]
+              },
+              {
+                "code": "D.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "D.PR.2.1",
+                    "text": "Compare the advantages and disadvantages of repertoire when selecting from provided options for a musical performance."
+                  },
+                  {
+                    "code": "D.PR.2.2",
+                    "text": "Demonstrate active listening and etiquette appropriate for both formal and informal performances."
+                  },
+                  {
+                    "code": "D.PR.2.3",
+                    "text": "Generate ideas for the elements of design, production, and equipment for developing a music performance."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "D.RE.1",
+                "text": "Analyze aural and written works of music from a variety of styles and genres using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "D.RE.1.1",
+                    "text": "Analyze form, dynamics, and phrasing in aural and written works of music."
+                  },
+                  {
+                    "code": "D.RE.1.2",
+                    "text": "Explain how a musician's artistic choices are influenced by personal experience, culture, and environment."
+                  }
+                ]
+              },
+              {
+                "code": "D.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "D.RE.2.1",
+                    "text": "Explain how culture, environment, and diverse types of music influence personal preference."
+                  },
+                  {
+                    "code": "D.RE.2.2",
+                    "text": "Evaluate the quality and effectiveness of musical performances, compositions, and improvisations using specific criteria appropriate for the genre."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "intermediate": {
+        "level": "Intermediate",
+        "code": "I",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "I.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "I.CN.1.1",
+                    "text": "Explain how musicians, trends, and styles are impacted by societal, cultural, and historical events."
+                  },
+                  {
+                    "code": "I.CN.1.2",
+                    "text": "Apply skills and knowledge gained from other content areas or personal experiences to solve musical challenges."
+                  },
+                  {
+                    "code": "I.CN.1.3",
+                    "text": "Identify effective strategies for recognizing and preventing physical and psychological health issues that affect musicians."
+                  }
+                ]
+              },
+              {
+                "code": "I.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "I.CN.2.1",
+                    "text": "Compare the advantages and disadvantages of exploring music as a vocational, educational, or professional choice."
+                  },
+                  {
+                    "code": "I.CN.2.2",
+                    "text": "Analyze the impact of contemporary media on the creation, notation, and production of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "I.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "I.CR.1.1",
+                    "text": "Improvise on an existing melody."
+                  },
+                  {
+                    "code": "I.CR.1.2",
+                    "text": "Compose an original countermelody or harmonic accompaniment for given melodies using an appropriate standard notation system."
+                  }
+                ]
+              },
+              {
+                "code": "I.CR.2",
+                "text": "Adapt musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "I.CR.2.1",
+                    "text": "Arrange an existing piece of music for an ensemble of 2-3 parts."
+                  },
+                  {
+                    "code": "I.CR.2.2",
+                    "text": "Evaluate the ethics of making, producing, and distributing original, transcribed, and arranged music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "I.PR.1",
+                "text": "Perform musical works from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "I.PR.1.1",
+                    "text": "Set personal goals for improving music performance based on feedback."
+                  },
+                  {
+                    "code": "I.PR.1.2",
+                    "text": "Demonstrate appropriate musical technique consistently without support."
+                  },
+                  {
+                    "code": "I.PR.1.3",
+                    "text": "Sing or play audiated rhythmic/melodic patterns or intervals in tune."
+                  },
+                  {
+                    "code": "I.PR.1.4",
+                    "text": "Sight-read countermelodies or rhythmic/harmonic accompaniments."
+                  },
+                  {
+                    "code": "I.PR.1.5",
+                    "text": "Sing or play chromatic, major, or minor scales with simple key changes, triplets, and ties across the bar line in a variety of meters, including 2/2 and simple meter changes in homophonic or polyphonic repertoire."
+                  },
+                  {
+                    "code": "I.PR.1.6",
+                    "text": "Demonstrate the meaning of music symbols, terminology, and gestures of a conductor when applicable, in the performance of tempos, forms, articulations, and dynamics found in intermediate repertoire."
+                  }
+                ]
+              },
+              {
+                "code": "I.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "I.PR.2.1",
+                    "text": "Justify chosen musical programming for a specified audience."
+                  },
+                  {
+                    "code": "I.PR.2.2",
+                    "text": "Identify personal goals to improve active listening and etiquette appropriate in various music performances."
+                  },
+                  {
+                    "code": "I.PR.2.3",
+                    "text": "Identify components and practices necessary to facilitate an effective performance."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "I.RE.1",
+                "text": "Analyze aural and written works of music from a variety of styles and genres using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "I.RE.1.1",
+                    "text": "Analyze how tempo changes and form are used to structure compositions."
+                  },
+                  {
+                    "code": "I.RE.1.2",
+                    "text": "Describe how the musician's intent impacts how an audience interprets music."
+                  }
+                ]
+              },
+              {
+                "code": "I.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "I.RE.2.1",
+                    "text": "Explain how personal preferences impact the ability to view musical works objectively."
+                  },
+                  {
+                    "code": "I.RE.2.2",
+                    "text": "Critique musical performances, compositions, arrangements, and improvisations, generating suggestions for improvement."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "accomplished": {
+        "level": "Accomplished",
+        "code": "AC",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "AC.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "AC.CN.1.1",
+                    "text": "Analyze the development of music throughout historical time periods."
+                  },
+                  {
+                    "code": "AC.CN.1.2",
+                    "text": "Evaluate how skills honed in music strengthen work in other academic or professional areas."
+                  },
+                  {
+                    "code": "AC.CN.1.3",
+                    "text": "Implement effective strategies for preventing, managing, and overcoming physical and psychological health issues that affect musicians."
+                  }
+                ]
+              },
+              {
+                "code": "AC.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "AC.CN.2.1",
+                    "text": "Compare the differing requirements necessary to pursue various careers in music."
+                  },
+                  {
+                    "code": "AC.CN.2.2",
+                    "text": "Analyze how extended techniques, technological developments, and new media impact the field of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "AC.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "AC.CR.1.1",
+                    "text": "Improvise melodies in various keys."
+                  },
+                  {
+                    "code": "AC.CR.1.2",
+                    "text": "Compose an original musical idea for two or more voices using an appropriate standard notation system."
+                  }
+                ]
+              },
+              {
+                "code": "AC.CR.2",
+                "text": "Adapt musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "AC.CR.2.1",
+                    "text": "Arrange an existing piece of music for an ensemble of 3-4 homophonic parts within given parameters."
+                  },
+                  {
+                    "code": "AC.CR.2.2",
+                    "text": "Compare how parody, adaptation, and artificial intelligence relate to copyright and fair use of music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "AC.PR.1",
+                "text": "Perform musical works from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "AC.PR.1.1",
+                    "text": "Analyze the effectiveness of a strategy used to improve musical technique."
+                  },
+                  {
+                    "code": "AC.PR.1.2",
+                    "text": "Execute musical technique appropriate to the style and genre of performed music."
+                  },
+                  {
+                    "code": "AC.PR.1.3",
+                    "text": "Demonstrate the ability to sing or play familiar audiated musical phrases accurately."
+                  },
+                  {
+                    "code": "AC.PR.1.4",
+                    "text": "Sight-read music written for two or more voices."
+                  },
+                  {
+                    "code": "AC.PR.1.5",
+                    "text": "Sing or play blues scales, multiple key changes, hemiolas, and swing rhythms in a variety of meters, including asymmetrical meters in challenging homophonic or polyphonic repertoire."
+                  },
+                  {
+                    "code": "AC.PR.1.6",
+                    "text": "Demonstrate the meaning of music symbols, terminology and advanced conducting patterns and gestures when applicable, in the performance of tempos, forms, articulations, and dynamics found in accomplished repertoire."
+                  }
+                ]
+              },
+              {
+                "code": "AC.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "AC.PR.2.1",
+                    "text": "Develop a vision for a musical performance that engages a specified audience and supports the purpose of the performance."
+                  },
+                  {
+                    "code": "AC.PR.2.2",
+                    "text": "Make recommendations to improve active listening and etiquette appropriate for various music performances."
+                  },
+                  {
+                    "code": "AC.PR.2.3",
+                    "text": "Select the elements of design, production, or equipment for developing a music performance."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "AC.RE.1",
+                "text": "Analyze aural and written works of music from a variety of styles and genres using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "AC.RE.1.1",
+                    "text": "Analyze how form is used to structure compositions of various historical and cultural genres."
+                  },
+                  {
+                    "code": "AC.RE.1.2",
+                    "text": "Analyze how musicians make creative decisions to convey their artistic intent."
+                  }
+                ]
+              },
+              {
+                "code": "AC.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "AC.RE.2.1",
+                    "text": "Describe the impact of commercial marketing on personal preferences for musical works."
+                  },
+                  {
+                    "code": "AC.RE.2.2",
+                    "text": "Generate strategies to improve the quality and effectiveness of musical performances, compositions, arrangements, and improvisations."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "advanced": {
+        "level": "Advanced",
+        "code": "AD",
+        "strands": {
+          "connect": {
+            "strand_code": "CN",
+            "strand_name": "Connect",
+            "strand_description": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+            "standards": [
+              {
+                "code": "AD.CN.1",
+                "text": "Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups.",
+                "objectives": [
+                  {
+                    "code": "AD.CN.1.1",
+                    "text": "Analyze how the global expansion of music from the 19th century to the present impacts both current and future music trends, styles, and artists."
+                  },
+                  {
+                    "code": "AD.CN.1.2",
+                    "text": "Analyze the interdisciplinary connections inherent in music creation and performance and their relevance across different fields."
+                  },
+                  {
+                    "code": "AD.CN.1.3",
+                    "text": "Compare the effectiveness of strategies for preventing, monitoring, and overcoming physical and psychological health issues that affect musicians."
+                  }
+                ]
+              },
+              {
+                "code": "AD.CN.2",
+                "text": "Explore advancements in the field of music.",
+                "objectives": [
+                  {
+                    "code": "AD.CN.2.1",
+                    "text": "Identify the training, skills, and plan of action necessary for success in a selected career in music."
+                  },
+                  {
+                    "code": "AD.CN.2.2",
+                    "text": "Analyze how music tools, ideas, and innovations are expanding opportunities in business, career, and life."
+                  }
+                ]
+              }
+            ]
+          },
+          "create": {
+            "strand_code": "CR",
+            "strand_name": "Create",
+            "strand_description": "Create and adapt new artistic ideas and work individually or collaboratively.",
+            "standards": [
+              {
+                "code": "AD.CR.1",
+                "text": "Create original musical ideas and works, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "AD.CR.1.1",
+                    "text": "Improvise melodies over changing harmonic accompaniment."
+                  },
+                  {
+                    "code": "AD.CR.1.2",
+                    "text": "Compose original music with melodic and harmonic components using an appropriate standard notation system."
+                  }
+                ]
+              },
+              {
+                "code": "AD.CR.2",
+                "text": "Adapt musical ideas and works, and those of peers and other artists, independently and collaboratively.",
+                "objectives": [
+                  {
+                    "code": "AD.CR.2.1",
+                    "text": "Arrange an existing piece of music for an ensemble of 3-4 polyphonic parts within given parameters."
+                  },
+                  {
+                    "code": "AD.CR.2.2",
+                    "text": "Explain how to gain the legal right to use another artist's music."
+                  }
+                ]
+              }
+            ]
+          },
+          "present": {
+            "strand_code": "PR",
+            "strand_name": "Present",
+            "strand_description": "Present, perform, produce, and develop artistic ideas and works.",
+            "standards": [
+              {
+                "code": "AD.PR.1",
+                "text": "Perform musical works from a variety of styles, cultures, and genres.",
+                "objectives": [
+                  {
+                    "code": "AD.PR.1.1",
+                    "text": "Create effective rehearsal strategies based on feedback."
+                  },
+                  {
+                    "code": "AD.PR.1.2",
+                    "text": "Embody appropriate musical technique naturally in an automatic, intuitive way."
+                  },
+                  {
+                    "code": "AD.PR.1.3",
+                    "text": "Demonstrate the ability to sing or play unfamiliar audiated musical phrases by sight."
+                  },
+                  {
+                    "code": "AD.PR.1.4",
+                    "text": "Sight-read music containing multiple rhythmic/harmonic components."
+                  },
+                  {
+                    "code": "AD.PR.1.5",
+                    "text": "Sing or play difficult homophonic or polyphonic repertoire with globally diverse tonalities and those with mixed meters."
+                  },
+                  {
+                    "code": "AD.PR.1.6",
+                    "text": "Demonstrate the meaning of music symbols and advanced conducting patterns and gestures when applicable, in the performance of tempos, forms, articulations, and dynamics found in advanced repertoire."
+                  }
+                ]
+              },
+              {
+                "code": "AD.PR.2",
+                "text": "Develop musical presentations.",
+                "objectives": [
+                  {
+                    "code": "AD.PR.2.1",
+                    "text": "Produce a musical program that engages a specified audience and supports the purpose of the performance."
+                  },
+                  {
+                    "code": "AD.PR.2.2",
+                    "text": "Model active listening and etiquette appropriate in both formal and informal performances."
+                  },
+                  {
+                    "code": "AD.PR.2.3",
+                    "text": "Execute the setup of the design, production, or equipment for developing a music performance."
+                  }
+                ]
+              }
+            ]
+          },
+          "respond": {
+            "strand_code": "RE",
+            "strand_name": "Respond",
+            "strand_description": "Analyze and evaluate how the arts communicate.",
+            "standards": [
+              {
+                "code": "AD.RE.1",
+                "text": "Analyze aural and written works of music from a variety of styles and genres using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "AD.RE.1.1",
+                    "text": "Analyze the interaction of elements that make works of music unique, interesting, and expressive."
+                  },
+                  {
+                    "code": "AD.RE.1.2",
+                    "text": "Evaluate the effectiveness with which a musician conveys intent."
+                  }
+                ]
+              },
+              {
+                "code": "AD.RE.2",
+                "text": "Evaluate musical works using content-specific vocabulary.",
+                "objectives": [
+                  {
+                    "code": "AD.RE.2.1",
+                    "text": "Justify personal preferences for musical works acknowledging the influence of history, society, culture, and commercial music."
+                  },
+                  {
+                    "code": "AD.RE.2.2",
+                    "text": "Critique musical performances, compositions, arrangements, and improvisations in terms of aesthetic qualities, including how music is used to evoke feelings and emotions."
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

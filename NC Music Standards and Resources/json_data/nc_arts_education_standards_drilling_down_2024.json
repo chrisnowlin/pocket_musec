@@ -1,0 +1,195 @@
+{
+  "document": {
+    "title": "Drilling Down the NC Arts Education Standards",
+    "revision_date": "Rev. July 9, 2024",
+    "source": "Final NCSCOS Arts Education Framework - Google Docs.pdf",
+    "organization": "North Carolina Department of PUBLIC INSTRUCTION"
+  },
+  "description": "The following table describes how to drill down through the strand and standard to the objective level so that educators better understand the skills and knowledge which are developed K-12 throughout a discipline in the new North Carolina Standard Courses of Study in Dance, Music, Theatre Arts, and Visual Arts (2024).",
+  "structure": [
+    {
+      "strand": {
+        "code": "CONNECT",
+        "name": "Connect",
+        "subtitle": "Explore and relate artistic ideas and works to past, present, and future societies and cultures.",
+        "artistic_process": "Connect"
+      },
+      "standards": [
+        {
+          "code": "CN.1",
+          "big_idea": "Relate <artistic> ideas and works with personal, societal, cultural, and historical, and daily life contexts, including diverse and marginalized groups.",
+          "objectives": [
+            {
+              "code": "A",
+              "focused_idea": "Deepen understanding of artistic ideas by relating to historic, societal, cultural, and/or daily life contexts"
+            },
+            {
+              "code": "B",
+              "focused_idea": "Co-curricular Integration"
+            }
+          ],
+          "essential_questions": [
+            "How do the world and this artform influence one another?",
+            "How do school, life, and arts education skills relate to one another?"
+          ]
+        },
+        {
+          "code": "CN.2",
+          "big_idea": "Explore advancements in the field of <my art>",
+          "objectives": [
+            {
+              "code": "A",
+              "focused_idea": "Postsecondary opportunities and careers of art professionals"
+            },
+            {
+              "code": "B",
+              "focused_idea": "Explore innovative methods, tools, and technologies used by artists in the professional industry"
+            }
+          ],
+          "essential_questions": [
+            "What college and/or career opportunities exist in this artform?",
+            "How is the artform transforming in the world?"
+          ]
+        }
+      ]
+    },
+    {
+      "strand": {
+        "code": "CREATE",
+        "name": "Create",
+        "subtitle": "Create and adapt new artistic ideas and work individually or collaboratively.",
+        "artistic_process": "Create"
+      },
+      "standards": [
+        {
+          "code": "CR.1",
+          "big_idea": "Create original <artistic> ideas and work, independently and collaboratively.",
+          "objectives": [
+            {
+              "code": "A",
+              "focused_idea": "Improvise, or experiment with, original works of art"
+            },
+            {
+              "code": "B",
+              "focused_idea": "Create planned original work"
+            }
+          ],
+          "essential_questions": [
+            "How does exploration, experimentation, improvisation, and investigation happen in art-making?",
+            "How are original works created and documented?"
+          ]
+        },
+        {
+          "code": "CR.2",
+          "big_idea": "Adapt original <artistic> ideas and works, and those of peers and other artists, independently and collaboratively.",
+          "objectives": [
+            {
+              "code": "A",
+              "focused_idea": "Arrange, adapt, or derive from other artistic ideas"
+            },
+            {
+              "code": "B",
+              "focused_idea": "Explain how artistic works are protected, shared, and used fairly by audiences and other artists."
+            }
+          ],
+          "essential_questions": [
+            "How can artwork be adapted or modified with new ideas without appropriating?",
+            "How does an artist protect their work or use another artists' work fairly?"
+          ]
+        }
+      ]
+    },
+    {
+      "strand": {
+        "code": "PRESENT",
+        "name": "Present",
+        "subtitle": "Perform, produce, present, and develop my own and others' artistic ideas and work",
+        "artistic_process": "Present"
+      },
+      "standards": [
+        {
+          "code": "PR.1",
+          "big_idea": "Perform <artistic> work from a variety of styles, cultures, and genres.",
+          "objectives": [
+            {
+              "code": "A",
+              "focused_idea": "Improve <artistic> technique by applying feedback"
+            },
+            {
+              "code": "B",
+              "focused_idea": "Perform/Present <artistic> work for an audience"
+            }
+          ],
+          "essential_questions": [
+            "What steps can be taken to improve as an artist?",
+            "How can skills be presented informally or formally to an audience with clarity and focus?"
+          ]
+        },
+        {
+          "code": "PR.2",
+          "big_idea": "Develop <artistic> presentations",
+          "objectives": [
+            {
+              "code": "A",
+              "focused_idea": "Identify the production needs of presentations"
+            },
+            {
+              "code": "B",
+              "focused_idea": "Demonstrate audience and presenter etiquette appropriate to the context of a presentation"
+            }
+          ],
+          "essential_questions": [
+            "What does it take to produce a presentation or performance?",
+            "How does the venue and presentation formality influence meaning and performer/presenter and audience etiquette?"
+          ]
+        }
+      ]
+    },
+    {
+      "strand": {
+        "code": "RESPOND",
+        "name": "Respond",
+        "subtitle": "Analyze and evaluate how the arts communi- cate with their audience",
+        "artistic_process": "Respond"
+      },
+      "standards": [
+        {
+          "code": "RE.1",
+          "big_idea": "Analyze <artistic> works from a variety of styles, cultures, and genres using content-specific vocabulary.",
+          "objectives": [
+            {
+              "code": "A",
+              "focused_idea": "Identify skills and techniques used in <artistic> works"
+            },
+            {
+              "code": "B",
+              "focused_idea": "Interpret intent and purpose in <artistic> work"
+            }
+          ],
+          "essential_questions": [
+            "What did the artist present?",
+            "Why did the artist make specific creative choices?"
+          ]
+        },
+        {
+          "code": "RE.2",
+          "big_idea": "Evaluate <artistic> works using content-specific vocabulary.",
+          "objectives": [
+            {
+              "code": "A",
+              "focused_idea": "Examine the effect of personal preferences"
+            },
+            {
+              "code": "B",
+              "focused_idea": "Evaluate artistic work and provide feedback"
+            }
+          ],
+          "essential_questions": [
+            "How do personal preferences influence responses to artwork?",
+            "How can feedback be given to self and others?"
+          ]
+        }
+      ]
+    }
+  ]
+}
