@@ -31,6 +31,7 @@ class CitationRepository:
         page_number: Optional[int] = None,
         excerpt: Optional[str] = None,
         citation_text: str = "",
+        file_id: Optional[str] = None,
     ) -> Citation:
         """
         Save citation to database
@@ -44,6 +45,7 @@ class CitationRepository:
             page_number: Optional page number
             excerpt: Optional text excerpt
             citation_text: Formatted citation text
+            file_id: Optional file ID for source tracking
 
         Returns:
             Created Citation model
@@ -57,9 +59,9 @@ class CitationRepository:
                 """
                 INSERT INTO citations (
                     id, lesson_id, source_type, source_id, source_title,
-                    page_number, excerpt, citation_text, citation_number, created_at
+                    page_number, excerpt, citation_text, citation_number, file_id, created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
                 (
                     citation_id,
@@ -71,6 +73,7 @@ class CitationRepository:
                     excerpt,
                     citation_text,
                     citation_number,
+                    file_id,
                     now,
                 ),
             )
@@ -107,10 +110,10 @@ class CitationRepository:
                     """
                     INSERT INTO citations (
                         id, lesson_id, source_type, source_id, source_title,
-                        page_number, excerpt, citation_text, citation_number, created_at
+                        page_number, excerpt, citation_text, citation_number, file_id, created_at
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """,
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
                     (
                         citation_id,
                         lesson_id,
@@ -121,6 +124,7 @@ class CitationRepository:
                         citation_data.get("excerpt"),
                         citation_data["citation_text"],
                         citation_data["citation_number"],
+                        citation_data.get("file_id"),
                         now,
                     ),
                 )
@@ -242,6 +246,33 @@ class CitationRepository:
         finally:
             conn.close()
 
+    def get_citations_by_file_id(self, file_id: str) -> List[Citation]:
+        """
+        Get all citations for a specific file
+        
+        Args:
+            file_id: File identifier
+            
+        Returns:
+            List of citations
+        """
+        conn = self.get_connection()
+        try:
+            cursor = conn.execute(
+                """
+                SELECT * FROM citations
+                WHERE file_id = ?
+                ORDER BY created_at DESC
+                """,
+                (file_id,),
+            )
+            
+            rows = cursor.fetchall()
+            return [self._row_to_citation(row) for row in rows]
+            
+        finally:
+            conn.close()
+
     def _row_to_citation(self, row: sqlite3.Row) -> Citation:
         """Convert database row to Citation model"""
         return Citation(
@@ -254,6 +285,7 @@ class CitationRepository:
             excerpt=row["excerpt"],
             citation_text=row["citation_text"],
             citation_number=row["citation_number"],
+            file_id=row["file_id"],
             created_at=datetime.fromisoformat(row["created_at"])
             if row["created_at"]
             else None,

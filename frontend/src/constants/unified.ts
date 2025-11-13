@@ -15,59 +15,7 @@ export const gradeOptions = [
 
 export const strandOptions = ['Connect', 'Create', 'Respond', 'Present'];
 
-export const standardLibrary: StandardRecord[] = [
-  {
-    id: 'cn-3-1',
-    code: '3.CN.1',
-    strand_code: 'CN',
-    strand_name: 'Connect',
-    grade: 'Grade 3',
-    title: 'Understand relationships between music, other disciplines, and daily life',
-    description:
-      'Students explore how music relates to other subjects, cultures, and real‑world experiences.',
-    objectives: 4,
-    last_used: '2 days ago',
-    learningObjectives: [
-      'Explain how music connects to storytelling and visual arts.',
-      'Describe the influence of music on community events.',
-      'Compare how music reflects societal celebrations.',
-    ],
-  },
-  {
-    id: 'cn-3-2',
-    code: '3.CN.2',
-    strand_code: 'CN',
-    strand_name: 'Connect',
-    grade: 'Grade 3',
-    title: 'Explore interdisciplinary and global music connections',
-    description:
-      'Students discover musical ideas across cultures and link them to science, history, and language.',
-    objectives: 3,
-    last_used: 'Never used',
-    learningObjectives: [
-      'Identify musical patterns shared across cultures.',
-      'Relate rhythms to mathematical fractions.',
-      'Discuss how music preserves historical stories.',
-    ],
-  },
-  {
-    id: 'cr-4-1',
-    code: '4.CR.1',
-    strand_code: 'CR',
-    strand_name: 'Create',
-    grade: 'Grade 4',
-    title: 'Create short compositions using classroom instruments',
-    description:
-      'Students improvise and notate ideas that incorporate steady beat and contrasting dynamics.',
-    objectives: 5,
-    last_used: '1 week ago',
-    learningObjectives: [
-      'Write rhythm patterns with quarter and eighth notes.',
-      'Layer dynamics to create contrast.',
-      'Perform composition with peers.',
-    ],
-  },
-];
+export const standardLibrary: StandardRecord[] = [];
 
 export const conversationGroups: ConversationGroup[] = [
   {
@@ -91,4 +39,30 @@ export const quickAccessLinks: QuickAccessLink[] = [];
 export const quickStats: QuickStats = {
   lessonsCreated: 23,
   activeDrafts: 8,
+};
+
+// File Storage Constants
+export const FILE_STORAGE_CONSTANTS = {
+  MAX_FILE_SIZE: 10 * 1024 * 1024, // 10MB in bytes
+  ALLOWED_EXTENSIONS: ['.pdf', '.txt', '.doc', '.docx'],
+  SUPPORTED_MIME_TYPES: [
+    'application/pdf',
+    'text/plain',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ],
+  DEFAULT_PAGE_SIZE: 10,
+  MAX_PAGE_SIZE: 100,
+};
+
+// File Storage Messages
+export const FILE_STORAGE_MESSAGES = {
+  DUPLICATE_FILE: 'This file has already been uploaded and processed.',
+  FILE_TOO_LARGE: 'File size exceeds the maximum allowed size of 10MB.',
+  INVALID_FILE_TYPE: 'File type not supported. Please upload a PDF, TXT, or DOC file.',
+  UPLOAD_SUCCESS: 'File uploaded successfully.',
+  UPLOAD_FAILED: 'File upload failed. Please try again.',
+  DOWNLOAD_FAILED: 'File download failed. Please try again.',
+  PROCESSING_STARTED: 'File processing has started. You will be notified when it completes.',
+  PROCESSING_FAILED: 'File processing failed. Please check the file and try again.',
 };

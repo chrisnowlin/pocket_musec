@@ -112,11 +112,11 @@ recovery_manager = ErrorRecoveryManager()
 def handle_api_errors(func):
     """Decorator for handling API errors with graceful degradation"""
     @wraps(func)
-    def wrapper(*args, **kwargs):
+    async def async_wrapper(*args, **kwargs):
         try:
-            return func(*args, **kwargs)
+            return await func(*args, **kwargs)
         except Exception as e:
-            # Log the error
+            # Log the error with safe serializable context
             context = {
                 'function': func.__name__,
                 'args_count': len(args),
@@ -134,7 +134,35 @@ def handle_api_errors(func):
             else:
                 return handle_generic_api_error(e, context)
     
-    return wrapper
+    @wraps(func)
+    def sync_wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except Exception as e:
+            # Log the error with safe serializable context
+            context = {
+                'function': func.__name__,
+                'args_count': len(args),
+                'kwargs_keys': list(kwargs.keys())
+            }
+            recovery_manager.log_error(e, context)
+            
+            # Determine error type and provide appropriate response
+            if "timeout" in str(e).lower() or "connection" in str(e).lower():
+                return handle_api_timeout_error(e, context)
+            elif "authentication" in str(e).lower() or "401" in str(e):
+                return handle_authentication_error(e, context)
+            elif "rate limit" in str(e).lower() or "429" in str(e):
+                return handle_rate_limit_error(e, context)
+            else:
+                return handle_generic_api_error(e, context)
+    
+    # Return appropriate wrapper based on whether function is async
+    import inspect
+    if inspect.iscoroutinefunction(func):
+        return async_wrapper
+    else:
+        return sync_wrapper
 
 
 def handle_file_errors(func):

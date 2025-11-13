@@ -238,10 +238,10 @@ const [uiState, setUiState] = useState<UIState>({
 #### Database Migration
 ```bash
 # Run unified migration
-python -c "from backend.repositories.migrations import MigrationManager; MigrationManager('data/standards/standards.db').migrate()"
+python -c "from backend.repositories.migrations import MigrationManager; MigrationManager('data/pocket_musec.db').migrate()"
 
 # Check migration status
-python -c "from backend.repositories.migrations import MigrationManager; print(MigrationManager('data/standards/standards.db').get_migration_status())"
+python -c "from backend.repositories.migrations import MigrationManager; print(MigrationManager('data/pocket_musec.db').get_migration_status())"
 ```
 
 #### Configuration Updates

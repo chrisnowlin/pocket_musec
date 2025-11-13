@@ -14,7 +14,7 @@ export interface DatabaseStats {
 }
 
 class StatsService {
-  private baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  private baseUrl = (import.meta.env?.VITE_API_BASE_URL as string) || '/api';
 
   async getIngestionStats(): Promise<DatabaseStats> {
     const response = await fetch(`${this.baseUrl}/ingestion/stats`, {

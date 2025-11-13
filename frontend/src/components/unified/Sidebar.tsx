@@ -81,7 +81,7 @@ export default function Sidebar({
 
       <div className="p-3 border-b border-ink-700">
         <div className="bg-ink-700 rounded-lg p-1 flex flex-wrap gap-1">
-          {(['chat', 'browse', 'ingestion', 'images', 'settings'] as ViewMode[]).map(
+          {(['chat', 'browse', 'ingestion', 'images', 'settings', 'embeddings'] as ViewMode[]).map(
             (viewMode) => (
               <button
                 key={viewMode}

@@ -35,7 +35,7 @@ class APIConfig:
 @dataclass
 class DatabaseConfig:
     """Database configuration"""
-    path: str = field(default_factory=lambda: os.getenv("DATABASE_PATH", "data/standards/standards.db"))
+    path: str = field(default_factory=lambda: os.getenv("DATABASE_PATH", "data/pocket_musec.db"))
     timeout: int = 30
     check_same_thread: bool = False
     
@@ -122,6 +122,39 @@ class LoggingConfig:
 
 
 @dataclass
+class WebSearchConfig:
+    """Web search service configuration for Brave Search MCP integration"""
+    api_key: Optional[str] = field(default_factory=lambda: os.getenv("BRAVE_SEARCH_API_KEY"))
+    cache_ttl: int = field(default_factory=lambda: int(os.getenv("WEB_SEARCH_CACHE_TTL", "3600")))  # 1 hour
+    max_cache_size: int = field(default_factory=lambda: int(os.getenv("WEB_SEARCH_MAX_CACHE_SIZE", "100")))
+    timeout: int = field(default_factory=lambda: int(os.getenv("WEB_SEARCH_TIMEOUT", "30")))  # 30 seconds
+    educational_only: bool = field(default_factory=lambda: os.getenv("WEB_SEARCH_EDUCATIONAL_ONLY", "false").lower() == "true")
+    min_relevance_score: float = field(default_factory=lambda: float(os.getenv("WEB_SEARCH_MIN_RELEVANCE_SCORE", "0.3")))
+    max_results: int = field(default_factory=lambda: int(os.getenv("WEB_SEARCH_MAX_RESULTS", "10")))
+
+
+@dataclass
+class FileStorageConfig:
+    """File storage configuration"""
+    storage_root: str = field(default_factory=lambda: os.getenv("FILE_STORAGE_ROOT", "data/uploads"))
+    max_file_size: int = field(default_factory=lambda: int(os.getenv("MAX_FILE_SIZE", str(50 * 1024 * 1024))))  # 50MB
+    allowed_extensions: List[str] = field(default_factory=lambda: [
+        ext.strip() for ext in os.getenv("ALLOWED_EXTENSIONS", ".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif").split(",")
+    ])
+    duplicate_detection: bool = field(default_factory=lambda: os.getenv("DUPLICATE_DETECTION", "true").lower() == "true")
+    retention_days: int = field(default_factory=lambda: int(os.getenv("FILE_RETENTION_DAYS", "365")))
+    cleanup_enabled: bool = field(default_factory=lambda: os.getenv("FILE_CLEANUP_ENABLED", "true").lower() == "true")
+    
+    def __post_init__(self):
+        """Ensure storage directory exists"""
+        if not Path(self.storage_root).is_absolute():
+            project_root = Path(__file__).parent.parent.parent
+            self.storage_root = str(project_root / self.storage_root)
+        
+        Path(self.storage_root).mkdir(parents=True, exist_ok=True)
+
+
+@dataclass
 class ProcessingConfig:
     """Processing and performance configuration"""
     batch_size: int = 10
@@ -190,6 +223,8 @@ class Config:
         self.processing = ProcessingConfig()
         self.security = SecurityConfig()
         self.paths = PathConfig()
+        self.file_storage = FileStorageConfig()
+        self.web_search = WebSearchConfig()
         
         # Validate configuration
         self.validate()
@@ -325,3 +360,16 @@ CORS_ORIGINS = config.api.cors_origins
 OLLAMA_BASE_URL = config.ollama.base_url
 OLLAMA_MODEL = config.ollama.model
 IMAGE_STORAGE_PATH = config.image_processing.storage_path
+FILE_STORAGE_ROOT = config.file_storage.storage_root
+MAX_FILE_SIZE = config.file_storage.max_file_size
+ALLOWED_EXTENSIONS = config.file_storage.allowed_extensions
+DUPLICATE_DETECTION = config.file_storage.duplicate_detection
+FILE_RETENTION_DAYS = config.file_storage.retention_days
+FILE_CLEANUP_ENABLED = config.file_storage.cleanup_enabled
+BRAVE_SEARCH_API_KEY = config.web_search.api_key
+WEB_SEARCH_CACHE_TTL = config.web_search.cache_ttl
+WEB_SEARCH_MAX_CACHE_SIZE = config.web_search.max_cache_size
+WEB_SEARCH_TIMEOUT = config.web_search.timeout
+WEB_SEARCH_EDUCATIONAL_ONLY = config.web_search.educational_only
+WEB_SEARCH_MIN_RELEVANCE_SCORE = config.web_search.min_relevance_score
+WEB_SEARCH_MAX_RESULTS = config.web_search.max_results

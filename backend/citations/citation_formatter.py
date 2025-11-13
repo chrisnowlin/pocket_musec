@@ -132,6 +132,22 @@ class CitationFormatter:
             ref += "."
             return ref
 
+        elif source.source_type == "web":
+            # Format: [#] "Title," Domain Name, URL.
+            ref = f"[{number}] \"{source.source_title}\""
+            
+            # Add domain information if available
+            if hasattr(source, 'domain') and source.domain:
+                display_domain = source.domain.replace('www.', '')
+                ref += f", {display_domain}"
+                
+            # Add URL for web sources
+            if hasattr(source, 'url') and source.url:
+                ref += f", {source.url}"
+                
+            ref += "."
+            return ref
+            
         else:
             # Generic format
             ref = f"[{number}] {source.source_title}"

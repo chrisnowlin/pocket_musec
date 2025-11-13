@@ -2,6 +2,8 @@
 
 from typing import Any, Dict, List, Optional, Tuple
 from pathlib import Path
+import sqlite3
+import logging
 
 from .node import Node
 from ..ingestion.document_classifier import DocumentClassifier, DocumentType
@@ -120,6 +122,7 @@ class StandardsIngestionNode(Node):
 
         file_path = input_data["absolute_path"]
         file_name = input_data["file_name"]
+        file_id = input_data.get("file_id")
 
         try:
             # Initialize database
@@ -133,7 +136,7 @@ class StandardsIngestionNode(Node):
             standards, objectives = parser.normalize_to_models(file_name)
 
             # Save to database
-            self._save_to_database(standards, objectives)
+            self._save_to_database(standards, objectives, file_id)
 
             # Get statistics
             stats = parser.get_statistics()
@@ -156,43 +159,59 @@ class StandardsIngestionNode(Node):
                 "ingestion_type": "standards",
             }
 
-    def _save_to_database(self, standards: List, objectives: List) -> None:
-        """Save standards and objectives to database"""
+    def _save_to_database(self, standards: List, objectives: List, file_id: Optional[str] = None) -> None:
+        """Save standards and objectives to database with proper transaction management"""
         with self.db_manager.get_connection() as conn:
-            # Save standards
-            for standard in standards:
-                conn.execute(
-                    """INSERT INTO standards 
-                       (standard_id, grade_level, strand_code, strand_name, 
-                        strand_description, standard_text, source_document, 
-                        ingestion_date, version)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        standard.standard_id,
-                        standard.grade_level,
-                        standard.strand_code,
-                        standard.strand_name,
-                        standard.strand_description,
-                        standard.standard_text,
-                        standard.source_document,
-                        standard.ingestion_date,
-                        standard.version,
-                    ),
-                )
+            try:
+                # Start explicit transaction with immediate locking
+                conn.execute("BEGIN IMMEDIATE")
+                
+                self.logger.info(f"Starting transaction to save {len(standards)} standards and {len(objectives)} objectives")
+                
+                # Save standards
+                for standard in standards:
+                    conn.execute(
+                        """INSERT INTO standards
+                           (standard_id, grade_level, strand_code, strand_name,
+                            strand_description, standard_text, source_document, file_id,
+                            ingestion_date, version)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            standard.standard_id,
+                            standard.grade_level,
+                            standard.strand_code,
+                            standard.strand_name,
+                            standard.strand_description,
+                            standard.standard_text,
+                            standard.source_document,
+                            file_id,
+                            standard.ingestion_date,
+                            standard.version,
+                        ),
+                    )
 
-            # Save objectives
-            for objective in objectives:
-                conn.execute(
-                    """INSERT INTO objectives (objective_id, standard_id, objective_text)
-                       VALUES (?, ?, ?)""",
-                    (
-                        objective.objective_id,
-                        objective.standard_id,
-                        objective.objective_text,
-                    ),
-                )
+                # Save objectives
+                for objective in objectives:
+                    conn.execute(
+                        """INSERT INTO objectives (objective_id, standard_id, objective_text, file_id)
+                           VALUES (?, ?, ?, ?)""",
+                        (
+                            objective.objective_id,
+                            objective.standard_id,
+                            objective.objective_text,
+                            file_id,
+                        ),
+                    )
 
-            conn.commit()
+                # Commit the transaction
+                conn.commit()
+                self.logger.info(f"Successfully saved {len(standards)} standards and {len(objectives)} objectives to database")
+                
+            except (sqlite3.Error, sqlite3.DatabaseError, Exception) as e:
+                # Rollback on any error
+                conn.rollback()
+                self.logger.error(f"Database transaction failed, rolled back: {e}")
+                raise Exception(f"Failed to save standards and objectives to database: {str(e)}")
 
 
 class UnpackingIngestionNode(Node):
@@ -212,6 +231,7 @@ class UnpackingIngestionNode(Node):
 
         file_path = input_data["absolute_path"]
         file_name = input_data["file_name"]
+        file_id = input_data.get("file_id")
 
         try:
             # Initialize database with extended schema
@@ -223,7 +243,7 @@ class UnpackingIngestionNode(Node):
 
             # Convert to database models
             unpacking_sections, teaching_strategies, assessment_guidance = (
-                self._normalize_to_models(sections, file_name)
+                self._normalize_to_models(sections, file_name, file_id)
             )
 
             # Save to database
@@ -261,7 +281,7 @@ class UnpackingIngestionNode(Node):
         migrator.migrate_to_extended_schema()
 
     def _normalize_to_models(
-        self, sections: List, file_name: str
+        self, sections: List, file_name: str, file_id: Optional[str] = None
     ) -> Tuple[List, List, List]:
         """Convert parsed sections to database models"""
         from ..repositories.models_extended import (
@@ -302,6 +322,7 @@ class UnpackingIngestionNode(Node):
                 content=section.content,
                 page_number=section.page_number,
                 source_document=file_name,
+                file_id=file_id,
                 ingestion_date=ingestion_date,
             )
             unpacking_sections.append(unpacking_section)
@@ -317,6 +338,7 @@ class UnpackingIngestionNode(Node):
                     strand_code=section.strand_code,
                     standard_id=section.standard_id,
                     source_document=file_name,
+                    file_id=file_id,
                     page_number=section.page_number,
                     ingestion_date=ingestion_date,
                 )
@@ -333,6 +355,7 @@ class UnpackingIngestionNode(Node):
                     strand_code=section.strand_code,
                     standard_id=section.standard_id,
                     source_document=file_name,
+                    file_id=file_id,
                     page_number=section.page_number,
                     ingestion_date=ingestion_date,
                 )
@@ -343,71 +366,88 @@ class UnpackingIngestionNode(Node):
     def _save_to_database(
         self, sections: List, strategies: List, guidance: List
     ) -> None:
-        """Save unpacking content to database"""
+        """Save unpacking content to database with proper transaction management"""
         with self.db_manager.get_connection() as conn:
-            # Save sections
-            for section in sections:
-                conn.execute(
-                    """INSERT INTO unpacking_sections 
-                       (section_id, grade_level, strand_code, standard_id, 
-                        section_title, content, page_number, source_document, 
-                        ingestion_date, version)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        section.section_id,
-                        section.grade_level,
-                        section.strand_code,
-                        section.standard_id,
-                        section.section_title,
-                        section.content,
-                        section.page_number,
-                        section.source_document,
-                        section.ingestion_date,
-                        section.version,
-                    ),
-                )
+            try:
+                # Start explicit transaction with immediate locking
+                conn.execute("BEGIN IMMEDIATE")
+                
+                self.logger.info(f"Starting transaction to save {len(sections)} sections, {len(strategies)} strategies, and {len(guidance)} guidance items")
+                
+                # Save sections
+                for section in sections:
+                    conn.execute(
+                        """INSERT INTO unpacking_sections
+                           (section_id, grade_level, strand_code, standard_id,
+                            section_title, content, page_number, source_document,
+                            file_id, ingestion_date, version)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            section.section_id,
+                            section.grade_level,
+                            section.strand_code,
+                            section.standard_id,
+                            section.section_title,
+                            section.content,
+                            section.page_number,
+                            section.source_document,
+                            section.file_id,
+                            section.ingestion_date,
+                            section.version,
+                        ),
+                    )
 
-            # Save teaching strategies
-            for strategy in strategies:
-                conn.execute(
-                    """INSERT INTO teaching_strategies 
-                       (strategy_id, section_id, strategy_text, grade_level, 
-                        strand_code, standard_id, source_document, page_number, ingestion_date)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        strategy.strategy_id,
-                        strategy.section_id,
-                        strategy.strategy_text,
-                        strategy.grade_level,
-                        strategy.strand_code,
-                        strategy.standard_id,
-                        strategy.source_document,
-                        strategy.page_number,
-                        strategy.ingestion_date,
-                    ),
-                )
+                # Save teaching strategies
+                for strategy in strategies:
+                    conn.execute(
+                        """INSERT INTO teaching_strategies
+                           (strategy_id, section_id, strategy_text, grade_level,
+                            strand_code, standard_id, source_document, file_id, page_number, ingestion_date)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            strategy.strategy_id,
+                            strategy.section_id,
+                            strategy.strategy_text,
+                            strategy.grade_level,
+                            strategy.strand_code,
+                            strategy.standard_id,
+                            strategy.source_document,
+                            strategy.file_id,
+                            strategy.page_number,
+                            strategy.ingestion_date,
+                        ),
+                    )
 
-            # Save assessment guidance
-            for guidance_item in guidance:
-                conn.execute(
-                    """INSERT INTO assessment_guidance 
-                       (guidance_id, section_id, guidance_text, grade_level, 
-                        strand_code, standard_id, source_document, page_number, ingestion_date)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        guidance_item.guidance_id,
-                        guidance_item.section_id,
-                        guidance_item.guidance_text,
-                        guidance_item.grade_level,
-                        guidance_item.strand_code,
-                        guidance_item.standard_id,
-                        guidance_item.source_document,
-                        guidance_item.page_number,
-                        guidance_item.ingestion_date,
-                    ),
-                )
+                # Save assessment guidance
+                for guidance_item in guidance:
+                    conn.execute(
+                        """INSERT INTO assessment_guidance
+                           (guidance_id, section_id, guidance_text, grade_level,
+                            strand_code, standard_id, source_document, file_id, page_number, ingestion_date)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            guidance_item.guidance_id,
+                            guidance_item.section_id,
+                            guidance_item.guidance_text,
+                            guidance_item.grade_level,
+                            guidance_item.strand_code,
+                            guidance_item.standard_id,
+                            guidance_item.source_document,
+                            guidance_item.file_id,
+                            guidance_item.page_number,
+                            guidance_item.ingestion_date,
+                        ),
+                    )
 
-            conn.commit()
+                # Commit the transaction
+                conn.commit()
+                self.logger.info(f"Successfully saved {len(sections)} sections, {len(strategies)} strategies, and {len(guidance)} guidance items to database")
+                
+            except (sqlite3.Error, sqlite3.DatabaseError, Exception) as e:
+                # Rollback on any error
+                conn.rollback()
+                self.logger.error(f"Database transaction failed, rolled back: {e}")
+                raise Exception(f"Failed to save unpacking content to database: {str(e)}")
 
     def _get_statistics(self, sections: List) -> Dict[str, Any]:
         """Get statistics about unpacking content"""
@@ -462,6 +502,7 @@ class AlignmentIngestionNode(Node):
 
         file_path = input_data["absolute_path"]
         file_name = input_data["file_name"]
+        file_id = input_data.get("file_id")
 
         try:
             # Initialize database with extended schema
@@ -476,7 +517,7 @@ class AlignmentIngestionNode(Node):
 
             # Convert to database models
             alignment_relationships, progression_mappings = self._normalize_to_models(
-                relationships, file_name
+                relationships, file_name, file_id
             )
 
             # Save to database
@@ -522,7 +563,7 @@ class AlignmentIngestionNode(Node):
             return "auto"  # Let parser decide
 
     def _normalize_to_models(
-        self, relationships: List, file_name: str
+        self, relationships: List, file_name: str, file_id: Optional[str] = None
     ) -> Tuple[List, List]:
         """Convert parsed relationships to database models"""
         from backend.repositories.models_extended import (
@@ -554,6 +595,7 @@ class AlignmentIngestionNode(Node):
                     strand_code=rel.strand_code,
                     description=rel.description,
                     source_document=file_name,
+                    file_id=file_id,
                     page_number=rel.page_number,
                     ingestion_date=ingestion_date,
                 )
@@ -569,6 +611,7 @@ class AlignmentIngestionNode(Node):
                     standard_mappings=rel.standard_mappings,
                     progression_notes=rel.progression_notes,
                     source_document=file_name,
+                    file_id=file_id,
                     page_number=rel.page_number,
                     ingestion_date=ingestion_date,
                 )
@@ -577,54 +620,70 @@ class AlignmentIngestionNode(Node):
         return alignment_relationships, progression_mappings
 
     def _save_to_database(self, relationships: List, mappings: List) -> None:
-        """Save alignment content to database"""
+        """Save alignment content to database with proper transaction management"""
         import json
 
         with self.db_manager.get_connection() as conn:
-            # Save alignment relationships
-            for rel in relationships:
-                conn.execute(
-                    """INSERT INTO alignment_relationships 
-                       (relationship_id, standard_id, related_standard_ids, 
-                        relationship_type, grade_level, strand_code, description, 
-                        source_document, page_number, ingestion_date, version)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        rel.relationship_id,
-                        rel.standard_id,
-                        json.dumps(rel.related_standard_ids),
-                        rel.relationship_type,
-                        rel.grade_level,
-                        rel.strand_code,
-                        rel.description,
-                        rel.source_document,
-                        rel.page_number,
-                        rel.ingestion_date,
-                        rel.version,
-                    ),
-                )
+            try:
+                # Start explicit transaction with immediate locking
+                conn.execute("BEGIN IMMEDIATE")
+                
+                self.logger.info(f"Starting transaction to save {len(relationships)} relationships and {len(mappings)} mappings")
+                
+                # Save alignment relationships
+                for rel in relationships:
+                    conn.execute(
+                        """INSERT INTO alignment_relationships
+                           (relationship_id, standard_id, related_standard_ids,
+                            relationship_type, grade_level, strand_code, description,
+                            source_document, file_id, page_number, ingestion_date, version)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            rel.relationship_id,
+                            rel.standard_id,
+                            json.dumps(rel.related_standard_ids),
+                            rel.relationship_type,
+                            rel.grade_level,
+                            rel.strand_code,
+                            rel.description,
+                            rel.source_document,
+                            rel.file_id,
+                            rel.page_number,
+                            rel.ingestion_date,
+                            rel.version,
+                        ),
+                    )
 
-            # Save progression mappings
-            for mapping in mappings:
-                conn.execute(
-                    """INSERT INTO progression_mappings 
-                       (mapping_id, skill_name, grade_levels, standard_mappings, 
-                        progression_notes, source_document, page_number, ingestion_date, version)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        mapping.mapping_id,
-                        mapping.skill_name,
-                        json.dumps(mapping.grade_levels),
-                        json.dumps(mapping.standard_mappings),
-                        mapping.progression_notes,
-                        mapping.source_document,
-                        mapping.page_number,
-                        mapping.ingestion_date,
-                        mapping.version,
-                    ),
-                )
-
-            conn.commit()
+                # Save progression mappings
+                for mapping in mappings:
+                    conn.execute(
+                        """INSERT INTO progression_mappings
+                           (mapping_id, skill_name, grade_levels, standard_mappings,
+                            progression_notes, source_document, file_id, page_number, ingestion_date, version)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            mapping.mapping_id,
+                            mapping.skill_name,
+                            json.dumps(mapping.grade_levels),
+                            json.dumps(mapping.standard_mappings),
+                            mapping.progression_notes,
+                            mapping.source_document,
+                            mapping.file_id,
+                            mapping.page_number,
+                            mapping.ingestion_date,
+                            mapping.version,
+                        ),
+                    )
+    
+                # Commit the transaction
+                conn.commit()
+                self.logger.info(f"Successfully saved {len(relationships)} relationships and {len(mappings)} mappings to database")
+                
+            except (sqlite3.Error, sqlite3.DatabaseError, Exception) as e:
+                # Rollback on any error
+                conn.rollback()
+                self.logger.error(f"Database transaction failed, rolled back: {e}")
+                raise Exception(f"Failed to save alignment content to database: {str(e)}")
 
     def _get_statistics(self, relationships: List) -> Dict[str, Any]:
         """Get statistics about alignment content"""
@@ -676,6 +735,7 @@ class ReferenceIngestionNode(Node):
 
         file_path = input_data["absolute_path"]
         file_name = input_data["file_name"]
+        file_id = input_data.get("file_id")
 
         try:
             # Initialize database with extended schema
@@ -690,7 +750,7 @@ class ReferenceIngestionNode(Node):
 
             # Convert to database models
             glossary_entries, faq_entries, resource_entries = self._normalize_to_models(
-                entries, file_name
+                entries, file_name, file_id
             )
 
             # Save to database
@@ -741,7 +801,7 @@ class ReferenceIngestionNode(Node):
             return "auto"  # Let parser decide
 
     def _normalize_to_models(
-        self, entries: List, file_name: str
+        self, entries: List, file_name: str, file_id: Optional[str] = None
     ) -> Tuple[List, List, List]:
         """Convert parsed entries to database models"""
         from backend.repositories.models_extended import (
@@ -772,6 +832,7 @@ class ReferenceIngestionNode(Node):
                     page_number=entry.page_number,
                     related_standards=entry.related_standards,
                     source_document=file_name,
+                    file_id=file_id,
                     ingestion_date=ingestion_date,
                 )
                 glossary_entries.append(glossary_entry)
@@ -786,6 +847,7 @@ class ReferenceIngestionNode(Node):
                     page_number=entry.page_number,
                     category=entry.category,
                     source_document=file_name,
+                    file_id=file_id,
                     ingestion_date=ingestion_date,
                 )
                 faq_entries.append(faq_entry)
@@ -803,6 +865,7 @@ class ReferenceIngestionNode(Node):
                     page_number=entry.page_number,
                     metadata=entry.metadata,
                     source_document=file_name,
+                    file_id=file_id,
                     ingestion_date=ingestion_date,
                 )
                 resource_entries.append(resource_entry)
@@ -810,69 +873,86 @@ class ReferenceIngestionNode(Node):
         return glossary_entries, faq_entries, resource_entries
 
     def _save_to_database(self, glossary: List, faq: List, resources: List) -> None:
-        """Save reference content to database"""
+        """Save reference content to database with proper transaction management"""
         import json
 
         with self.db_manager.get_connection() as conn:
-            # Save glossary entries
-            for entry in glossary:
-                conn.execute(
-                    """INSERT INTO glossary_entries 
-                       (entry_id, term, definition, page_number, 
-                        related_standards, source_document, ingestion_date, version)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        entry.entry_id,
-                        entry.term,
-                        entry.definition,
-                        entry.page_number,
-                        json.dumps(entry.related_standards),
-                        entry.source_document,
-                        entry.ingestion_date,
-                        entry.version,
-                    ),
-                )
+            try:
+                # Start explicit transaction with immediate locking
+                conn.execute("BEGIN IMMEDIATE")
+                
+                self.logger.info(f"Starting transaction to save {len(glossary)} glossary entries, {len(faq)} FAQ entries, and {len(resources)} resource entries")
+                
+                # Save glossary entries
+                for entry in glossary:
+                    conn.execute(
+                        """INSERT INTO glossary_entries
+                           (entry_id, term, definition, page_number,
+                            related_standards, source_document, file_id, ingestion_date, version)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            entry.entry_id,
+                            entry.term,
+                            entry.definition,
+                            entry.page_number,
+                            json.dumps(entry.related_standards),
+                            entry.source_document,
+                            entry.file_id,
+                            entry.ingestion_date,
+                            entry.version,
+                        ),
+                    )
 
-            # Save FAQ entries
-            for entry in faq:
-                conn.execute(
-                    """INSERT INTO faq_entries 
-                       (entry_id, question, answer, page_number, 
-                        category, source_document, ingestion_date, version)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        entry.entry_id,
-                        entry.question,
-                        entry.answer,
-                        entry.page_number,
-                        entry.category,
-                        entry.source_document,
-                        entry.ingestion_date,
-                        entry.version,
-                    ),
-                )
-
-            # Save resource entries
-            for entry in resources:
-                conn.execute(
-                    """INSERT INTO resource_entries 
-                       (entry_id, title, description, content_type, 
-                        page_number, metadata, source_document, ingestion_date, version)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (
-                        entry.entry_id,
-                        entry.title,
-                        entry.description,
-                        entry.content_type,
-                        entry.page_number,
-                        json.dumps(entry.metadata),
-                        entry.source_document,
-                        entry.ingestion_date,
-                        entry.version,
-                    ),
-                )
-
-            conn.commit()
+                # Save FAQ entries
+                for entry in faq:
+                    conn.execute(
+                        """INSERT INTO faq_entries
+                           (entry_id, question, answer, page_number,
+                            category, source_document, file_id, ingestion_date, version)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            entry.entry_id,
+                            entry.question,
+                            entry.answer,
+                            entry.page_number,
+                            entry.category,
+                            entry.source_document,
+                            entry.file_id,
+                            entry.ingestion_date,
+                            entry.version,
+                        ),
+                    )
+    
+                # Save resource entries
+                for entry in resources:
+                    conn.execute(
+                        """INSERT INTO resource_entries
+                           (entry_id, title, description, content_type,
+                            page_number, metadata, source_document, file_id, ingestion_date, version)
+                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                        (
+                            entry.entry_id,
+                            entry.title,
+                            entry.description,
+                            entry.content_type,
+                            entry.page_number,
+                            json.dumps(entry.metadata),
+                            entry.source_document,
+                            entry.file_id,
+                            entry.ingestion_date,
+                            entry.version,
+                        ),
+                    )
+    
+                # Commit the transaction
+                conn.commit()
+                self.logger.info(f"Successfully saved {len(glossary)} glossary entries, {len(faq)} FAQ entries, and {len(resources)} resource entries to database")
+                
+            except (sqlite3.Error, sqlite3.DatabaseError, Exception) as e:
+                # Rollback on any error
+                conn.rollback()
+                self.logger.error(f"Database transaction failed, rolled back: {e}")
+                raise Exception(f"Failed to save reference content to database: {str(e)}")
 
     def _get_statistics(self, entries: List) -> Dict[str, Any]:
         """Get statistics about reference content"""

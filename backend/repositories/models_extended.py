@@ -18,6 +18,7 @@ class UnpackingSection:
     content: str
     page_number: int
     source_document: str
+    file_id: Optional[str] = None
     ingestion_date: str
     version: str = "1.0"
 
@@ -33,6 +34,7 @@ class TeachingStrategy:
     strand_code: Optional[str]
     standard_id: Optional[str]
     source_document: str
+    file_id: Optional[str] = None
     page_number: int
     ingestion_date: str
 
@@ -48,6 +50,7 @@ class AssessmentGuidance:
     strand_code: Optional[str]
     standard_id: Optional[str]
     source_document: str
+    file_id: Optional[str] = None
     page_number: int
     ingestion_date: str
 
@@ -65,6 +68,7 @@ class AlignmentRelationship:
     strand_code: str
     description: str
     source_document: str
+    file_id: Optional[str] = None
     page_number: int
     ingestion_date: str
     version: str = "1.0"
@@ -80,6 +84,7 @@ class ProgressionMapping:
     standard_mappings: Dict[str, str]  # grade -> standard_id
     progression_notes: str
     source_document: str
+    file_id: Optional[str] = None
     page_number: int
     ingestion_date: str
     version: str = "1.0"
@@ -96,6 +101,7 @@ class GlossaryEntry:
     page_number: int
     related_standards: List[str]
     source_document: str
+    file_id: Optional[str] = None
     ingestion_date: str
     version: str = "1.0"
 
@@ -110,6 +116,7 @@ class FAQEntry:
     page_number: int
     category: Optional[str]
     source_document: str
+    file_id: Optional[str] = None
     ingestion_date: str
     version: str = "1.0"
 
@@ -125,6 +132,7 @@ class ResourceEntry:
     page_number: int
     metadata: Dict[str, Any]
     source_document: str
+    file_id: Optional[str] = None
     ingestion_date: str
     version: str = "1.0"
 

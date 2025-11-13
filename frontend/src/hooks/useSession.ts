@@ -2,7 +2,6 @@ import { useState, useCallback, useEffect } from 'react';
 import api from '../lib/api';
 import type { SessionResponsePayload, StandardRecord } from '../lib/types';
 import type { ConversationGroup, ConversationItem } from '../types/unified';
-import { standardLibrary } from '../constants/unified';
 import { frontendToBackendGrade, frontendToBackendStrand } from '../lib/gradeUtils';
 
 // Helper function to transform API response from snake_case to camelCase
@@ -24,7 +23,7 @@ const transformSession = (session: any): SessionResponsePayload => {
 export function useSession() {
   const [session, setSession] = useState<SessionResponsePayload | null>(null);
   const [sessionError, setSessionError] = useState<string | null>(null);
-  const [standards, setStandards] = useState<StandardRecord[]>(standardLibrary);
+  const [standards, setStandards] = useState<StandardRecord[]>([]);
   const [isRetryingSession, setIsRetryingSession] = useState<boolean>(false);
   const [retrySuccess, setRetrySuccess] = useState<boolean | null>(null);
   const [retryMessage, setRetryMessage] = useState<string>('');
@@ -49,7 +48,7 @@ export function useSession() {
       if (result.ok) {
         // Transform API response from snake_case to camelCase
         const payload = result.data.map(transformStandard);
-        setStandards(payload.length ? payload : standardLibrary);
+        setStandards(payload);
       }
     } catch (err) {
       console.error('Failed to load standards', err);
@@ -332,6 +331,7 @@ export function useSession() {
     retrySuccess,
     retryMessage,
     sessions,
+    setSessions,
     isLoadingSessions,
     loadSessions,
     loadConversation,

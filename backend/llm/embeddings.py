@@ -51,9 +51,14 @@ class StandardsEmbeddings:
         self._init_embeddings_table()
     
     def _init_embeddings_table(self):
-        """Initialize embeddings table in database"""
+        """Initialize embeddings table in database with proper transaction management"""
         conn = self.db_manager.get_connection()
         try:
+            # Start explicit transaction with immediate locking
+            conn.execute("BEGIN IMMEDIATE")
+            
+            logger.info("Initializing embeddings tables with proper transaction management")
+            
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS standard_embeddings (
                     standard_id TEXT PRIMARY KEY,
@@ -64,7 +69,9 @@ class StandardsEmbeddings:
                     objectives_text TEXT,
                     embedding_vector BLOB,
                     embedding_dimension INTEGER,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    file_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
                 )
             """)
             
@@ -75,27 +82,48 @@ class StandardsEmbeddings:
                     objective_text TEXT,
                     embedding_vector BLOB,
                     embedding_dimension INTEGER,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    file_id TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
                 )
             """)
             
             # Create indexes for efficient search
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_standard_embeddings_grade 
+                CREATE INDEX IF NOT EXISTS idx_standard_embeddings_grade
                 ON standard_embeddings(grade_level)
             """)
             
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_standard_embeddings_strand 
+                CREATE INDEX IF NOT EXISTS idx_standard_embeddings_strand
                 ON standard_embeddings(strand_code)
             """)
             
             conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_objective_embeddings_standard 
+                CREATE INDEX IF NOT EXISTS idx_objective_embeddings_standard
                 ON objective_embeddings(standard_id)
             """)
             
+            # Create file_id indexes
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_standard_embeddings_file_id
+                ON standard_embeddings(file_id)
+            """)
+            
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_objective_embeddings_file_id
+                ON objective_embeddings(file_id)
+            """)
+            
+            # Commit the transaction
             conn.commit()
+            logger.info("Successfully initialized embeddings tables")
+            
+        except (sqlite3.Error, sqlite3.DatabaseError, Exception) as e:
+            # Rollback on any error
+            conn.rollback()
+            logger.error(f"Failed to initialize embeddings tables, rolled back: {e}")
+            raise Exception(f"Failed to initialize embeddings tables: {str(e)}")
         finally:
             conn.close()
     
@@ -148,18 +176,23 @@ class StandardsEmbeddings:
             logger.error(f"Failed to generate embedding for objective {objective.objective_id}: {str(e)}")
             raise
     
-    def store_standard_embedding(self, standard: Standard, objectives: List[Objective], embedding: List[float]):
-        """Store embedding for a standard"""
+    def store_standard_embedding(self, standard: Standard, objectives: List[Objective], embedding: List[float], file_id: Optional[str] = None):
+        """Store embedding for a standard with proper transaction management"""
         objectives_text = " ".join([obj.objective_text for obj in objectives])
         embedding_bytes = self._serialize_embedding(embedding)
         
         conn = self.db_manager.get_connection()
         try:
+            # Start explicit transaction with immediate locking
+            conn.execute("BEGIN IMMEDIATE")
+            
+            logger.debug(f"Storing embedding for standard {standard.standard_id}")
+            
             conn.execute("""
                 INSERT OR REPLACE INTO standard_embeddings
                 (standard_id, grade_level, strand_code, strand_name, standard_text,
-                 objectives_text, embedding_vector, embedding_dimension)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                 objectives_text, embedding_vector, embedding_dimension, file_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 standard.standard_id,
                 standard.grade_level,
@@ -168,30 +201,55 @@ class StandardsEmbeddings:
                 standard.standard_text,
                 objectives_text,
                 embedding_bytes,
-                len(embedding)
+                len(embedding),
+                file_id
             ))
+            
+            # Commit the transaction
             conn.commit()
+            logger.debug(f"Successfully stored embedding for standard {standard.standard_id}")
+            
+        except (sqlite3.Error, sqlite3.DatabaseError, Exception) as e:
+            # Rollback on any error
+            conn.rollback()
+            logger.error(f"Failed to store embedding for standard {standard.standard_id}, rolled back: {e}")
+            raise Exception(f"Failed to store standard embedding: {str(e)}")
         finally:
             conn.close()
     
-    def store_objective_embedding(self, objective: Objective, embedding: List[float]):
-        """Store embedding for an objective"""
+    def store_objective_embedding(self, objective: Objective, embedding: List[float], file_id: Optional[str] = None):
+        """Store embedding for an objective with proper transaction management"""
         embedding_bytes = self._serialize_embedding(embedding)
         
         conn = self.db_manager.get_connection()
         try:
+            # Start explicit transaction with immediate locking
+            conn.execute("BEGIN IMMEDIATE")
+            
+            logger.debug(f"Storing embedding for objective {objective.objective_id}")
+            
             conn.execute("""
                 INSERT OR REPLACE INTO objective_embeddings
-                (objective_id, standard_id, objective_text, embedding_vector, embedding_dimension)
-                VALUES (?, ?, ?, ?, ?)
+                (objective_id, standard_id, objective_text, embedding_vector, embedding_dimension, file_id)
+                VALUES (?, ?, ?, ?, ?, ?)
             """, (
                 objective.objective_id,
                 objective.standard_id,
                 objective.objective_text,
                 embedding_bytes,
-                len(embedding)
+                len(embedding),
+                file_id
             ))
+            
+            # Commit the transaction
             conn.commit()
+            logger.debug(f"Successfully stored embedding for objective {objective.objective_id}")
+            
+        except (sqlite3.Error, sqlite3.DatabaseError, Exception) as e:
+            # Rollback on any error
+            conn.rollback()
+            logger.error(f"Failed to store embedding for objective {objective.objective_id}, rolled back: {e}")
+            raise Exception(f"Failed to store objective embedding: {str(e)}")
         finally:
             conn.close()
     
@@ -200,9 +258,9 @@ class StandardsEmbeddings:
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT standard_id, grade_level, strand_code, strand_name, 
-                       standard_text, objectives_text, embedding_vector
-                FROM standard_embeddings 
+                SELECT standard_id, grade_level, strand_code, strand_name,
+                       standard_text, objectives_text, embedding_vector, file_id
+                FROM standard_embeddings
                 WHERE standard_id = ?
             """, (standard_id,))
             
@@ -221,6 +279,34 @@ class StandardsEmbeddings:
         finally:
             conn.close()
         return None
+
+    def get_standard_embedding_with_file(self, standard_id: str) -> Optional[Tuple[EmbeddedStandard, Optional[str]]]:
+        """Retrieve embedding for a standard with file_id"""
+        conn = self.db_manager.get_connection()
+        try:
+            cursor = conn.execute("""
+                SELECT standard_id, grade_level, strand_code, strand_name,
+                       standard_text, objectives_text, embedding_vector, file_id
+                FROM standard_embeddings
+                WHERE standard_id = ?
+            """, (standard_id,))
+            
+            row = cursor.fetchone()
+            if row:
+                embedding = self._deserialize_embedding(row[6])
+                embedded_standard = EmbeddedStandard(
+                    standard_id=row[0],
+                    grade_level=row[1],
+                    strand_code=row[2],
+                    strand_name=row[3],
+                    standard_text=row[4],
+                    embedding=embedding,
+                    objectives_text=row[5]
+                )
+                return embedded_standard, row[7]  # file_id
+        finally:
+            conn.close()
+        return None
     
     def get_objective_embedding(self, objective_id: str) -> Optional[EmbeddedObjective]:
         """Retrieve embedding for an objective"""
@@ -228,7 +314,7 @@ class StandardsEmbeddings:
         try:
             cursor = conn.execute("""
                 SELECT objective_id, standard_id, objective_text, embedding_vector
-                FROM objective_embeddings 
+                FROM objective_embeddings
                 WHERE objective_id = ?
             """, (objective_id,))
             
@@ -241,6 +327,30 @@ class StandardsEmbeddings:
                     objective_text=row[2],
                     embedding=embedding
                 )
+        finally:
+            conn.close()
+        return None
+
+    def get_objective_embedding_with_file(self, objective_id: str) -> Optional[Tuple[EmbeddedObjective, Optional[str]]]:
+        """Retrieve embedding for an objective with file_id"""
+        conn = self.db_manager.get_connection()
+        try:
+            cursor = conn.execute("""
+                SELECT objective_id, standard_id, objective_text, embedding_vector, file_id
+                FROM objective_embeddings
+                WHERE objective_id = ?
+            """, (objective_id,))
+            
+            row = cursor.fetchone()
+            if row:
+                embedding = self._deserialize_embedding(row[3])
+                embedded_objective = EmbeddedObjective(
+                    objective_id=row[0],
+                    standard_id=row[1],
+                    objective_text=row[2],
+                    embedding=embedding
+                )
+                return embedded_objective, row[4]  # file_id
         finally:
             conn.close()
         return None
@@ -451,13 +561,32 @@ class StandardsEmbeddings:
         return result
     
     def delete_all_embeddings(self):
-        """Delete all embeddings from the database"""
+        """Delete all embeddings from the database with proper transaction management and audit logging"""
         conn = self.db_manager.get_connection()
         try:
+            # Start explicit transaction with immediate locking
+            conn.execute("BEGIN IMMEDIATE")
+            
+            logger.info("AUDIT: Starting deletion of all embeddings from database")
+            
+            # Count records before deletion for audit trail
+            standard_count = conn.execute("SELECT COUNT(*) FROM standard_embeddings").fetchone()[0]
+            objective_count = conn.execute("SELECT COUNT(*) FROM objective_embeddings").fetchone()[0]
+            
+            logger.info(f"AUDIT: About to delete {standard_count} standard embeddings and {objective_count} objective embeddings")
+            
             conn.execute("DELETE FROM standard_embeddings")
             conn.execute("DELETE FROM objective_embeddings")
+            
+            # Commit the transaction
             conn.commit()
-            logger.info("All embeddings deleted from database")
+            logger.info(f"AUDIT: Successfully deleted all embeddings - {standard_count} standard, {objective_count} objective")
+            
+        except (sqlite3.Error, sqlite3.DatabaseError, Exception) as e:
+            # Rollback on any error
+            conn.rollback()
+            logger.error(f"AUDIT: Failed to delete all embeddings, rolled back: {e}")
+            raise Exception(f"Failed to delete all embeddings: {str(e)}")
         finally:
             conn.close()
     
@@ -486,7 +615,7 @@ class StandardsEmbedder:
         self.embeddings_manager = StandardsEmbeddings()
         self.client = ChutesClient()
     
-    def embed_all_standards(self, batch_size: int = 10) -> Dict[str, int]:
+    def embed_all_standards(self, batch_size: int = 10, file_id: Optional[str] = None) -> Dict[str, int]:
         """Generate embeddings for all standards in the database"""
         from backend.repositories.standards_repository import StandardsRepository
         
@@ -515,9 +644,9 @@ class StandardsEmbedder:
                     standard, objectives
                 )
                 
-                # Store embedding
+                # Store embedding with file_id
                 self.embeddings_manager.store_standard_embedding(
-                    standard, objectives, embedding
+                    standard, objectives, embedding, file_id
                 )
                 
                 stats["success"] += 1
@@ -527,7 +656,7 @@ class StandardsEmbedder:
                 for objective in objectives:
                     try:
                         obj_embedding = self.embeddings_manager.generate_objective_embedding(objective)
-                        self.embeddings_manager.store_objective_embedding(objective, obj_embedding)
+                        self.embeddings_manager.store_objective_embedding(objective, obj_embedding, file_id)
                     except Exception as e:
                         logger.warning(f"Failed to embed objective {objective.objective_id}: {str(e)}")
                         stats["failed"] += 1
@@ -537,4 +666,61 @@ class StandardsEmbedder:
                 stats["failed"] += 1
         
         logger.info(f"Embedding generation complete: {stats}")
+        return stats
+
+    def embed_standards_from_file(self, file_id: str) -> Dict[str, int]:
+        """Generate embeddings for standards from a specific file"""
+        from backend.repositories.standards_repository import StandardsRepository
+        
+        repository = StandardsRepository()
+        stats = {"success": 0, "failed": 0, "skipped": 0}
+        
+        # Get standards associated with this file
+        standards = repository.get_standards_by_file_id(file_id) if hasattr(repository, 'get_standards_by_file_id') else []
+        
+        if not standards:
+            logger.warning(f"No standards found for file_id: {file_id}")
+            return stats
+        
+        logger.info(f"Starting embedding generation for {len(standards)} standards from file {file_id}")
+        
+        for i, standard in enumerate(standards):
+            try:
+                # Check if embedding already exists
+                existing = self.embeddings_manager.get_standard_embedding(standard.standard_id)
+                if existing:
+                    stats["skipped"] += 1
+                    logger.debug(f"Skipping standard {standard.standard_id} - already embedded")
+                    continue
+                
+                # Get objectives for this standard
+                objectives = repository.get_objectives_for_standard(standard.standard_id)
+                
+                # Generate embedding
+                embedding = self.embeddings_manager.generate_standard_embedding(
+                    standard, objectives
+                )
+                
+                # Store embedding with file_id
+                self.embeddings_manager.store_standard_embedding(
+                    standard, objectives, embedding, file_id
+                )
+                
+                stats["success"] += 1
+                logger.info(f"Embedded standard {standard.standard_id} ({i+1}/{len(standards)}) from file {file_id}")
+                
+                # Embed objectives as well
+                for objective in objectives:
+                    try:
+                        obj_embedding = self.embeddings_manager.generate_objective_embedding(objective)
+                        self.embeddings_manager.store_objective_embedding(objective, obj_embedding, file_id)
+                    except Exception as e:
+                        logger.warning(f"Failed to embed objective {objective.objective_id}: {str(e)}")
+                        stats["failed"] += 1
+                
+            except Exception as e:
+                logger.error(f"Failed to embed standard {standard.standard_id}: {str(e)}")
+                stats["failed"] += 1
+        
+        logger.info(f"Embedding generation complete for file {file_id}: {stats}")
         return stats

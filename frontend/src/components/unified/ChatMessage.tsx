@@ -1,11 +1,17 @@
 import { useState, useCallback } from 'react';
 import type { ChatMessage as ChatMessageType } from '../../types/unified';
+import type { EnhancedCitation } from '../../types/fileStorage';
 import MarkdownRenderer from '../MarkdownRenderer';
 import LessonEditor from './LessonEditor';
+import CitationList from './CitationList';
+import CitationErrorBoundary from './CitationErrorBoundary';
+import { useCitations, useLegacyCitations } from '../../hooks/useCitations';
 
 interface ChatMessageProps {
   message: ChatMessageType;
   onUpdateMessage?: (id: string, newText: string) => void;
+  lessonId?: string;
+  citations?: string[];
 }
 
 // Function to detect if content looks like a lesson plan
@@ -40,13 +46,31 @@ const isLessonContent = (text: string): boolean => {
   return hasLessonIndicator || hasLessonStructure;
 };
 
-export default function ChatMessage({ message, onUpdateMessage }: ChatMessageProps) {
+export default function ChatMessage({
+  message,
+  onUpdateMessage,
+  lessonId,
+  citations = []
+}: ChatMessageProps) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCitations, setShowCitations] = useState(false);
 
   // Check if this AI message contains lesson content
   const isEditableLesson = message.sender === 'ai' && isLessonContent(message.text);
+
+  // Handle citations - use enhanced citations if lessonId is provided, otherwise use legacy
+  const { citations: enhancedCitations, loading: citationsLoading, downloadFile } = useCitations({
+    lessonId,
+    autoLoad: !!lessonId && citations.length > 0,
+  });
+
+  const { enhancedCitations: legacyCitations } = useLegacyCitations(citations);
+
+  // Determine which citations to show
+  const citationsToShow = lessonId ? enhancedCitations : legacyCitations;
+  const hasCitations = citationsToShow.length > 0;
   
   const handleEnterEditMode = useCallback(() => {
     if (!isEditableLesson) return;
@@ -175,6 +199,69 @@ export default function ChatMessage({ message, onUpdateMessage }: ChatMessagePro
                 <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">
                   {message.text}
                 </p>
+              )}
+            </div>
+          )}
+
+          {/* Citations section */}
+          {hasCitations && (
+            <div className="mt-3 pt-3 border-t border-ink-200">
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  onClick={() => setShowCitations(!showCitations)}
+                  className="flex items-center gap-2 text-sm font-medium text-ink-700 hover:text-ink-900 transition-colors"
+                >
+                  <svg
+                    className={`w-4 h-4 transition-transform ${showCitations ? 'rotate-90' : ''}`}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                  Sources & Citations ({citationsToShow.length})
+                </button>
+                
+                {/* Download all button */}
+                {showCitations && citationsToShow.some(c => c.is_file_available && c.can_download) && (
+                  <button
+                    onClick={() => {
+                      const downloadableCitations = citationsToShow.filter(c => c.is_file_available && c.can_download);
+                      downloadableCitations.forEach(citation => {
+                        if (citation.file_metadata) {
+                          downloadFile(citation.file_metadata.file_id, citation.file_metadata.original_filename);
+                        }
+                      });
+                    }}
+                    className="text-xs text-ink-600 hover:text-ink-800 transition-colors"
+                  >
+                    Download All
+                  </button>
+                )}
+              </div>
+
+              {showCitations && (
+                <div className="space-y-2">
+                  {citationsLoading ? (
+                    <div className="flex items-center gap-2 text-sm text-ink-500 py-2">
+                      <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                      </svg>
+                      Loading citations...
+                    </div>
+                  ) : (
+                    <CitationErrorBoundary>
+                      <CitationList
+                        citations={citationsToShow}
+                        onDownload={downloadFile}
+                        compact={true}
+                        showFullDetails={false}
+                        title=""
+                        emptyMessage=""
+                      />
+                    </CitationErrorBoundary>
+                  )}
+                </div>
               )}
             </div>
           )}

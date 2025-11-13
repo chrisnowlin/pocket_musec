@@ -1,8 +1,38 @@
 # PocketMusec CLI Commands Documentation
 
-## Overview
+## ⚠️ DEPRECATED - CLI Removed
 
-PocketMusec is an AI-powered lesson planning assistant for music teachers. The CLI provides three main command groups: `ingest`, `generate`, and `embeddings`.
+**Important Notice:** The CLI interface has been completely removed from PocketMusec as of version 0.4.0. All functionality is now available through the modern web interface at `http://localhost:5173`.
+
+### Migration Information
+
+For complete migration details, see:
+- **[CLI Removal Complete](CLI_REMOVAL_COMPLETE.md)** - Full migration documentation
+- **[User Guide](USER_GUIDE.md)** - Web interface documentation
+- **[Teacher Guide](TEACHER_GUIDE.md)** - Educational usage guide
+
+### Feature Parity
+
+All CLI functionality has been migrated to the web interface:
+
+| CLI Command | Web Interface Location |
+|-------------|-----------------------|
+| `pocketmusec ingest standards` | Available through web interface setup |
+| `pocketmusec generate lesson` | Web interface → "New Lesson" |
+| `pocketmusec embeddings generate` | Web interface → "Embeddings" → "Generate" |
+| `pocketmusec embeddings stats` | Web interface → "Embeddings" → "Statistics" |
+| `pocketmusec embeddings search` | Web interface → "Embeddings" → "Search" |
+| `pocketmusec embeddings clear` | Web interface → "Embeddings" → "Batch" |
+
+---
+
+## Historical Documentation
+
+The following documentation is preserved for historical reference only. **The CLI is no longer supported.**
+
+### Overview
+
+PocketMusec was an AI-powered lesson planning assistant for music teachers. The CLI provided three main command groups: `ingest`, `generate`, and `embeddings`.
 
 ## Installation & Setup
 
@@ -53,7 +83,7 @@ pocketmusec ingest standards <PDF_PATH> [OPTIONS]
 pocketmusec ingest standards "NC Music Standards.pdf"
 
 # Custom database location
-pocketmusec ingest standards "NC Music Standards.pdf" --db-path "/custom/path/standards.db"
+pocketmusec ingest standards "NC Music Standards.pdf" --db-path "/custom/path/pocket_musec.db"
 
 # Force re-ingestion (overwrites existing data)
 pocketmusec ingest standards "NC Music Standards.pdf" --force
@@ -324,7 +354,7 @@ CHUTES_API_KEY=your_api_key_here
 CHUTES_BASE_URL=https://api.chutes.ai
 
 # Database Configuration (optional)
-DATABASE_PATH=./data/standards.db
+DATABASE_PATH=./data/pocket_musec.db
 
 # Logging Configuration
 LOG_LEVEL=INFO
@@ -332,7 +362,7 @@ LOG_LEVEL=INFO
 
 ### Default File Locations
 
-- **Database:** `./data/standards.db` (created automatically)
+- **Database:** `./data/pocket_musec.db` (created automatically)
 - **Prepared Texts:** `./data/prepared_texts/` (created during embedding generation)
   - `standards/` - Prepared text for standards (grade + strand + standard + objectives)
   - `objectives/` - Prepared text for individual objectives

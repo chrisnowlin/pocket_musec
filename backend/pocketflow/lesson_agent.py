@@ -25,12 +25,30 @@ class LessonAgent(Agent):
         standards_repo: Optional[StandardsRepository] = None,
         llm_client: Optional[ChutesClient] = None,
         conversational_mode: bool = True,
+        web_search_enabled: bool = False,
+        web_search_service: Optional['WebSearchService'] = None,
     ):
         super().__init__(flow, store, "LessonAgent")
         self.standards_repo = standards_repo or StandardsRepository()
         self.llm_client = llm_client or ChutesClient()
         self.prompt_templates = LessonPromptTemplates()
         self.conversational_mode = conversational_mode
+        self.web_search_enabled = web_search_enabled
+        
+        # Initialize web search service if enabled
+        if self.web_search_enabled and web_search_service is None:
+            from backend.services.web_search_service import WebSearchService
+            from backend.config import config
+            self.web_search_service = WebSearchService(
+                api_key=config.web_search.api_key,
+                cache_ttl=config.web_search.cache_ttl,
+                max_cache_size=config.web_search.max_cache_size,
+                timeout=config.web_search.timeout,
+                educational_only=config.web_search.educational_only,
+                min_relevance_score=config.web_search.min_relevance_score
+            )
+        else:
+            self.web_search_service = web_search_service
 
         # Initialize conversation state
         self.lesson_requirements: Dict[str, Any] = {
@@ -405,6 +423,71 @@ Focus on musical education context. If information isn't present, use null."""
             logger.error(f"Error retrieving assessment guidance context: {e}")
             return []
 
+    async def _get_web_search_context(self, extracted_info: Dict[str, Any]) -> List[str]:
+        """
+        Retrieve web search context for lesson planning using WebSearchService.
+        
+        Args:
+            extracted_info: Dictionary containing extracted lesson information
+            
+        Returns:
+            List of web search context strings formatted for LLM consumption
+        """
+        if not self.web_search_enabled or not self.web_search_service:
+            logger.debug("Web search not enabled or service not available")
+            return []
+        
+        try:
+            grade_level = extracted_info.get("grade_level", "")
+            musical_topics = extracted_info.get("musical_topics", [])
+            
+            if not musical_topics:
+                logger.info("No musical topics provided for web search")
+                return []
+            
+            # Build search query from musical topics
+            search_query = " ".join(musical_topics[:3])  # Limit to first 3 topics
+            
+            logger.info(f"Searching web for educational resources: {search_query}")
+            
+            # Execute web search
+            search_context = await self.web_search_service.search_educational_resources(
+                query=search_query,
+                max_results=5,  # Limit for context
+                grade_level=grade_level,
+                subject="music"
+            )
+            
+            if not search_context or not search_context.results:
+                logger.info("No web search results found")
+                return []
+            
+            # Format results for LLM consumption with citation support
+            formatted_context = []
+            for result in search_context.results:
+                citation_number = search_context.get_citation_number(result.citation_id)
+                if citation_number:
+                    context_item = result.to_context_with_citation(citation_number)
+                    formatted_context.append(context_item)
+                else:
+                    # Fallback formatting if citation not assigned
+                    context_item = (
+                        f"[Web Resource - {result.domain}]\n"
+                        f"Title: {result.title}\n"
+                        f"Content: {result.snippet}\n"
+                        f"URL: {result.url}\n"
+                        f"Relevance: {result.relevance_score:.2f}"
+                    )
+                    formatted_context.append(context_item)
+            
+            logger.info(f"Retrieved {len(formatted_context)} web search context items")
+            return formatted_context
+            
+        except Exception as e:
+            logger.error(f"Error retrieving web search context: {e}")
+            # Graceful degradation - return empty list on error
+            return []
+
     def _generate_conversational_response(
         self,
         message: str,
@@ -552,7 +635,7 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
 
         return full_response
 
-    def _handle_lesson_planning(self, message: str) -> str:
+    async def _handle_lesson_planning(self, message: str) -> str:
         """Handle ongoing lesson planning conversation"""
         # Store the message
         self.lesson_requirements["conversation_context"].append(
@@ -562,7 +645,7 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
         # Check if user wants to generate a lesson
         if self._should_generate_lesson(message):
             self.set_state("generation")
-            return self._generate_lesson_plan()
+            return await self._generate_lesson_plan()
 
         # Analyze the new message
         extracted_info = self._analyze_user_message(message)
@@ -629,16 +712,20 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
         message_lower = message.lower()
         return any(trigger in message_lower for trigger in generation_triggers)
 
-    def _generate_lesson_plan(self) -> str:
-        """Generate the actual lesson plan using collected information with RAG context"""
+    async def _generate_lesson_plan(self) -> str:
+        """Generate the actual lesson plan using collected information with RAG and web search context"""
         try:
-            # Build lesson context from conversation (now includes RAG context)
-            context = self._build_lesson_context_from_conversation()
+            # Build lesson context from conversation (now includes RAG and web search context)
+            context = await self._build_lesson_context_from_conversation()
             
             # Log that RAG context is being used
-            rag_context_count = len(self.lesson_requirements.get("rag_context", []))
-            if rag_context_count > 0:
-                logger.info(f"Generating lesson plan with {rag_context_count} RAG context items")
+            rag_context = self.lesson_requirements.get("rag_context", {})
+            teaching_count = len(rag_context.get("teaching_context", []))
+            assessment_count = len(rag_context.get("assessment_context", []))
+            web_search_count = len(rag_context.get("web_search_context", []))
+            
+            if teaching_count > 0 or assessment_count > 0 or web_search_count > 0:
+                logger.info(f"Generating lesson plan with {teaching_count} teaching, {assessment_count} assessment, and {web_search_count} web search context items")
 
             # Generate the lesson plan with enhanced context
             lesson_plan = self.llm_client.generate_lesson_plan(context, stream=False)
@@ -655,10 +742,18 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
             self.lesson_requirements["generated_lesson"] = final_plan
             self.set_state("complete")
 
-            # Enhanced response with RAG context information
-            rag_info = ""
-            if rag_context_count > 0:
-                rag_info = f"\n\n## 📚 Enhanced with Educational Resources\n\nThis lesson plan was enhanced with {rag_context_count} relevant educational resources and teaching strategies retrieved from our knowledge base."
+            # Enhanced response with RAG and web search context information
+            context_info = ""
+            if teaching_count > 0 or assessment_count > 0 or web_search_count > 0:
+                context_parts = []
+                if teaching_count > 0:
+                    context_parts.append(f"{teaching_count} teaching strategy resources")
+                if assessment_count > 0:
+                    context_parts.append(f"{assessment_count} assessment guidance resources")
+                if web_search_count > 0:
+                    context_parts.append(f"{web_search_count} current web resources")
+                
+                context_info = f"\n\n## 📚 Enhanced with Educational Resources\n\nThis lesson plan was enhanced with {', '.join(context_parts)} retrieved from our knowledge base and current educational web sources."
 
             response = f"""# 🎉 Your Personalized Music Lesson Plan
 
@@ -686,7 +781,7 @@ This lesson plan was created specifically for you based on our conversation! I c
 • • *Additional activities or projects*
 • • *Technology integration ideas*
 • • *Performance or sharing opportunities*
-{rag_info}
+{context_info}
 ---
 
 ### 💬 What would you like to refine about this lesson?
@@ -717,8 +812,8 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
 
             return error_msg
 
-    def _build_lesson_context_from_conversation(self) -> LessonPromptContext:
-        """Build lesson context from conversational extraction with structured RAG context"""
+    async def _build_lesson_context_from_conversation(self) -> LessonPromptContext:
+        """Build lesson context from conversational extraction with structured RAG and web search context"""
         extracted = self.lesson_requirements["extracted_info"]
 
         # Get the best standard from suggestions
@@ -758,10 +853,14 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         teaching_context = self._get_teaching_strategies_context(extracted)
         assessment_context = self._get_assessment_guidance_context(extracted)
         
-        # Store RAG context in lesson requirements for debugging/analysis
+        # Web Search Context: Retrieve educational resources from web
+        web_search_context = await self._get_web_search_context(extracted)
+        
+        # Store all context types in lesson requirements for debugging/analysis
         self.lesson_requirements["rag_context"] = {
             "teaching_context": teaching_context,
-            "assessment_context": assessment_context
+            "assessment_context": assessment_context,
+            "web_search_context": web_search_context
         }
         
         # Build final additional context (keeping backward compatibility)
@@ -786,6 +885,7 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             # NEW: Structured RAG context fields
             teaching_context=teaching_context,
             assessment_context=assessment_context,
+            web_search_context=web_search_context,
         )
 
     def _handle_refinement(self, message: str) -> str:
@@ -800,9 +900,9 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         self.set_state("lesson_planning")
         return self._handle_lesson_planning(message)
 
-    def _handle_generation(self, message: str) -> str:
+    async def _handle_generation(self, message: str) -> str:
         """Handle generation state"""
-        return self._generate_lesson_plan()
+        return await self._generate_lesson_plan()
 
     def _get_timestamp(self) -> str:
         """Get current timestamp"""
@@ -1339,7 +1439,7 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         history = state.get("conversation_history", [])
         self.conversation_history = history
 
-    def chat(self, message: str) -> str:
+    async def chat(self, message: str) -> str:
         """Main chat interface - routes to appropriate state handler"""
         try:
             # Store user message in conversation history
@@ -1354,11 +1454,16 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             handler = self.state_handlers.get(current_state)
 
             if handler:
-                response = handler(message)
+                # Check if handler is async or sync
+                import inspect
+                if inspect.iscoroutinefunction(handler):
+                    response = await handler(message)
+                else:
+                    response = handler(message)
             else:
                 # Fallback to lesson planning
                 self.set_state("lesson_planning")
-                response = self._handle_lesson_planning(message)
+                response = await self._handle_lesson_planning(message)
 
             # Store assistant response in conversation history
             self.conversation_history.append({
