@@ -332,7 +332,7 @@ If issues arise, the old database can be restored:
 
 ## 📚 Additional Resources
 
-- **NC Music Standards JSON:** `NC Music Standards and Resources/json_data/`
+- **NC Music Standards JSON:** `data/json_data/`
   - `nc_music_standards_expanded_2024.json` - Full standards with objectives
   - `nc_arts_education_standards_framework_2024.json` - Framework structure
 

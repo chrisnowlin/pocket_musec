@@ -17,8 +17,8 @@ logger = logging.getLogger(__name__)
 # Paths
 PROJECT_ROOT = Path(__file__).parent.parent
 DATABASE_PATH = PROJECT_ROOT / "data" / "pocket_musec.db"
-FRAMEWORK_JSON = PROJECT_ROOT / "NC Music Standards and Resources" / "json_data" / "nc_arts_education_standards_framework_2024.json"
-MUSIC_STANDARDS_JSON = PROJECT_ROOT / "NC Music Standards and Resources" / "json_data" / "nc_music_standards_expanded_2024.json"
+FRAMEWORK_JSON = PROJECT_ROOT / "data" / "json_data" / "nc_arts_education_standards_framework_2024.json"
+MUSIC_STANDARDS_JSON = PROJECT_ROOT / "data" / "json_data" / "nc_music_standards_expanded_2024.json"
 
 
 class StandardsDatabaseMigration:
