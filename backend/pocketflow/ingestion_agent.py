@@ -417,6 +417,20 @@ class IngestionAgent(Agent):
             # Save to database
             self._save_standards_to_database(standards, objectives)
 
+            # Generate embeddings for the ingested standards
+            try:
+                file_id = self.ingestion_context.get("file_id")
+                if file_id:
+                    from backend.llm.embeddings import StandardsEmbedder
+                    embedder = StandardsEmbedder()
+                    embedding_stats = embedder.embed_standards_from_file(file_id)
+                    logger.info(f"Generated embeddings for file {file_id}: {embedding_stats}")
+                    
+                    # Store embedding results in context
+                    self.ingestion_context["embedding_results"] = embedding_stats
+            except Exception as e:
+                logger.warning(f"Failed to generate embeddings for ingested standards: {e}")
+
             # Get statistics
             stats = parser.get_statistics()
 
@@ -458,6 +472,7 @@ class IngestionAgent(Agent):
             input_data = {
                 "absolute_path": file_path,
                 "file_name": Path(file_path).name,
+                "file_id": self.ingestion_context.get("file_id"),
                 "classification_success": True,
                 "document_type": DocumentType.UNPACKING,
             }
@@ -511,6 +526,7 @@ class IngestionAgent(Agent):
             input_data = {
                 "absolute_path": file_path,
                 "file_name": Path(file_path).name,
+                "file_id": self.ingestion_context.get("file_id"),
                 "classification_success": True,
                 "document_type": DocumentType.ALIGNMENT,
             }
@@ -562,6 +578,7 @@ class IngestionAgent(Agent):
             input_data = {
                 "absolute_path": file_path,
                 "file_name": Path(file_path).name,
+                "file_id": self.ingestion_context.get("file_id"),
                 "classification_success": True,
                 "document_type": DocumentType.GLOSSARY,  # or GUIDE
             }
@@ -607,14 +624,17 @@ class IngestionAgent(Agent):
             # conn.execute("DELETE FROM objectives")
             # conn.execute("DELETE FROM standards")
 
+            # Get file_id from ingestion context
+            file_id = self.ingestion_context.get("file_id")
+
             # Save standards
             for standard in standards:
                 conn.execute(
-                    """INSERT INTO standards 
-                       (standard_id, grade_level, strand_code, strand_name, 
-                        strand_description, standard_text, source_document, 
-                        ingestion_date, version)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    """INSERT INTO standards
+                       (standard_id, grade_level, strand_code, strand_name,
+                        strand_description, standard_text, source_document,
+                        ingestion_date, version, file_id)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         standard.standard_id,
                         standard.grade_level,
@@ -625,18 +645,20 @@ class IngestionAgent(Agent):
                         standard.source_document,
                         standard.ingestion_date,
                         standard.version,
+                        file_id,
                     ),
                 )
 
             # Save objectives
             for objective in objectives:
                 conn.execute(
-                    """INSERT INTO objectives (objective_id, standard_id, objective_text)
-                       VALUES (?, ?, ?)""",
+                    """INSERT INTO objectives (objective_id, standard_id, objective_text, file_id)
+                       VALUES (?, ?, ?, ?)""",
                     (
                         objective.objective_id,
                         objective.standard_id,
                         objective.objective_text,
+                        file_id,
                     ),
                 )
 

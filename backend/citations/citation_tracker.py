@@ -17,6 +17,7 @@ class SourceReference:
     page_number: Optional[int] = None
     excerpt: Optional[str] = None
     relevance_score: float = 1.0  # 0-1, higher = more relevant
+    file_id: Optional[str] = None  # File ID for source tracking
 
 
 @dataclass
@@ -47,7 +48,8 @@ class CitationTracker:
         source_title: str,
         page_number: Optional[int] = None,
         excerpt: Optional[str] = None,
-        relevance_score: float = 1.0
+        relevance_score: float = 1.0,
+        file_id: Optional[str] = None
     ) -> int:
         """
         Add a source reference
@@ -59,6 +61,7 @@ class CitationTracker:
             page_number: Page number (if applicable)
             excerpt: Relevant text excerpt
             relevance_score: Relevance score (0-1)
+            file_id: File ID for source tracking
 
         Returns:
             Citation number assigned to this source
@@ -75,7 +78,8 @@ class CitationTracker:
             source_title=source_title,
             page_number=page_number,
             excerpt=excerpt,
-            relevance_score=relevance_score
+            relevance_score=relevance_score,
+            file_id=file_id
         )
 
         # Assign citation number
@@ -187,7 +191,8 @@ class CitationTracker:
                     "source_title": src.source_title,
                     "page_number": src.page_number,
                     "excerpt": src.excerpt,
-                    "relevance_score": src.relevance_score
+                    "relevance_score": src.relevance_score,
+                    "file_id": src.file_id
                 }
                 for sid, src in self.sources.items()
             },

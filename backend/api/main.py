@@ -10,7 +10,7 @@ import signal
 import sys
 from pathlib import Path
 
-from .routes import images, settings, sessions, standards, ingestion, drafts
+from .routes import images, settings, sessions, standards, ingestion, drafts, embeddings
 from .middleware import (
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
@@ -62,6 +62,7 @@ app.include_router(sessions.router)
 app.include_router(standards.router)
 app.include_router(ingestion.router)
 app.include_router(drafts.router)
+app.include_router(embeddings.router)
 
 
 # Exception handlers
@@ -92,7 +93,7 @@ async def startup_event():
     logger.info("Starting PocketMusec API...")
 
     # Check database and run migrations
-    db_path = os.getenv("DATABASE_PATH", "data/standards/standards.db")
+    db_path = os.getenv("DATABASE_PATH", "data/pocket_musec.db")
     migration_manager = MigrationManager(db_path)
 
     # Ensure database directory exists

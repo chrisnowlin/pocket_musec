@@ -68,6 +68,12 @@ class MigrationManager:
         # Run Kindergarten to Grade 0 migration
         self.migrate_kindergarten_to_grade_zero()
         
+        # Run file storage migration
+        self.migrate_to_file_storage()
+        
+        # Run file linking migration
+        self.migrate_to_file_linking()
+        
         logger.info("All migrations completed successfully")
 
     def migrate_standards_table(self) -> None:
@@ -101,7 +107,9 @@ class MigrationManager:
                     standard_text TEXT NOT NULL,
                     source_document TEXT,
                     ingestion_date TEXT,
-                    version TEXT DEFAULT '1.0'
+                    version TEXT DEFAULT '1.0',
+                    file_id TEXT,
+                    FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
                 )
             """)
 
@@ -111,7 +119,9 @@ class MigrationManager:
                     objective_id TEXT PRIMARY KEY,
                     standard_id TEXT NOT NULL,
                     objective_text TEXT NOT NULL,
-                    FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
+                    file_id TEXT,
+                    FOREIGN KEY (standard_id) REFERENCES standards(standard_id),
+                    FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
                 )
             """)
 
@@ -119,6 +129,10 @@ class MigrationManager:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_standards_grade ON standards(grade_level)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_standards_strand ON standards(strand_code)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_objectives_standard ON objectives(standard_id)")
+            
+            # Create file_id indexes
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_standards_file_id ON standards(file_id)")
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_objectives_file_id ON objectives(file_id)")
 
             conn.commit()
 
@@ -243,8 +257,10 @@ class MigrationManager:
                     excerpt TEXT,
                     citation_text TEXT NOT NULL,
                     citation_number INTEGER NOT NULL,
+                    file_id TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                     FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE,
+                    FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL,
                     CHECK (source_type IN ('standard', 'objective', 'document', 'image'))
                 )
             """)
@@ -282,6 +298,9 @@ class MigrationManager:
             )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_citations_source ON citations(source_type, source_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_citations_file_id ON citations(file_id)"
             )
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id)"
@@ -417,7 +436,9 @@ class MigrationManager:
                 source_document TEXT NOT NULL,
                 ingestion_date TEXT NOT NULL,
                 version TEXT DEFAULT '1.0',
-                FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
+                file_id TEXT,
+                FOREIGN KEY (standard_id) REFERENCES standards(standard_id),
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
             );
         """)
 
@@ -433,8 +454,10 @@ class MigrationManager:
                 source_document TEXT NOT NULL,
                 page_number INTEGER NOT NULL,
                 ingestion_date TEXT NOT NULL,
+                file_id TEXT,
                 FOREIGN KEY (section_id) REFERENCES unpacking_sections(section_id),
-                FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
+                FOREIGN KEY (standard_id) REFERENCES standards(standard_id),
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
             );
         """)
 
@@ -450,8 +473,10 @@ class MigrationManager:
                 source_document TEXT NOT NULL,
                 page_number INTEGER NOT NULL,
                 ingestion_date TEXT NOT NULL,
+                file_id TEXT,
                 FOREIGN KEY (section_id) REFERENCES unpacking_sections(section_id),
-                FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
+                FOREIGN KEY (standard_id) REFERENCES standards(standard_id),
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
             );
         """)
 
@@ -474,7 +499,9 @@ class MigrationManager:
                 page_number INTEGER NOT NULL,
                 ingestion_date TEXT NOT NULL,
                 version TEXT DEFAULT '1.0',
-                FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
+                file_id TEXT,
+                FOREIGN KEY (standard_id) REFERENCES standards(standard_id),
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
             );
         """)
 
@@ -489,7 +516,9 @@ class MigrationManager:
                 source_document TEXT NOT NULL,
                 page_number INTEGER NOT NULL,
                 ingestion_date TEXT NOT NULL,
-                version TEXT DEFAULT '1.0'
+                version TEXT DEFAULT '1.0',
+                file_id TEXT,
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
             );
         """)
 
@@ -508,7 +537,9 @@ class MigrationManager:
                 related_standards TEXT,  -- JSON array of related standard IDs
                 source_document TEXT NOT NULL,
                 ingestion_date TEXT NOT NULL,
-                version TEXT DEFAULT '1.0'
+                version TEXT DEFAULT '1.0',
+                file_id TEXT,
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
             );
         """)
 
@@ -522,7 +553,9 @@ class MigrationManager:
                 category TEXT,
                 source_document TEXT NOT NULL,
                 ingestion_date TEXT NOT NULL,
-                version TEXT DEFAULT '1.0'
+                version TEXT DEFAULT '1.0',
+                file_id TEXT,
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
             );
         """)
 
@@ -537,7 +570,9 @@ class MigrationManager:
                 metadata TEXT,  -- JSON object for additional metadata
                 source_document TEXT NOT NULL,
                 ingestion_date TEXT NOT NULL,
-                version TEXT DEFAULT '1.0'
+                version TEXT DEFAULT '1.0',
+                file_id TEXT,
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
             );
         """)
 
@@ -597,6 +632,32 @@ class MigrationManager:
             "CREATE INDEX IF NOT EXISTS idx_resource_source ON resource_entries(source_document);"
         )
 
+        # File_id indexes for extended tables
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_unpacking_sections_file_id ON unpacking_sections(file_id);"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_teaching_strategies_file_id ON teaching_strategies(file_id);"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_assessment_guidance_file_id ON assessment_guidance(file_id);"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_alignment_relationships_file_id ON alignment_relationships(file_id);"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_progression_mappings_file_id ON progression_mappings(file_id);"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_glossary_entries_file_id ON glossary_entries(file_id);"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_faq_entries_file_id ON faq_entries(file_id);"
+        )
+        conn.execute(
+            "CREATE INDEX IF NOT EXISTS idx_resource_entries_file_id ON resource_entries(file_id);"
+        )
+
         logger.info("Created extended table indexes")
 
     def get_migration_status(self) -> dict:
@@ -618,11 +679,32 @@ class MigrationManager:
 
             table_names = [row[0] for row in tables]
 
-            # Get record counts for each table
+            # Get record counts for each table (validate table names first)
             counts = {}
+            # Whitelist of allowed table names for additional security
+            allowed_tables = {
+                'unpacking_sections', 'teaching_strategies', 'assessment_guidance',
+                'alignment_relationships', 'progression_mappings', 'glossary_entries',
+                'faq_entries', 'resource_entries'
+            }
+            
             for table in table_names:
-                count = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-                counts[table] = count
+                # Validate table name against whitelist and format
+                if table not in allowed_tables:
+                    logger.warning(f"Skipping unauthorized table name: {table}")
+                    continue
+                    
+                # Additional format validation
+                if not table.replace('_', '').isalnum():
+                    logger.warning(f"Skipping invalid table format: {table}")
+                    continue
+                    
+                try:
+                    count = conn.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+                    counts[table] = count
+                except sqlite3.OperationalError as e:
+                    logger.warning(f"Failed to count records in {table}: {e}")
+                    counts[table] = 0
 
             return {
                 "schema_version": schema_version,
@@ -656,7 +738,22 @@ class MigrationManager:
                 "resource_entries",
             ]
 
+            # Validate table names before deletion with whitelist
+            allowed_tables = {
+                'unpacking_sections', 'teaching_strategies', 'assessment_guidance',
+                'alignment_relationships', 'progression_mappings', 'glossary_entries',
+                'faq_entries', 'resource_entries'
+            }
+            
             for table in extended_tables:
+                # Validate against whitelist
+                if table not in allowed_tables:
+                    raise ValueError(f"Unauthorized table name: {table}")
+                
+                # Additional format validation
+                if not table.replace('_', '').isalnum():
+                    raise ValueError(f"Invalid table format: {table}")
+                    
                 conn.execute(f"DELETE FROM {table}")
 
             conn.commit()
@@ -813,6 +910,362 @@ class MigrationManager:
             raise
         finally:
             conn.close()
+
+    def migrate_to_file_storage(self) -> None:
+        """
+        Migrate to version 7: Add uploaded_files table for file storage system
+        
+        Adds:
+        - uploaded_files table for tracking uploaded file metadata
+        - ingestion_status for tracking file processing status
+        - file_hash for duplicate detection
+        - Proper indexes for performance
+        """
+        current_version = self.get_schema_version()
+        
+        if current_version >= 7:
+            logger.info(
+                f"Database already at version {current_version}, skipping file storage migration"
+            )
+            return
+        
+        logger.info("Starting version 7 database migration (file storage system)...")
+        
+        conn = self.get_connection()
+        try:
+            # Enable foreign key constraints
+            conn.execute("PRAGMA foreign_keys = ON")
+            
+            # Create uploaded_files table
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS uploaded_files (
+                    id TEXT PRIMARY KEY,
+                    file_id TEXT NOT NULL UNIQUE,
+                    original_filename TEXT NOT NULL,
+                    relative_path TEXT NOT NULL,
+                    file_hash TEXT NOT NULL,
+                    file_size INTEGER NOT NULL,
+                    mime_type TEXT NOT NULL,
+                    user_id TEXT,
+                    metadata TEXT,  -- JSON metadata
+                    ingestion_status TEXT DEFAULT 'uploaded',
+                    error_message TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
+                    CHECK (ingestion_status IN ('uploaded', 'processing', 'completed', 'error'))
+                )
+            """)
+            
+            # Create indexes for performance
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_uploaded_files_hash
+                ON uploaded_files(file_hash)
+            """)
+            
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_uploaded_files_status
+                ON uploaded_files(ingestion_status)
+            """)
+            
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_uploaded_files_user
+                ON uploaded_files(user_id)
+            """)
+            
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_uploaded_files_created
+                ON uploaded_files(created_at)
+            """)
+            
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_uploaded_files_file_id
+                ON uploaded_files(file_id)
+            """)
+            
+            conn.commit()
+            
+            # Update schema version
+            self.set_schema_version(7)
+            
+            logger.info("Version 7 migration (file storage system) completed successfully")
+        
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Migration v7 failed: {e}")
+            raise
+        finally:
+            conn.close()
+
+    def migrate_to_file_linking(self) -> None:
+        """
+        Migrate to version 8: Add file_id columns to link all content to uploaded_files
+        
+        Adds:
+        - file_id columns to standard_embeddings and objective_embeddings tables
+        - file_id columns to extended document tables
+        - file_id column to citations table
+        - file_id columns to core tables (standards, objectives)
+        - Foreign key relationships to uploaded_files.id
+        - Indexes for performance
+        """
+        current_version = self.get_schema_version()
+        
+        if current_version >= 8:
+            logger.info(
+                f"Database already at version {current_version}, skipping file linking migration"
+            )
+            return
+        
+        logger.info("Starting version 8 database migration (file linking system)...")
+        
+        conn = self.get_connection()
+        try:
+            # Enable foreign key constraints
+            conn.execute("PRAGMA foreign_keys = ON")
+            
+            # Add file_id columns to embeddings tables
+            self._add_file_id_to_embeddings_tables(conn)
+            
+            # Add file_id columns to core tables
+            self._add_file_id_to_core_tables(conn)
+            
+            # Add file_id columns to extended document tables
+            self._add_file_id_to_extended_tables(conn)
+            
+            # Add file_id column to citations table
+            self._add_file_id_to_citations_table(conn)
+            
+            # Create indexes for performance
+            self._create_file_linking_indexes(conn)
+            
+            conn.commit()
+            
+            # Update schema version
+            self.set_schema_version(8)
+            
+            logger.info("Version 8 migration (file linking system) completed successfully")
+        
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Migration v8 failed: {e}")
+            raise
+        finally:
+            conn.close()
+
+    def _add_file_id_to_embeddings_tables(self, conn: sqlite3.Connection) -> None:
+        """Add file_id columns to embeddings tables"""
+        
+        # First create embeddings tables if they don't exist
+        # This ensures the tables are available before we try to add columns
+        
+        # Create standard_embeddings table if it doesn't exist
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS standard_embeddings (
+                standard_id TEXT PRIMARY KEY,
+                grade_level TEXT,
+                strand_code TEXT,
+                strand_name TEXT,
+                standard_text TEXT,
+                objectives_text TEXT,
+                embedding_vector BLOB,
+                embedding_dimension INTEGER,
+                file_id TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
+            )
+        """)
+        
+        # Create objective_embeddings table if it doesn't exist
+        conn.execute("""
+            CREATE TABLE IF NOT EXISTS objective_embeddings (
+                objective_id TEXT PRIMARY KEY,
+                standard_id TEXT,
+                objective_text TEXT,
+                embedding_vector BLOB,
+                embedding_dimension INTEGER,
+                file_id TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (file_id) REFERENCES uploaded_files(file_id) ON DELETE SET NULL
+            )
+        """)
+        
+        # Now try to add file_id column if it doesn't exist (for tables that might already exist)
+        # Update standard_embeddings table
+        try:
+            conn.execute("""
+                ALTER TABLE standard_embeddings
+                ADD COLUMN file_id TEXT
+            """)
+            logger.info("Added file_id column to standard_embeddings table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e).lower():
+                logger.error(f"Failed to add file_id to standard_embeddings: {str(e)}")
+            logger.info("file_id column already exists or table already has file_id in standard_embeddings")
+        
+        # Update objective_embeddings table
+        try:
+            conn.execute("""
+                ALTER TABLE objective_embeddings
+                ADD COLUMN file_id TEXT
+            """)
+            logger.info("Added file_id column to objective_embeddings table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e).lower():
+                logger.error(f"Failed to add file_id to objective_embeddings: {str(e)}")
+            logger.info("file_id column already exists or table already has file_id in objective_embeddings")
+        
+        # Create indexes for efficient search
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_standard_embeddings_grade
+            ON standard_embeddings(grade_level)
+        """)
+        
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_standard_embeddings_strand
+            ON standard_embeddings(strand_code)
+        """)
+        
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_objective_embeddings_standard
+            ON objective_embeddings(standard_id)
+        """)
+        
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_standard_embeddings_file_id
+            ON standard_embeddings(file_id)
+        """)
+        
+        conn.execute("""
+            CREATE INDEX IF NOT EXISTS idx_objective_embeddings_file_id
+            ON objective_embeddings(file_id)
+        """)
+        
+        logger.info("Ensured embeddings tables exist with file_id columns and indexes")
+
+    def _add_file_id_to_core_tables(self, conn: sqlite3.Connection) -> None:
+        """Add file_id columns to core tables (standards, objectives)"""
+        
+        # Update standards table
+        try:
+            conn.execute("""
+                ALTER TABLE standards
+                ADD COLUMN file_id TEXT
+            """)
+            logger.info("Added file_id column to standards table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e).lower():
+                raise
+            logger.info("file_id column already exists in standards table")
+        
+        # Update objectives table
+        try:
+            conn.execute("""
+                ALTER TABLE objectives
+                ADD COLUMN file_id TEXT
+            """)
+            logger.info("Added file_id column to objectives table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e).lower():
+                raise
+            logger.info("file_id column already exists in objectives table")
+
+    def _add_file_id_to_extended_tables(self, conn: sqlite3.Connection) -> None:
+        """Add file_id columns to extended document tables"""
+        
+        # Whitelist of allowed table names to prevent SQL injection
+        allowed_tables = {
+            'unpacking_sections',
+            'teaching_strategies',
+            'assessment_guidance',
+            'alignment_relationships',
+            'progression_mappings',
+            'glossary_entries',
+            'faq_entries',
+            'resource_entries'
+        }
+        
+        for table_name in allowed_tables:
+            try:
+                # Check if table exists first
+                cursor = conn.execute("""
+                    SELECT name FROM sqlite_master
+                    WHERE type='table' AND name=?
+                """, (table_name,))
+                
+                if cursor.fetchone():
+                    # Use parameterized query with proper string formatting for ALTER TABLE
+                    # SQLite doesn't support parameterized table names, so we validate against whitelist
+                    sql = f"ALTER TABLE {table_name} ADD COLUMN file_id TEXT"
+                    conn.execute(sql)
+                    logger.info(f"Added file_id column to {table_name} table")
+                else:
+                    logger.info(f"Table {table_name} does not exist, skipping")
+                    
+            except sqlite3.OperationalError as e:
+                if "duplicate column name" not in str(e).lower():
+                    raise
+                logger.info(f"file_id column already exists in {table_name} table")
+
+    def _add_file_id_to_citations_table(self, conn: sqlite3.Connection) -> None:
+        """Add file_id column to citations table"""
+        
+        try:
+            conn.execute("""
+                ALTER TABLE citations
+                ADD COLUMN file_id TEXT
+            """)
+            logger.info("Added file_id column to citations table")
+        except sqlite3.OperationalError as e:
+            if "duplicate column name" not in str(e).lower():
+                raise
+            logger.info("file_id column already exists in citations table")
+
+    def _create_file_linking_indexes(self, conn: sqlite3.Connection) -> None:
+        """Create indexes for file linking performance"""
+        
+        indexes = [
+            "CREATE INDEX IF NOT EXISTS idx_standard_embeddings_file_id ON standard_embeddings(file_id)",
+            "CREATE INDEX IF NOT EXISTS idx_objective_embeddings_file_id ON objective_embeddings(file_id)",
+            "CREATE INDEX IF NOT EXISTS idx_standards_file_id ON standards(file_id)",
+            "CREATE INDEX IF NOT EXISTS idx_objectives_file_id ON objectives(file_id)",
+            "CREATE INDEX IF NOT EXISTS idx_citations_file_id ON citations(file_id)",
+        ]
+        
+        # Extended table indexes
+        extended_indexes = [
+            "idx_unpacking_sections_file_id",
+            "idx_teaching_strategies_file_id",
+            "idx_assessment_guidance_file_id",
+            "idx_alignment_relationships_file_id",
+            "idx_progression_mappings_file_id",
+            "idx_glossary_entries_file_id",
+            "idx_faq_entries_file_id",
+            "idx_resource_entries_file_id"
+        ]
+        
+        for table_name in extended_indexes:
+            # Extract actual table name from index name safely
+            actual_table = table_name.replace('idx_', '').replace('_file_id', '')
+            # Validate table name against whitelist
+            if actual_table in {
+                'unpacking_sections', 'teaching_strategies', 'assessment_guidance',
+                'alignment_relationships', 'progression_mappings', 'glossary_entries',
+                'faq_entries', 'resource_entries'
+            }:
+                indexes.append(f"CREATE INDEX IF NOT EXISTS {table_name} ON {actual_table}(file_id)")
+            else:
+                logger.warning(f"Skipping index creation for unknown table: {actual_table}")
+        
+        for index_sql in indexes:
+            try:
+                conn.execute(index_sql)
+            except sqlite3.OperationalError as e:
+                # Table might not exist, which is fine
+                if "no such table" not in str(e).lower():
+                    logger.warning(f"Failed to create index: {e}")
+        
+        logger.info("Created file linking indexes")
 
     def create_default_admin(
         self, email: str, password_hash: str, full_name: str = "Admin User"

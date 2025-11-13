@@ -320,10 +320,10 @@ export default function RightPanel({
                     ? 'hover:from-parchment-300 hover:to-parchment-400 hover:border-ink-400 cursor-pointer'
                     : 'cursor-default'
                 } ${!onViewConversations || lessonsCount === 0 ? 'opacity-60' : ''}`}
-                title={lessonsCount > 0 ? `View ${lessonsCount} lesson${lessonsCount !== 1 ? 's' : ''} in sidebar` : 'No lessons available'}
+                title={lessonsCount > 0 ? `View ${lessonsCount} chat${lessonsCount !== 1 ? 's' : ''} in sidebar` : 'No chats available'}
               >
                 <div className="text-lg font-bold text-ink-700">{lessonsCount}</div>
-                <div className="text-xs text-ink-600 leading-tight">Lessons</div>
+                <div className="text-xs text-ink-600 leading-tight">Chats</div>
               </button>
               <button
                 onClick={onViewDrafts}

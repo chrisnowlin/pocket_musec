@@ -14,6 +14,7 @@ class Standard:
     strand_description: str
     standard_text: str
     source_document: Optional[str] = None
+    file_id: Optional[str] = None
     ingestion_date: Optional[str] = None
     version: Optional[str] = None
 
@@ -24,6 +25,7 @@ class Objective:
     objective_id: str
     standard_id: str
     objective_text: str
+    file_id: Optional[str] = None
 
 
 @dataclass

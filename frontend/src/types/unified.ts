@@ -2,7 +2,7 @@ import type { StandardRecord } from '../lib/types';
 
 export type PanelSide = 'sidebar' | 'right';
 export type ChatSender = 'user' | 'ai';
-export type ViewMode = 'chat' | 'browse' | 'ingestion' | 'images' | 'settings';
+export type ViewMode = 'chat' | 'browse' | 'ingestion' | 'images' | 'settings' | 'embeddings';
 
 export interface ChatMessage {
   id: string;

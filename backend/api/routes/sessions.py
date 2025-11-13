@@ -276,6 +276,11 @@ def _compose_lesson_from_agent(
     standard = requirements.get("standard")
     standard_label = standard.standard_id if standard else "Selected standard"
     grade_label = requirements.get("grade_level", "the chosen grade level")
+    
+    # Get file_id for the standard if available
+    standard_file_id = None
+    if standard and hasattr(standard, 'file_id'):
+        standard_file_id = standard.file_id
 
     # Check if an LLM-generated lesson is available
     generated_lesson = requirements.get("generated_lesson")
@@ -323,6 +328,7 @@ def _compose_lesson_from_agent(
             "generated_by": "llm" if generated_lesson else "template",
         },
         "citations": [standard.standard_id] if standard else [],
+        "citation_file_ids": [standard_file_id] if standard and standard_file_id else [],
     }
 
 

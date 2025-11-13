@@ -20,6 +20,7 @@ import LessonEditor from '../components/unified/LessonEditor';
 import ErrorBoundary from '../components/ErrorBoundary';
 import ToastContainer from '../components/unified/ToastContainer';
 import ConfirmDialog from '../components/unified/ConfirmDialog';
+import EmbeddingsManager from '../components/EmbeddingsManager';
 import { useToast } from '../hooks/useToast';
 import api from '../lib/api';
 import { frontendToBackendGrade } from '../lib/gradeUtils';
@@ -111,6 +112,7 @@ export default function UnifiedPage() {
     loadSessions,
     loadStandards,
     sessions,
+    setSessions,
   } = useSession();
   const {
     messages,
@@ -314,11 +316,14 @@ export default function UnifiedPage() {
     setDeleteConfirmOpen(false);
     setPendingDeleteSessionId(null);
 
+    // Optimistically remove the session from the list immediately
+    setSessions(prev => prev.filter(s => s.id !== sessionId));
+
     try {
       const result = await api.deleteSession(sessionId);
       if (result.ok) {
         success('Conversation deleted successfully');
-        // Refresh the sessions list
+        // Refresh the sessions list to ensure consistency
         await loadSessions();
         // If the deleted session was the current one, reset
         if (session?.id === sessionId) {
@@ -328,10 +333,14 @@ export default function UnifiedPage() {
       } else {
         console.error('Failed to delete conversation:', result.message);
         error(`Failed to delete conversation: ${result.message}`);
+        // Revert optimistic update on failure
+        await loadSessions();
       }
     } catch (err) {
       console.error('Error deleting conversation:', err);
       error('An error occurred while deleting the conversation.');
+      // Revert optimistic update on error
+      await loadSessions();
     }
   };
 
@@ -348,11 +357,14 @@ export default function UnifiedPage() {
   const confirmClearAllChatHistory = async () => {
     setClearAllHistoryConfirmOpen(false);
 
+    // Optimistically clear the sessions list immediately
+    setSessions([]);
+
     try {
       const result = await api.deleteAllSessions();
       if (result.ok) {
         success(`Successfully cleared all chat history (${result.data.count} conversation${result.data.count !== 1 ? 's' : ''} deleted)`);
-        // Refresh the sessions list
+        // Refresh the sessions list to ensure consistency
         await loadSessions();
         // Reset current session and messages
         resetMessages();
@@ -360,10 +372,14 @@ export default function UnifiedPage() {
       } else {
         console.error('Failed to clear chat history:', result.message);
         error(`Failed to clear chat history: ${result.message}`);
+        // Revert optimistic update on failure
+        await loadSessions();
       }
     } catch (err) {
       console.error('Error clearing chat history:', err);
       error('An error occurred while clearing chat history.');
+      // Revert optimistic update on error
+      await loadSessions();
     }
   };
 
@@ -596,6 +612,12 @@ export default function UnifiedPage() {
                 onProcessingModeChange={(mode) => updateSettingsState({ processingMode: mode })}
                 onClearChatHistory={handleClearAllChatHistory}
               />
+            )}
+
+            {uiState.mode === 'embeddings' && (
+              <div className="h-full overflow-y-auto">
+                <EmbeddingsManager />
+              </div>
             )}
           </div>
         </section>

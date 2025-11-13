@@ -9,7 +9,7 @@ Environment variables:
     API_HOST: Host to bind to (default: 0.0.0.0)
     API_PORT: Port to bind to (default: 8000)
     API_RELOAD: Enable auto-reload on code changes (default: true)
-    DATABASE_PATH: Path to SQLite database (default: data/standards/standards.db)
+    DATABASE_PATH: Path to SQLite database (default: data/pocket_musec.db)
     JWT_SECRET_KEY: Secret key for JWT tokens (REQUIRED)
 """
 

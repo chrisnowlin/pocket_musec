@@ -24,7 +24,7 @@ class StandardsRepository:
         try:
             cursor = conn.execute("""
                 SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document,
+                       strand_description, standard_text, source_document, file_id,
                        ingestion_date, version
                 FROM standards
                 ORDER BY grade_level, strand_code, standard_id
@@ -40,8 +40,9 @@ class StandardsRepository:
                     strand_description=row[4],
                     standard_text=row[5],
                     source_document=row[6],
-                    ingestion_date=row[7],
-                    version=row[8]
+                    file_id=row[7],
+                    ingestion_date=row[8],
+                    version=row[9]
                 ))
             
             return standards
@@ -57,7 +58,7 @@ class StandardsRepository:
         """List standards filtered by grade and strand (optional)"""
         base_query = """
             SELECT standard_id, grade_level, strand_code, strand_name,
-                   strand_description, standard_text, source_document,
+                   strand_description, standard_text, source_document, file_id,
                    ingestion_date, version
             FROM standards
         """
@@ -92,7 +93,7 @@ class StandardsRepository:
         try:
             cursor = conn.execute("""
                 SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document,
+                       strand_description, standard_text, source_document, file_id,
                        ingestion_date, version
                 FROM standards
                 WHERE standard_id = ?
@@ -110,7 +111,7 @@ class StandardsRepository:
         try:
             cursor = conn.execute("""
                 SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document,
+                       strand_description, standard_text, source_document, file_id,
                        ingestion_date, version
                 FROM standards
                 WHERE grade_level = ?
@@ -127,8 +128,9 @@ class StandardsRepository:
                     strand_description=row[4],
                     standard_text=row[5],
                     source_document=row[6],
-                    ingestion_date=row[7],
-                    version=row[8]
+                    file_id=row[7],
+                    ingestion_date=row[8],
+                    version=row[9]
                 ))
             
             return standards
@@ -141,7 +143,7 @@ class StandardsRepository:
         try:
             cursor = conn.execute("""
                 SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document,
+                       strand_description, standard_text, source_document, file_id,
                        ingestion_date, version
                 FROM standards
                 WHERE strand_code = ?
@@ -158,8 +160,9 @@ class StandardsRepository:
                     strand_description=row[4],
                     standard_text=row[5],
                     source_document=row[6],
-                    ingestion_date=row[7],
-                    version=row[8]
+                    file_id=row[7],
+                    ingestion_date=row[8],
+                    version=row[9]
                 ))
             
             return standards
@@ -172,7 +175,7 @@ class StandardsRepository:
         try:
             cursor = conn.execute("""
                 SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document,
+                       strand_description, standard_text, source_document, file_id,
                        ingestion_date, version
                 FROM standards
                 WHERE grade_level = ? AND strand_code = ?
@@ -189,8 +192,9 @@ class StandardsRepository:
                     strand_description=row[4],
                     standard_text=row[5],
                     source_document=row[6],
-                    ingestion_date=row[7],
-                    version=row[8]
+                    file_id=row[7],
+                    ingestion_date=row[8],
+                    version=row[9]
                 ))
             
             return standards
@@ -203,7 +207,7 @@ class StandardsRepository:
         try:
             cursor = conn.execute("""
                 SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document,
+                       strand_description, standard_text, source_document, file_id,
                        ingestion_date, version
                 FROM standards
                 WHERE standard_id = ?
@@ -219,8 +223,9 @@ class StandardsRepository:
                     strand_description=row[4],
                     standard_text=row[5],
                     source_document=row[6],
-                    ingestion_date=row[7],
-                    version=row[8]
+                    file_id=row[7],
+                    ingestion_date=row[8],
+                    version=row[9]
                 )
             return None
         finally:
@@ -231,7 +236,7 @@ class StandardsRepository:
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT objective_id, standard_id, objective_text
+                SELECT objective_id, standard_id, objective_text, file_id
                 FROM objectives
                 WHERE standard_id = ?
                 ORDER BY objective_id
@@ -242,7 +247,8 @@ class StandardsRepository:
                 objectives.append(Objective(
                     objective_id=row[0],
                     standard_id=row[1],
-                    objective_text=row[2]
+                    objective_text=row[2],
+                    file_id=row[3]
                 ))
             
             return objectives
@@ -267,10 +273,10 @@ class StandardsRepository:
         try:
             cursor = conn.execute("""
                 SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document,
+                       strand_description, standard_text, source_document, file_id,
                        ingestion_date, version
                 FROM standards
-                WHERE standard_text LIKE ? 
+                WHERE standard_text LIKE ?
                    OR strand_description LIKE ?
                    OR strand_name LIKE ?
                 ORDER BY grade_level, strand_code, standard_id
@@ -286,8 +292,9 @@ class StandardsRepository:
                     strand_description=row[4],
                     standard_text=row[5],
                     source_document=row[6],
-                    ingestion_date=row[7],
-                    version=row[8]
+                    file_id=row[7],
+                    ingestion_date=row[8],
+                    version=row[9]
                 ))
             
             return standards
@@ -498,6 +505,38 @@ class StandardsRepository:
         """Get statistics about embeddings in the database"""
         return self.embeddings.get_embedding_stats()
 
+    def get_standards_by_file_id(self, file_id: str) -> List[Standard]:
+        """Get standards for a specific file ID"""
+        conn = self.db_manager.get_connection()
+        try:
+            cursor = conn.execute("""
+                SELECT standard_id, grade_level, strand_code, strand_name,
+                       strand_description, standard_text, source_document, file_id,
+                       ingestion_date, version
+                FROM standards
+                WHERE file_id = ?
+                ORDER BY strand_code, standard_id
+            """, (file_id,))
+            
+            standards = []
+            for row in cursor.fetchall():
+                standards.append(Standard(
+                    standard_id=row[0],
+                    grade_level=row[1],
+                    strand_code=row[2],
+                    strand_name=row[3],
+                    strand_description=row[4],
+                    standard_text=row[5],
+                    source_document=row[6],
+                    file_id=row[7],
+                    ingestion_date=row[8],
+                    version=row[9]
+                ))
+            
+            return standards
+        finally:
+            conn.close()
+
     def _row_to_standard(self, row: sqlite3.Row) -> Standard:
         return Standard(
             standard_id=row[0],
@@ -507,6 +546,7 @@ class StandardsRepository:
             strand_description=row[4],
             standard_text=row[5],
             source_document=row[6],
-            ingestion_date=row[7],
-            version=row[8]
+            file_id=row[7],
+            ingestion_date=row[8],
+            version=row[9]
         )

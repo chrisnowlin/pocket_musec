@@ -13,10 +13,13 @@ Welcome to the PocketMusec documentation hub. PocketMusec is an AI-powered lesso
 - **[CLI Commands Reference](CLI_COMMANDS.md)** - Complete command documentation
 - **[Developer Setup Guide](DEVELOPER_SETUP.md)** - Development environment and contribution guide
 - **[API Documentation](#api-documentation)** - Technical API reference
+- **[File Storage System](FILE_STORAGE_SYSTEM.md)** - Comprehensive file storage documentation
+- **[Developer File Storage Guide](DEVELOPER_FILE_STORAGE.md)** - Developer guide for file storage
 
 ### For System Administrators
 - **[Installation & Deployment](DEVELOPER_SETUP.md#deployment-and-distribution)** - System setup requirements
 - **[Configuration](DEVELOPER_SETUP.md#environment-configuration)** - Environment variables and settings
+- **[File Storage Migration](FILE_STORAGE_MIGRATION.md)** - Migration guide for file storage system
 - **[Troubleshooting](#troubleshooting)** - Common technical issues
 
 ---
@@ -54,25 +57,31 @@ That's it! You're ready to create standards-aligned music lessons.
 ## 🎵 For Music Teachers
 
 ### What PocketMusec Does
-- ✅ **Saves Time** - Generate complete lesson plans in minutes
-- ✅ **Standards Aligned** - Automatically matches NC music standards  
+- ✅ **Saves Time** - Generate complete lesson plans in minutes through web interface
+- ✅ **Standards Aligned** - Automatically matches NC music standards
 - ✅ **Grade Specific** - Content tailored for K-12 music education
 - ✅ **Four Music Strands** - Covers Creating, Performing, Responding, and Critical Response
-- ✅ **Editable** - Customize lessons in your favorite editor
-- ✅ **Organized** - Keeps track of all your lesson drafts
+- ✅ **Web-Based** - Access from any browser with no installation required
+- ✅ **Enhanced Search** - Semantic search with advanced filtering and pagination
+- ✅ **Usage Analytics** - Track your lesson planning patterns and preferences
 
 ### Key Features
-- **Interactive Lesson Generation** - Conversational interface guides you through each step
+- **Web Interface** - Modern, responsive design accessible from any device
+- **Interactive Lesson Generation** - Guided forms with real-time progress tracking
 - **Standards-Based** - All lessons aligned with North Carolina music education standards
-- **Smart Search** - Find standards using natural language queries
-- **Draft History** - Track changes and maintain version history
-- **Editor Integration** - Works with your default text editor
+- **Smart Search** - Find standards using natural language queries with semantic understanding
+- **Session Management** - Automatic saving and version history
+- **Image Processing** - Upload and analyze sheet music with OCR and AI
+- **File Storage System** - Permanent file storage with duplicate detection and organized directory structure
+- **Embeddings Management** - Advanced semantic search with usage analytics
+- **Export Capabilities** - Download lessons and data in multiple formats
 
 ### Getting Started
-1. **Read the [Teacher Guide](TEACHER_GUIDE.md)** for detailed instructions
-2. **Import your standards** using the ingest command
-3. **Start generating lessons** with the interactive CLI
-4. **Customize and save** lessons for your classroom
+1. **Read the [User Guide](USER_GUIDE.md)** for detailed web interface instructions
+2. **Access the web interface** at `http://localhost:5173` after starting servers
+3. **Configure your settings** for processing mode and preferences
+4. **Start creating lessons** with the intuitive web forms
+5. **Explore advanced features** like embeddings management and analytics
 
 ---
 
@@ -148,45 +157,52 @@ See the [Developer Setup Guide](DEVELOPER_SETUP.md) for complete development ins
 
 ---
 
-## 📋 CLI Commands Reference
+## 🌐 Web Interface Features
 
-### Main Commands
-```bash
-# Show help
-pocketmusec --help
+### Main Features
+The web interface provides access to all PocketMusec functionality:
 
-# Ingest NC music standards
-pocketmusec ingest standards "standards.pdf"
+#### Lesson Generation
+- **Guided Forms**: Step-by-step lesson creation with intuitive interface
+- **Real-time Progress**: Visual feedback during AI generation
+- **Rich Editor**: Built-in editing with auto-save and version history
+- **Export Options**: Download lessons as Markdown or PDF
 
-# Generate interactive lesson
-pocketmusec generate lesson
+#### Image Management
+- **Drag-and-Drop Upload**: Easy image ingestion with progress tracking
+- **OCR Processing**: Automatic text extraction from sheet music
+- **Vision AI Analysis**: Semantic understanding of musical content
+- **Gallery View**: Organized display with search and filtering
 
-# Manage embeddings for smart search
-pocketmusec embeddings generate
-pocketmusec embeddings search "rhythm activities"
-pocketmusec embeddings stats
-```
+#### File Storage Management
+- **Permanent Storage**: Files stored with UUID-based naming to prevent conflicts
+- **Duplicate Detection**: SHA256 hash-based detection prevents duplicate uploads
+- **Organized Directory Structure**: Date-based organization (YYYY/MM/DD) for efficient management
+- **Metadata Tracking**: Comprehensive metadata including file status, processing state, and user information
+- **Security Features**: File type validation, size limits, and secure access controls
+- **Cleanup Management**: Automated cleanup of old files with configurable retention policies
 
-### Advanced Usage
-```bash
-# Custom database location
-pocketmusec ingest standards "standards.pdf" --db-path "/custom/path.db"
+#### Embeddings Management
+- **Semantic Search**: Natural language queries with advanced filtering
+- **Pagination**: Efficient handling of large result sets
+- **Virtual Scrolling**: Smooth performance with large lists
+- **Usage Analytics**: Comprehensive tracking and insights
+- **Export Features**: Download statistics and data in multiple formats
+- **Batch Operations**: Bulk management with progress tracking
 
-# Save lesson directly to file
-pocketmusec generate lesson --output "my_lesson.md"
+#### Settings & Configuration
+- **Processing Modes**: Switch between Cloud (fast) and Local (private)
+- **Model Management**: Download and monitor local AI models
+- **Storage Configuration**: Manage quotas and cleanup options
+- **User Preferences**: Customize interface and behavior
 
-# Search with filters
-pocketmusec embeddings search "composition" --grade "8th Grade" --strand "CN"
+### Advanced Features
+- **Accessibility**: Full WCAG 2.1 AA compliance
+- **Responsive Design**: Works on desktop, tablet, and mobile
+- **Error Recovery**: Automatic retry with user-friendly messages
+- **Performance Optimization**: Caching and efficient rendering
 
-# Force regeneration
-pocketmusec embeddings generate --force
-
-# Review prepared texts for debugging
-pocketmusec embeddings texts
-pocketmusec embeddings show-text 2.CN.1 --type standard
-```
-
-See the [CLI Commands Documentation](CLI_COMMANDS.md) for complete reference.
+See the [User Guide](USER_GUIDE.md) for complete web interface documentation.
 
 ---
 
@@ -210,7 +226,7 @@ API_RELOAD=true
 CORS_ORIGINS=http://localhost:3000,http://localhost:5173
 
 # Optional: Database Configuration
-DATABASE_PATH=./data/standards/standards.db
+DATABASE_PATH=./data/pocket_musec.db
 
 # Optional: LLM Configuration
 DEFAULT_MODEL=Qwen/Qwen3-VL-235B-A22B-Instruct
@@ -224,6 +240,14 @@ OLLAMA_MODEL=qwen3:8b
 
 # Optional: Image Processing Configuration
 IMAGE_STORAGE_PATH=./data/images
+
+# Optional: File Storage Configuration
+FILE_STORAGE_ROOT=./data/uploads
+MAX_FILE_SIZE=52428800
+ALLOWED_EXTENSIONS=.pdf,.doc,.docx,.txt,.jpg,.jpeg,.png,.gif,.webp,.tiff,.tif
+DUPLICATE_DETECTION=true
+FILE_RETENTION_DAYS=365
+FILE_CLEANUP_ENABLED=true
 
 # Optional: Logging Configuration
 LOG_LEVEL=INFO
@@ -243,12 +267,14 @@ The unified configuration system organizes settings into logical sections:
 - **LLMConfig**: Language model parameters and defaults
 - **OllamaConfig**: Local AI provider settings
 - **ImageProcessingConfig**: File handling and storage limits
+- **FileStorageConfig**: File storage settings and security configurations
 - **LoggingConfig**: Log levels, rotation, and formatting
 - **SecurityConfig**: Authentication and demo mode settings
 - **PathConfig**: Directory paths and file locations
 
 ### File Locations
-- **Database:** `./data/standards.db` (created automatically)
+- **Database:** `./data/pocket_musec.db` (created automatically)
+- **File Storage:** `./data/uploads/` (permanent file storage with date-based organization)
 - **Prepared Texts:** `./data/prepared_texts/` (saved during embedding generation)
 - **Logs:** `./logs/pocketmusec.log` (configured in .env)
 - **Temporary Files:** System temp directory (cleaned automatically)
@@ -327,49 +353,48 @@ PocketMusec supports all four NC music education strands:
 ## 🔄 Workflow Examples
 
 ### Daily Lesson Planning
-```bash
-# Morning: Generate today's lesson
-pocketmusec generate lesson
-# Follow prompts for grade, strand, standard
-# Edit and save for your classes
-
-# Afternoon: Plan tomorrow's lesson
-pocketmusec generate lesson --output "tomorrow_lesson.md"
-# Use different standard or strand
-
-# End of day: Review and organize
-# Your lessons are saved with metadata and standards alignment
-```
+1. **Access Web Interface**: Navigate to `http://localhost:5173`
+2. **Generate Morning Lesson**:
+   - Click "New Lesson" in sidebar
+   - Follow guided form for grade, strand, and standards
+   - Add context about your students and resources
+   - Generate and review AI-created lesson
+3. **Plan Afternoon Lesson**:
+   - Use "Similar Lessons" feature for related content
+   - Generate with different strand or standard
+   - Save with descriptive tags and folders
+4. **Organize and Review**:
+   - Access "Sessions" to see all lessons
+   - Use search and filtering to find specific content
+   - Export lessons for sharing or backup
 
 ### Unit Planning
-```bash
-# Search for related standards
-pocketmusec embeddings search "rhythm fundamentals" --grade "3rd Grade"
-
-# Generate series of lessons
-for strand in "CN" "PR" "RE"; do
-    pocketmusec generate lesson --output "unit_${strand}_lesson.md"
-done
-
-# Create unit overview from generated lessons
-# Edit and combine as needed
-```
+1. **Search for Standards**:
+   - Navigate to "Embeddings" → "Search"
+   - Use natural language: "rhythm fundamentals for 3rd grade"
+   - Apply filters for strand and grade level
+2. **Generate Lesson Series**:
+   - Use "Similar Lessons" for related standards
+   - Create cohesive unit with multiple strands
+   - Organize in unit folders with consistent naming
+3. **Create Unit Overview**:
+   - Export all lessons as a unit package
+   - Add unit objectives and assessment plan
+   - Share with colleagues or save for future use
 
 ### Curriculum Mapping
-```bash
-# Ingest standards (if not already done)
-pocketmusec ingest standards "NC Music Standards.pdf"
-
-# Generate embeddings for search
-pocketmusec embeddings generate
-
-# Search curriculum topics
-pocketmusec embeddings search "music notation" --limit 20
-pocketmusec embeddings search "ensemble skills" --grade "High School"
-
-# Review prepared texts for quality assurance
-pocketmusec embeddings texts
-```
+1. **Access Embeddings Dashboard**:
+   - Navigate to "Embeddings" → "Statistics"
+   - Review current standards coverage
+   - Generate embeddings if needed
+2. **Search Curriculum Topics**:
+   - Use semantic search for broad concepts
+   - Examples: "music notation", "ensemble skills", "composition techniques"
+   - Export search results for curriculum documentation
+3. **Analyze Usage Patterns**:
+   - Review "Usage" tab for planning insights
+   - Identify frequently used standards and topics
+   - Optimize lesson planning based on data
 
 ---
 
@@ -439,10 +464,10 @@ ping api.chutes.ai
 #### Database Issues
 ```bash
 # Check database location
-ls -la data/standards.db
+ls -la data/pocket_musec.db
 
 # Recreate database if corrupted
-rm data/standards.db
+rm data/pocket_musec.db
 pocketmusec ingest standards "NC Music Standards.pdf"
 ```
 
@@ -489,7 +514,7 @@ uv run python -m pdb main.py generate lesson
 pocketmusec embeddings generate --batch-size 20
 
 # Use custom database on faster storage
-pocketmusec ingest standards "standards.pdf" --db-path "/ssd/standards.db"
+pocketmusec ingest standards "standards.pdf" --db-path "/ssd/pocket_musec.db"
 
 # Clear old embeddings to free space
 pocketmusec embeddings clear

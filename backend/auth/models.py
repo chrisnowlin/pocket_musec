@@ -106,6 +106,7 @@ class Citation:
     excerpt: Optional[str] = None
     citation_text: str = ""
     citation_number: int = 1
+    file_id: Optional[str] = None
     created_at: Optional[datetime] = None
 
 

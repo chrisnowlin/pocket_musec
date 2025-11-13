@@ -1,6 +1,6 @@
-# PocketMusec API Documentation - Milestone 3
+# PocketMusec API Documentation - Web-Only Architecture
 
-Complete API reference for PocketMusec backend server.
+Complete API reference for PocketMusec backend server with enhanced embeddings management and file storage system.
 
 **Base URL:** `http://localhost:8000/api`
 
@@ -8,6 +8,8 @@ All authenticated endpoints require a valid JWT access token in the Authorizatio
 ```
 Authorization: Bearer <access_token>
 ```
+
+**Note:** PocketMusec now operates as a web-only application. All functionality is accessible through the web interface at `http://localhost:5173`. The API is provided for developers who want to integrate with PocketMusec programmatically.
 
 ## Authentication Endpoints
 
@@ -595,3 +597,449 @@ Websocket endpoints for real-time updates are planned for future releases:
 - `/ws/generation` - Streaming lesson generation
 
 Currently not implemented in Milestone 3.
+
+---
+
+## Embeddings Management
+
+The embeddings system provides comprehensive semantic search and management capabilities for music education standards and objectives.
+
+### GET /embeddings/stats
+Get statistics about embeddings in the database with caching support.
+
+**Response:**
+```json
+{
+  "standard_embeddings": 125,
+  "objective_embeddings": 48,
+  "embedding_dimension": 1536,
+  "last_updated": "2025-11-12T15:30:00Z"
+}
+```
+
+**Authorization:** Required
+
+**Notes:**
+- Response is cached for 5 minutes to improve performance
+- Use `force_refresh=true` query parameter to bypass cache
+
+---
+
+### POST /embeddings/generate
+Generate embeddings for all standards and objectives with background processing.
+
+**Request:**
+```json
+{
+  "force": false,
+  "batch_size": 10
+}
+```
+
+**Response:**
+```json
+{
+  "success": 0,
+  "failed": 0,
+  "skipped": 0,
+  "message": "Embedding generation started in background",
+  "task_id": "gen_abc123"
+}
+```
+
+**Authorization:** Required
+
+**Notes:**
+- Generation runs in background to avoid blocking
+- Progress can be tracked with the task_id
+- Large datasets are processed in batches
+
+---
+
+### GET /embeddings/generate/progress
+Get progress of ongoing embedding generation.
+
+**Query Parameters:**
+- `task_id` (string, optional): Specific task ID to track
+
+**Response:**
+```json
+{
+  "status": "running",
+  "progress": 75,
+  "message": "Generating embeddings...",
+  "current_item": "Processing standard 3.M.P.5",
+  "estimated_remaining": "2 minutes"
+}
+```
+
+**Authorization:** Required
+
+---
+
+### POST /embeddings/search
+Search for standards using semantic similarity with advanced pagination and filtering.
+
+**Request:**
+```json
+{
+  "query": "musical scales and patterns",
+  "grade_level": "Grade 3",
+  "strand_code": "M",
+  "limit": 10,
+  "threshold": 0.5,
+  "offset": 0
+}
+```
+
+**Response:**
+```json
+{
+  "results": [
+    {
+      "standard_id": "K.M.P.1",
+      "grade_level": "Kindergarten",
+      "strand_code": "M",
+      "strand_name": "Musical Expression",
+      "standard_text": "Demonstrate musical expression through movement...",
+      "similarity": 0.87,
+      "objectives": [
+        {
+          "objective_id": "K.M.P.1.1",
+          "text": "Demonstrate steady beat through movement"
+        }
+      ]
+    }
+  ],
+  "total_count": 25,
+  "limit": 10,
+  "offset": 0,
+  "has_next": true,
+  "has_previous": false,
+  "search_time": "0.05s"
+}
+```
+
+**Authorization:** Required
+
+**Notes:**
+- Supports natural language queries
+- Pagination prevents performance issues with large result sets
+- Similarity scores range from 0.0 to 1.0
+- Results are sorted by relevance
+
+---
+
+### DELETE /embeddings/clear
+Clear all embeddings from the database with confirmation.
+
+**Request:**
+```json
+{
+  "confirm": true,
+  "reason": "User requested cleanup"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "All embeddings deleted from database",
+  "deleted_count": 173,
+  "operation_time": "0.2s"
+}
+```
+
+**Authorization:** Required
+
+**Notes:**
+- Requires explicit confirmation to prevent accidental deletion
+- Operation is logged for audit purposes
+- Cannot be undone
+
+---
+
+### POST /embeddings/batch
+Perform batch operations on embeddings with progress tracking.
+
+**Request:**
+```json
+{
+  "operation": "regenerate",
+  "filters": {
+    "grade_level": "Grade 3",
+    "strand_code": "M"
+  }
+}
+```
+
+**Response:**
+```json
+{
+  "success": 0,
+  "failed": 0,
+  "skipped": 0,
+  "message": "Batch regenerate started in background",
+  "task_id": "batch_def456"
+}
+```
+
+**Authorization:** Required
+
+**Available Operations:**
+- `regenerate`: Regenerate embeddings for filtered items
+- `delete`: Delete embeddings for filtered items
+- `refresh`: Refresh embeddings cache
+- `validate`: Validate embedding integrity
+
+---
+
+### GET /embeddings/usage/stats
+Get comprehensive usage statistics for embeddings operations.
+
+**Response:**
+```json
+{
+  "total_searches": 42,
+  "total_generations": 3,
+  "searches_this_week": 12,
+  "generations_this_week": 1,
+  "last_search": "2025-11-12T10:30:00Z",
+  "last_generation": "2025-11-10T15:45:00Z",
+  "popular_queries": [
+    {"query": "rhythm activities", "count": 8},
+    {"query": "music composition", "count": 5}
+  ],
+  "weekly_trends": {
+    "searches": [5, 8, 12, 7, 9],
+    "generations": [0, 1, 0, 0, 0]
+  }
+}
+```
+
+**Authorization:** Required
+
+---
+
+### POST /embeddings/usage/track/search
+Track a search operation for analytics.
+
+**Query Parameters:**
+- `query` (string): Search query
+- `result_count` (int): Number of results returned
+- `filters_applied` (boolean): Whether filters were used
+
+**Response:**
+```json
+{
+  "message": "Search usage tracked",
+  "tracked_at": "2025-11-12T10:30:00Z"
+}
+```
+
+**Authorization:** Required
+
+---
+
+### POST /embeddings/usage/track/generation
+Track a generation operation for analytics.
+
+**Query Parameters:**
+- `success` (int): Number of successfully generated embeddings
+- `failed` (int): Number of failed generations
+- `skipped` (int): Number of skipped generations
+- `operation_type` (string): Type of generation (full, batch, filtered)
+
+**Response:**
+```json
+{
+  "message": "Generation usage tracked",
+  "tracked_at": "2025-11-10T15:45:00Z"
+}
+```
+
+**Authorization:** Required
+
+---
+
+### GET /embeddings/stats/export/csv
+Export embedding statistics as CSV file with proper headers.
+
+**Query Parameters:**
+- `include_usage` (boolean): Include usage statistics (default: false)
+- `date_range` (string): Date range filter (optional)
+
+**Response:** CSV file download with headers:
+```
+timestamp,standard_embeddings,objective_embeddings,embedding_dimension,last_updated
+2025-11-12T15:30:00Z,125,48,1536,2025-11-12T15:30:00Z
+```
+
+**Authorization:** Required
+
+---
+
+### GET /embeddings/stats/export/json
+Export embedding statistics as JSON with metadata.
+
+**Query Parameters:**
+- `include_usage` (boolean): Include usage statistics (default: false)
+- `date_range` (string): Date range filter (optional)
+
+**Response:**
+```json
+{
+  "export_timestamp": "2025-11-12T15:30:00Z",
+  "export_version": "1.0",
+  "embedding_statistics": {
+    "standard_embeddings": 125,
+    "objective_embeddings": 48,
+    "embedding_dimension": 1536,
+    "last_updated": "2025-11-12T15:30:00Z"
+  },
+  "usage_statistics": {
+    "total_searches": 42,
+    "total_generations": 3,
+    "searches_this_week": 12,
+    "generations_this_week": 1,
+    "last_search": "2025-11-12T10:30:00Z",
+    "last_generation": "2025-11-10T15:45:00Z"
+  }
+}
+```
+
+**Authorization:** Required
+
+---
+
+### GET /embeddings/usage/export/csv
+Export usage statistics as CSV file with detailed analytics.
+
+**Query Parameters:**
+- `date_range` (string): Date range filter (optional)
+- `include_trends` (boolean): Include weekly trends (default: true)
+
+**Response:** CSV file download with headers:
+```
+date,total_searches,total_generations,searches_this_week,generations_this_week,last_search,last_generation
+2025-11-12,42,3,12,1,2025-11-12T10:30:00Z,2025-11-10T15:45:00Z
+```
+
+**Authorization:** Required
+
+---
+
+### GET /embeddings/texts
+List all prepared embedding text files with metadata.
+
+**Response:**
+```json
+{
+  "standards": [
+    {
+      "item_id": "K.M.P.1",
+      "grade_level": "Kindergarten",
+      "strand_code": "M",
+      "text_length": 245,
+      "last_prepared": "2025-11-10T12:00:00Z"
+    }
+  ],
+  "objectives": [
+    {
+      "item_id": "K.M.P.1.1",
+      "parent_standard": "K.M.P.1",
+      "text_length": 89,
+      "last_prepared": "2025-11-10T12:05:00Z"
+    }
+  ],
+  "total_count": 173
+}
+```
+
+**Authorization:** Required
+
+---
+
+### GET /embeddings/texts/{item_id}
+Show prepared text for a specific standard or objective with context.
+
+**Query Parameters:**
+- `item_type` (string): "standard" or "objective" (default: "standard")
+- `include_context` (boolean): Include related items (default: false)
+
+**Response:**
+```json
+{
+  "text": "Demonstrate musical expression through movement...",
+  "item_id": "K.M.P.1",
+  "item_type": "standard",
+  "metadata": {
+    "grade_level": "Kindergarten",
+    "strand_code": "M",
+    "text_length": 245,
+    "last_prepared": "2025-11-10T12:00:00Z"
+  },
+  "related_objectives": [
+    {
+      "objective_id": "K.M.P.1.1",
+      "text": "Demonstrate steady beat through movement"
+    }
+  ]
+}
+```
+
+**Authorization:** Required
+
+---
+
+### DELETE /embeddings/texts/clear
+Clear all prepared text files with confirmation.
+
+**Request:**
+```json
+{
+  "confirm": true,
+  "reason": "User requested cleanup"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "All prepared text files deleted",
+  "deleted_count": 173,
+  "operation_time": "0.15s"
+}
+```
+
+**Authorization:** Required
+
+---
+
+## Embeddings Best Practices
+
+1. **Pagination:** Use pagination for search results to improve performance
+2. **Batch Operations:** Use batch operations for large-scale changes
+3. **Usage Monitoring:** Monitor usage statistics to understand system utilization
+4. **Export Data:** Use export features for backup and analysis
+5. **Error Handling:** Implement proper retry logic with exponential backoff
+6. **Accessibility:** Use ARIA labels and keyboard navigation support
+7. **Caching:** Leverage server-side caching for statistics endpoint
+8. **Virtual Scrolling:** Enable for large result sets in UI implementations
+
+---
+
+## Enhanced Features
+
+The embeddings system includes several enhancements for improved usability and performance:
+
+- **Advanced Pagination:** Efficient handling of large result sets with metadata
+- **Virtual Scrolling:** Optional virtual scrolling for large result lists in the UI
+- **Retry Logic:** Automatic retry with exponential backoff for failed requests
+- **Usage Analytics:** Comprehensive usage tracking with trends and insights
+- **Export Functionality:** Export statistics and usage data in multiple formats
+- **Batch Operations:** Perform bulk operations on embeddings efficiently
+- **Accessibility:** Full WCAG 2.1 AA compliance with ARIA support
+- **Performance Optimization:** Server-side caching and efficient query patterns
+- **Progress Tracking:** Real-time progress monitoring for long-running operations
+- **Error Resilience:** Graceful error handling with user-friendly messages

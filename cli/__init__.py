@@ -1,1 +1,0 @@
-"""CLI interface for pocket_musec"""

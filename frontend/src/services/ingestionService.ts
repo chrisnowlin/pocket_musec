@@ -1,3 +1,5 @@
+import type { FileMetadata, FileStorageResponse } from '../types/fileStorage';
+
 export interface IngestionRequest {
   file: File;
   advancedOption?: string;
@@ -33,11 +35,20 @@ export interface IngestionResponse {
   success: boolean;
   classification?: DocumentClassification;
   results?: IngestionResults;
+  file_metadata?: FileMetadata;
+  duplicate?: boolean;
+  message?: string;
+  existing_file?: {
+    id: string;
+    filename: string;
+    upload_date: string;
+    status: string;
+  };
   error?: string;
 }
 
 class IngestionService {
-  private baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+  private baseUrl = (import.meta.env?.VITE_API_BASE_URL as string) || '/api';
 
   async classifyDocument(file: File): Promise<DocumentClassification> {
     const formData = new FormData();
@@ -61,7 +72,7 @@ class IngestionService {
     return result.classification;
   }
 
-  async ingestDocument(request: IngestionRequest): Promise<IngestionResults> {
+  async ingestDocument(request: IngestionRequest): Promise<IngestionResponse> {
     const formData = new FormData();
     formData.append('file', request.file);
     
@@ -84,7 +95,15 @@ class IngestionService {
       throw new Error(result.error || 'Ingestion failed');
     }
 
-    return result.results || {};
+    return {
+      success: result.success,
+      results: result.results || {},
+      file_metadata: result.file_metadata,
+      duplicate: result.duplicate,
+      message: result.message,
+      existing_file: result.existing_file,
+      error: result.error
+    };
   }
 
   async getDocumentTypes(): Promise<any> {
@@ -109,6 +128,69 @@ class IngestionService {
     return result.options || [];
   }
 
+  async getUploadedFiles(status?: string, limit: number = 50, offset: number = 0): Promise<FileStorageResponse> {
+    const params = new URLSearchParams();
+    if (status) params.append('status', status);
+    params.append('limit', limit.toString());
+    params.append('offset', offset.toString());
+
+    const response = await fetch(`${this.baseUrl}/ingestion/files?${params}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get uploaded files: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to get uploaded files');
+    }
+
+    return result;
+  }
+
+  async getFileMetadata(fileId: string): Promise<FileStorageResponse> {
+    const response = await fetch(`${this.baseUrl}/ingestion/files/${fileId}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get file metadata: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to get file metadata');
+    }
+
+    return result;
+  }
+
+  async downloadFile(fileId: string): Promise<Blob> {
+    const response = await fetch(`${this.baseUrl}/ingestion/files/${fileId}/download`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to download file: ${response.statusText}`);
+    }
+
+    return response.blob();
+  }
+
+  async getFileStatistics(): Promise<any> {
+    const response = await fetch(`${this.baseUrl}/ingestion/files/stats`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to get file statistics: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(result.error || 'Failed to get file statistics');
+    }
+
+    return result;
+  }
+
   async uploadAndClassify(file: File): Promise<IngestionResponse> {
     try {
       const classification = await this.classifyDocument(file);
@@ -126,13 +208,30 @@ class IngestionService {
 
   async uploadAndIngest(file: File, advancedOption?: string): Promise<IngestionResponse> {
     try {
-      const results = await this.ingestDocument({ file, advancedOption });
+      const ingestionResponse = await this.ingestDocument({ file, advancedOption });
+      
+      if (ingestionResponse.duplicate) {
+        // Handle duplicate file case
+        return {
+          success: true,
+          duplicate: true,
+          message: ingestionResponse.message || 'File already exists',
+          existing_file: ingestionResponse.existing_file,
+          error: ingestionResponse.error
+        };
+      }
+      
       const classification = await this.classifyDocument(file);
       
       return {
         success: true,
         classification,
-        results
+        results: ingestionResponse.results,
+        file_metadata: ingestionResponse.file_metadata,
+        duplicate: ingestionResponse.duplicate,
+        message: ingestionResponse.message,
+        existing_file: ingestionResponse.existing_file,
+        error: ingestionResponse.error
       };
     } catch (error) {
       return {
