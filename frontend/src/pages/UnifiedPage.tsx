@@ -58,8 +58,8 @@ export default function UnifiedPage() {
 
   const [lessonSettings, setLessonSettings] = useState<LessonSettings>({
     selectedStandard: null,
-    selectedGrade: 'Grade 3',
-    selectedStrand: 'Connect',
+    selectedGrade: 'All Grades',
+    selectedStrand: 'All Strands',
     selectedObjective: null,
     lessonContext: 'Class has recorders and a 30-minute block with mixed instruments.',
     lessonDuration: '30 minutes',
@@ -123,6 +123,7 @@ export default function UnifiedPage() {
     isLoadingConversation,
     updateMessageWithMetadata,
     loadConversationMessages,
+    loadDraftContent,
   } = useChat({
     session,
     lessonDuration: lessonSettings.lessonDuration,
@@ -200,8 +201,8 @@ export default function UnifiedPage() {
     if (loadedSession) {
       // Update lesson settings based on the loaded session
       updateLessonSettings({
-        selectedGrade: loadedSession.grade_level || 'Grade 3',
-        selectedStrand: loadedSession.strand_code || 'Connect',
+        selectedGrade: loadedSession.grade_level || 'All Grades',
+        selectedStrand: loadedSession.strand_code || 'All Strands',
         selectedStandard: loadedSession.selected_standard || null,
         selectedObjective: null,
         lessonContext: loadedSession.additional_context || '',
@@ -278,8 +279,15 @@ export default function UnifiedPage() {
       handleCloseDraftsModal();
       updateUIState({ mode: 'chat' });
       
-      // TODO: Load the draft content into the chat/editor
-      // This would require extending the chat system to load draft content
+      // Load the draft content into the chat so the user can continue iterating
+      loadDraftContent(draft.title, draft.content);
+
+      // Seed the conversation editor so edits start from the selected draft
+      setConversationEditorContent(draft.content);
+      const sessionIdFromMetadata = typeof draft.metadata?.['session_id'] === 'string'
+        ? (draft.metadata['session_id'] as string)
+        : null;
+      setConversationEditorSessionId(sessionIdFromMetadata);
     }
   };
 

@@ -23,13 +23,21 @@ class StandardsRepository:
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document, file_id,
-                       ingestion_date, version
-                FROM standards
-                ORDER BY grade_level, strand_code, standard_id
+                SELECT
+                    standard_code as standard_id,
+                    level_name as grade_level,
+                    strand_code,
+                    strand_name,
+                    strand_description,
+                    standard_text,
+                    document_title as source_document,
+                    NULL as file_id,
+                    NULL as ingestion_date,
+                    NULL as version
+                FROM standards_full
+                ORDER BY level_code, strand_code, standard_code
             """)
-            
+
             standards = []
             for row in cursor.fetchall():
                 standards.append(Standard(
@@ -44,7 +52,7 @@ class StandardsRepository:
                     ingestion_date=row[8],
                     version=row[9]
                 ))
-            
+
             return standards
         finally:
             conn.close()
@@ -57,18 +65,29 @@ class StandardsRepository:
     ) -> List[Standard]:
         """List standards filtered by grade and strand (optional)"""
         base_query = """
-            SELECT standard_id, grade_level, strand_code, strand_name,
-                   strand_description, standard_text, source_document, file_id,
-                   ingestion_date, version
-            FROM standards
+            SELECT
+                standard_code as standard_id,
+                level_name as grade_level,
+                strand_code,
+                strand_name,
+                strand_description,
+                standard_text,
+                document_title as source_document,
+                NULL as file_id,
+                NULL as ingestion_date,
+                NULL as version
+            FROM standards_full
         """
 
         filters = []
         params = []
 
         if grade_level:
-            filters.append("grade_level = ?")
-            params.append(grade_level)
+            # Convert grade_level to level_code format (handles both "Kindergarten" and "0")
+            # The database stores level_code (e.g., "0", "1", "2") and level_name (e.g., "Kindergarten", "Grade 1")
+            level_code = self._grade_to_level_code(grade_level)
+            filters.append("level_code = ?")
+            params.append(level_code)
 
         if strand_code:
             filters.append("strand_code = ?")
@@ -77,7 +96,7 @@ class StandardsRepository:
         if filters:
             base_query += " WHERE " + " AND ".join(filters)
 
-        base_query += " ORDER BY grade_level, strand_code, standard_id LIMIT ?"
+        base_query += " ORDER BY level_code, strand_code, standard_code LIMIT ?"
         params.append(limit)
 
         conn = self.db_manager.get_connection()
@@ -92,11 +111,19 @@ class StandardsRepository:
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document, file_id,
-                       ingestion_date, version
-                FROM standards
-                WHERE standard_id = ?
+                SELECT
+                    standard_code as standard_id,
+                    level_name as grade_level,
+                    strand_code,
+                    strand_name,
+                    strand_description,
+                    standard_text,
+                    document_title as source_document,
+                    NULL as file_id,
+                    NULL as ingestion_date,
+                    NULL as version
+                FROM standards_full
+                WHERE standard_code = ?
             """, (standard_id,))
             row = cursor.fetchone()
             if not row:
@@ -105,35 +132,65 @@ class StandardsRepository:
         finally:
             conn.close()
     
+    def _grade_to_level_code(self, grade_level: str) -> str:
+        """Convert grade level to level_code format for database queries"""
+        if not grade_level:
+            return grade_level
+        
+        normalized = grade_level.strip()
+        
+        # If already a code (numeric or proficiency code), return as-is
+        # Note: Database uses "K" for Kindergarten, not "0"
+        if normalized.isdigit() or normalized in ["0", "K", "AC", "AD", "N", "D", "I"]:
+            # Convert "0" to "K" since database uses "K" for Kindergarten
+            return "K" if normalized == "0" else normalized
+        
+        # Convert frontend format to level_code
+        # Note: Database stores Kindergarten as "K", not "0"
+        grade_mapping = {
+            "Kindergarten": "K",
+            "Grade 1": "1",
+            "Grade 2": "2",
+            "Grade 3": "3",
+            "Grade 4": "4",
+            "Grade 5": "5",
+            "Grade 6": "6",
+            "Grade 7": "7",
+            "Grade 8": "8",
+            "Novice": "N",
+            "Developing": "D",
+            "Intermediate": "I",
+            "Accomplished": "AC",
+            "Advanced": "AD",
+        }
+        
+        return grade_mapping.get(normalized, normalized)
+    
     def get_standards_by_grade(self, grade_level: str) -> List[Standard]:
         """Get standards for a specific grade level"""
+        # Convert grade level to level_code format for the new schema
+        level_code = self._grade_to_level_code(grade_level)
+        
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document, file_id,
-                       ingestion_date, version
-                FROM standards
-                WHERE grade_level = ?
-                ORDER BY strand_code, standard_id
-            """, (grade_level,))
+                SELECT
+                    standard_code as standard_id,
+                    level_name as grade_level,
+                    strand_code,
+                    strand_name,
+                    strand_description,
+                    standard_text,
+                    document_title as source_document,
+                    NULL as file_id,
+                    NULL as ingestion_date,
+                    NULL as version
+                FROM standards_full
+                WHERE level_code = ?
+                ORDER BY strand_code, standard_code
+            """, (level_code,))
             
-            standards = []
-            for row in cursor.fetchall():
-                standards.append(Standard(
-                    standard_id=row[0],
-                    grade_level=row[1],
-                    strand_code=row[2],
-                    strand_name=row[3],
-                    strand_description=row[4],
-                    standard_text=row[5],
-                    source_document=row[6],
-                    file_id=row[7],
-                    ingestion_date=row[8],
-                    version=row[9]
-                ))
-            
-            return standards
+            return [self._row_to_standard(row) for row in cursor.fetchall()]
         finally:
             conn.close()
     
@@ -142,62 +199,51 @@ class StandardsRepository:
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document, file_id,
-                       ingestion_date, version
-                FROM standards
+                SELECT
+                    standard_code as standard_id,
+                    level_name as grade_level,
+                    strand_code,
+                    strand_name,
+                    strand_description,
+                    standard_text,
+                    document_title as source_document,
+                    NULL as file_id,
+                    NULL as ingestion_date,
+                    NULL as version
+                FROM standards_full
                 WHERE strand_code = ?
-                ORDER BY grade_level, standard_id
+                ORDER BY level_code, standard_code
             """, (strand_code,))
             
-            standards = []
-            for row in cursor.fetchall():
-                standards.append(Standard(
-                    standard_id=row[0],
-                    grade_level=row[1],
-                    strand_code=row[2],
-                    strand_name=row[3],
-                    strand_description=row[4],
-                    standard_text=row[5],
-                    source_document=row[6],
-                    file_id=row[7],
-                    ingestion_date=row[8],
-                    version=row[9]
-                ))
-            
-            return standards
+            return [self._row_to_standard(row) for row in cursor.fetchall()]
         finally:
             conn.close()
     
     def get_standards_by_grade_and_strand(self, grade_level: str, strand_code: str) -> List[Standard]:
         """Get standards for a specific grade level and strand"""
+        # Convert grade level to level_code format for the new schema
+        level_code = self._grade_to_level_code(grade_level)
+        
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document, file_id,
-                       ingestion_date, version
-                FROM standards
-                WHERE grade_level = ? AND strand_code = ?
-                ORDER BY standard_id
-            """, (grade_level, strand_code))
+                SELECT
+                    standard_code as standard_id,
+                    level_name as grade_level,
+                    strand_code,
+                    strand_name,
+                    strand_description,
+                    standard_text,
+                    document_title as source_document,
+                    NULL as file_id,
+                    NULL as ingestion_date,
+                    NULL as version
+                FROM standards_full
+                WHERE level_code = ? AND strand_code = ?
+                ORDER BY standard_code
+            """, (level_code, strand_code))
             
-            standards = []
-            for row in cursor.fetchall():
-                standards.append(Standard(
-                    standard_id=row[0],
-                    grade_level=row[1],
-                    strand_code=row[2],
-                    strand_name=row[3],
-                    strand_description=row[4],
-                    standard_text=row[5],
-                    source_document=row[6],
-                    file_id=row[7],
-                    ingestion_date=row[8],
-                    version=row[9]
-                ))
-            
-            return standards
+            return [self._row_to_standard(row) for row in cursor.fetchall()]
         finally:
             conn.close()
     
@@ -236,12 +282,16 @@ class StandardsRepository:
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT objective_id, standard_id, objective_text, file_id
-                FROM objectives
-                WHERE standard_id = ?
-                ORDER BY objective_id
+                SELECT
+                    objective_code as objective_id,
+                    standard_code as standard_id,
+                    objective_text,
+                    NULL as file_id
+                FROM objectives_full
+                WHERE standard_code = ?
+                ORDER BY objective_code
             """, (standard_id,))
-            
+
             objectives = []
             for row in cursor.fetchall():
                 objectives.append(Objective(
@@ -250,7 +300,7 @@ class StandardsRepository:
                     objective_text=row[2],
                     file_id=row[3]
                 ))
-            
+
             return objectives
         finally:
             conn.close()
@@ -272,16 +322,25 @@ class StandardsRepository:
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute("""
-                SELECT standard_id, grade_level, strand_code, strand_name,
-                       strand_description, standard_text, source_document, file_id,
-                       ingestion_date, version
-                FROM standards
+                SELECT
+                    standard_code as standard_id,
+                    level_name as grade_level,
+                    strand_code,
+                    strand_name,
+                    strand_description,
+                    standard_text,
+                    document_title as source_document,
+                    NULL as file_id,
+                    NULL as ingestion_date,
+                    NULL as version
+                FROM standards_full
                 WHERE standard_text LIKE ?
                    OR strand_description LIKE ?
                    OR strand_name LIKE ?
-                ORDER BY grade_level, strand_code, standard_id
-            """, (f"%{query}%", f"%{query}%", f"%{query}%"))
-            
+                   OR standard_code LIKE ?
+                ORDER BY level_code, strand_code, standard_code
+            """, (f"%{query}%", f"%{query}%", f"%{query}%", f"%{query}%"))
+
             standards = []
             for row in cursor.fetchall():
                 standards.append(Standard(
@@ -296,7 +355,7 @@ class StandardsRepository:
                     ingestion_date=row[8],
                     version=row[9]
                 ))
-            
+
             return standards
         finally:
             conn.close()
@@ -307,15 +366,15 @@ class StandardsRepository:
             conn = self.db_manager.get_connection()
             try:
                 cursor = conn.execute("""
-                    SELECT DISTINCT grade_level 
-                    FROM standards 
-                    ORDER BY grade_level
+                    SELECT DISTINCT level_name
+                    FROM standards_full
+                    ORDER BY level_code
                 """)
-                
+
                 self._grade_levels_cache = [row[0] for row in cursor.fetchall()]
             finally:
                 conn.close()
-        
+
         return self._grade_levels_cache
     
     def get_strand_codes(self) -> List[str]:
@@ -324,15 +383,15 @@ class StandardsRepository:
             conn = self.db_manager.get_connection()
             try:
                 cursor = conn.execute("""
-                    SELECT DISTINCT strand_code 
-                    FROM standards 
-                    ORDER BY strand_code
+                    SELECT code
+                    FROM strands
+                    ORDER BY display_order
                 """)
-                
+
                 self._strand_codes_cache = [row[0] for row in cursor.fetchall()]
             finally:
                 conn.close()
-        
+
         return self._strand_codes_cache
     
     def get_strand_info(self) -> Dict[str, Dict[str, str]]:
@@ -341,22 +400,22 @@ class StandardsRepository:
             conn = self.db_manager.get_connection()
             try:
                 cursor = conn.execute("""
-                    SELECT DISTINCT strand_code, strand_name, strand_description
-                    FROM standards 
-                    ORDER BY strand_code
+                    SELECT code, name, description
+                    FROM strands
+                    ORDER BY display_order
                 """)
-                
+
                 strand_info = {}
                 for row in cursor.fetchall():
                     strand_info[row[0]] = {
                         'name': row[1],
                         'description': row[2]
                     }
-                
+
                 self._strand_info_cache = strand_info
             finally:
                 conn.close()
-        
+
         return self._strand_info_cache
     
     def clear_cache(self) -> None:
@@ -369,11 +428,11 @@ class StandardsRepository:
         """Get total count of standards"""
         conn = self.db_manager.get_connection()
         try:
-            cursor = conn.execute("SELECT COUNT(*) FROM standards")
+            cursor = conn.execute("SELECT COUNT(*) FROM standards WHERE is_variant = 0")
             return cursor.fetchone()[0]
         finally:
             conn.close()
-    
+
     def get_objectives_count(self) -> int:
         """Get total count of objectives"""
         conn = self.db_manager.get_connection()

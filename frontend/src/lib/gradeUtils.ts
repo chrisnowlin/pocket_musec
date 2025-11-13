@@ -3,12 +3,12 @@
  */
 
 /**
- * Convert frontend grade format ("Grade 3", "Kindergarten") to backend format ("3", "0")
- * Note: Kindergarten is stored as "0" in the database to sort before Grade 1
+ * Convert frontend grade format ("Grade 3", "Kindergarten") to backend format ("3", "K")
+ * Note: Kindergarten is stored as "K" in the database (not "0")
  */
 export function frontendToBackendGrade(frontendGrade: string): string {
   if (frontendGrade === 'Kindergarten') {
-    return '0';
+    return 'K';
   }
   
   // Extract number from "Grade X" format
@@ -22,12 +22,12 @@ export function frontendToBackendGrade(frontendGrade: string): string {
 }
 
 /**
- * Convert backend grade format ("3", "0") to frontend format ("Grade 3", "Kindergarten")
- * Note: "0" in the database represents Kindergarten for proper sorting
+ * Convert backend grade format ("3", "K") to frontend format ("Grade 3", "Kindergarten")
+ * Note: "K" in the database represents Kindergarten
  */
 export function backendToFrontendGrade(backendGrade: string): string {
-  if (backendGrade === '0' || backendGrade === 'K') {
-    // Handle both "0" (new format) and "K" (legacy format) for backward compatibility
+  if (backendGrade === 'K' || backendGrade === '0') {
+    // Handle both "K" (database format) and "0" (legacy format) for backward compatibility
     return 'Kindergarten';
   }
   
@@ -49,29 +49,29 @@ export function backendToFrontendGrade(backendGrade: string): string {
 }
 
 /**
- * Convert frontend strand name ("Connect") to backend strand code ("CN")
+ * Convert frontend strand name ("Connect") to backend strand code ("CONNECT")
  */
 export function frontendToBackendStrand(frontendStrand: string): string {
   const mapping: Record<string, string> = {
-    'Connect': 'CN',
-    'Create': 'CR',
-    'Present': 'PR',
-    'Respond': 'RE',
+    'Connect': 'CONNECT',
+    'Create': 'CREATE',
+    'Present': 'PRESENT',
+    'Respond': 'RESPOND',
   };
-  
+
   return mapping[frontendStrand] || frontendStrand;
 }
 
 /**
- * Convert backend strand code ("CN") to frontend strand name ("Connect")
+ * Convert backend strand code ("CONNECT") to frontend strand name ("Connect")
  */
 export function backendToFrontendStrand(backendStrand: string): string {
   const mapping: Record<string, string> = {
-    'CN': 'Connect',
-    'CR': 'Create',
-    'PR': 'Present',
-    'RE': 'Respond',
+    'CONNECT': 'Connect',
+    'CREATE': 'Create',
+    'PRESENT': 'Present',
+    'RESPOND': 'Respond',
   };
-  
+
   return mapping[backendStrand] || backendStrand;
 }

@@ -33,9 +33,10 @@ export default function BrowsePanel({
       // Handle "All Grades" and "All Strands" selections
       // Note: standard.grade is already in frontend format (e.g., "Kindergarten", "Grade 3")
       // from the API response, so we compare directly with selectedGrade
+      // Use case-insensitive comparison to handle any formatting inconsistencies
       const matchesGrade = selectedGrade === 'All Grades' || !selectedGrade
         ? true
-        : standard.grade === selectedGrade;
+        : standard.grade?.trim().toLowerCase() === selectedGrade.trim().toLowerCase();
       
       const matchesStrand = selectedStrand === 'All Strands' || !selectedStrand
         ? true
