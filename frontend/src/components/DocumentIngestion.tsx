@@ -50,7 +50,12 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
       setClassification(classificationResult);
       setCurrentStep('confirm');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Classification failed');
+      const errorMessage = err instanceof Error ? err.message : 'Classification failed';
+      if (errorMessage.includes('temporarily unavailable')) {
+        setError('Document ingestion is temporarily unavailable. Please try again later or contact support.');
+      } else {
+        setError(errorMessage);
+      }
       setCurrentStep('upload');
     } finally {
       setIsProcessing(false);
@@ -84,7 +89,12 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
         onIngestionComplete?.(ingestionResponse);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Ingestion failed');
+      const errorMessage = err instanceof Error ? err.message : 'Ingestion failed';
+      if (errorMessage.includes('temporarily unavailable')) {
+        setError('Document ingestion is temporarily unavailable. Please try again later or contact support.');
+      } else {
+        setError(errorMessage);
+      }
       setCurrentStep('confirm');
     } finally {
       setIsProcessing(false);
@@ -243,6 +253,21 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
       }}
     >
       <div className="max-w-4xl mx-auto space-y-6">
+      {/* Feature Unavailable Notice */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div className="flex">
+          <svg className="h-5 w-5 text-yellow-700 mr-2" fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+          </svg>
+          <div>
+            <h3 className="text-sm font-medium text-yellow-800">Feature Temporarily Unavailable</h3>
+            <p className="text-sm text-yellow-700 mt-1">
+              Document ingestion is currently disabled. The upload interface below is preserved for future use, but will not process documents at this time.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Header */}
       <div className="text-center">
         <h2 className="text-2xl font-bold text-ink-800 mb-2">Document Ingestion</h2>

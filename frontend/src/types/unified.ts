@@ -11,6 +11,8 @@ export interface ChatMessage {
   timestamp: string;
   isModified?: boolean;
   originalText?: string;
+  citations?: string[];
+  lessonId?: string;
 }
 
 export interface ImageData {

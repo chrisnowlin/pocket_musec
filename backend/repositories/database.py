@@ -49,10 +49,30 @@ class DatabaseManager:
                     FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
                 );
 
+                -- Sessions table for lesson generation conversations
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    grade_level TEXT,
+                    strand_code TEXT,
+                    selected_standards TEXT,
+                    selected_objectives TEXT,
+                    additional_context TEXT,
+                    lesson_duration TEXT,
+                    class_size INTEGER,
+                    agent_state TEXT,
+                    conversation_history TEXT,
+                    current_state TEXT DEFAULT 'welcome',
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL
+                );
+
                 -- Indexes for common queries
                 CREATE INDEX IF NOT EXISTS idx_grade_level ON standards(grade_level);
                 CREATE INDEX IF NOT EXISTS idx_strand_code ON standards(strand_code);
                 CREATE INDEX IF NOT EXISTS idx_standard_objectives ON objectives(standard_id);
+                CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+                CREATE INDEX IF NOT EXISTS idx_sessions_updated ON sessions(updated_at);
             """)
             conn.commit()
         finally:

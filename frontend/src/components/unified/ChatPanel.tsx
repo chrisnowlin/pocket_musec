@@ -79,6 +79,8 @@ export default function ChatPanel({
                   key={message.id}
                   message={message}
                   onUpdateMessage={onUpdateMessage}
+                  citations={message.citations}
+                  lessonId={message.lessonId}
                 />
               ))}
 

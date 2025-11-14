@@ -70,6 +70,8 @@ class Session:
     selected_standards: Optional[str] = None
     selected_objectives: Optional[str] = None
     additional_context: Optional[str] = None
+    lesson_duration: Optional[str] = None
+    class_size: Optional[int] = None
     agent_state: Optional[str] = None  # JSON serialized agent state
     conversation_history: Optional[str] = None  # JSON serialized conversation history
     current_state: Optional[str] = "welcome"  # Current conversation state

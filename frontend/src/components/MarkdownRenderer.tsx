@@ -75,6 +75,22 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
           hr: () => (
             <hr className="border-gray-200 my-4" />
           ),
+          // Custom styling for links to make them clickable and styled
+          a: ({ href, children }) => (
+            <a 
+              href={href} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-blue-600 hover:text-blue-800 underline transition-colors duration-200"
+              onClick={(e) => {
+                // Ensure the link opens in a new tab
+                e.preventDefault();
+                window.open(href, '_blank', 'noopener,noreferrer');
+              }}
+            >
+              {children}
+            </a>
+          ),
         }}
       >
         {content}

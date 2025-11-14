@@ -35,11 +35,13 @@ router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 def _standard_to_response(standard, repo: StandardsRepository) -> StandardResponse:
     objectives = repo.get_objectives_for_standard(standard.standard_id)
     # Include objective codes in the format "code - text" to match standards display
-    learning_objectives = [f"{obj.objective_id} - {obj.objective_text}" for obj in objectives][:3]
+    learning_objectives = [
+        f"{obj.objective_id} - {obj.objective_text}" for obj in objectives
+    ][:3]
     # Convert database grade format to frontend display format
     # Database stores: "0", "1", "2", "3", etc.
     # Frontend expects: "Kindergarten", "Grade 1", "Grade 2", "Grade 3", etc.
-    grade_display = format_grade_display(standard.grade_level)
+    grade_display = format_grade_display(standard.grade_level) or "Unknown Grade"
     return StandardResponse(
         id=standard.standard_id,
         code=standard.standard_id,
@@ -96,6 +98,9 @@ async def create_session(
         strand_code=request.strand_code,
         standard_id=request.standard_id,
         additional_context=request.additional_context,
+        lesson_duration=request.lesson_duration,
+        class_size=request.class_size,
+        selected_objective=request.selected_objective,
     )
     return _session_to_response(session, standard_repo)
 
@@ -119,7 +124,7 @@ async def get_session(
     session = repo.get_session(session_id)
     if not session or session.user_id != current_user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
-    
+
     standard_repo = StandardsRepository()
     return _session_to_response(session, standard_repo)
 
@@ -153,20 +158,23 @@ async def delete_all_sessions(
     """Delete all sessions for the current user"""
     repo = SessionRepository()
     lesson_repo = LessonRepository()
-    
+
     # Get all sessions for the user
     sessions = repo.list_sessions(current_user.id, limit=1000)  # Get all sessions
-    
+
     # Delete associated lessons for each session
     for session in sessions:
         lessons = lesson_repo.list_lessons_for_session(session.id)
         for lesson in lessons:
             lesson_repo.delete_lesson(lesson.id)
-    
+
     # Delete all sessions
     deleted_count = repo.delete_all_sessions(current_user.id)
-    
-    return {"message": f"Deleted {deleted_count} session(s) successfully", "count": deleted_count}
+
+    return {
+        "message": f"Deleted {deleted_count} session(s) successfully",
+        "count": deleted_count,
+    }
 
 
 @router.delete("/{session_id}")
@@ -177,24 +185,23 @@ async def delete_session(
     """Delete a session and optionally its associated lessons"""
     repo = SessionRepository()
     session = repo.get_session(session_id)
-    
+
     if not session or session.user_id != current_user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
-    
+
     # Optionally delete associated lessons
     lesson_repo = LessonRepository()
     lessons = lesson_repo.list_lessons_for_session(session_id)
     for lesson in lessons:
         lesson_repo.delete_lesson(lesson.id)
-    
+
     # Delete the session
     deleted = repo.delete_session(session_id)
     if not deleted:
         raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete session"
+            status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to delete session"
         )
-    
+
     return {"message": "Session deleted successfully"}
 
 
@@ -211,14 +218,21 @@ def _create_lesson_agent(session: Any, use_conversational: bool = True) -> Lesso
     # Get web search configuration
     config = get_config()
     web_search_config = config.web_search
-    
+
     # Initialize web search service if API key is available
     web_search_service = None
     web_search_enabled = bool(web_search_config.api_key)
-    
+
     if web_search_enabled:
         try:
-            web_search_service = WebSearchService(web_search_config)
+            web_search_service = WebSearchService(
+                api_key=web_search_config.api_key,
+                cache_ttl=web_search_config.cache_ttl,
+                max_cache_size=web_search_config.max_cache_size,
+                timeout=web_search_config.timeout,
+                educational_only=web_search_config.educational_only,
+                min_relevance_score=web_search_config.min_relevance_score,
+            )
         except Exception as e:
             logger.warning(f"Failed to initialize WebSearchService: {e}")
             web_search_enabled = False
@@ -239,15 +253,35 @@ def _create_lesson_agent(session: Any, use_conversational: bool = True) -> Lesso
             agent.restore_state(session.agent_state)
             # If we're in conversational mode but restored a form-based state, convert it
             if use_conversational:
-                form_based_states = ["welcome", "grade_selection", "strand_selection", 
-                                   "standard_selection", "objective_refinement", "context_collection"]
+                form_based_states = [
+                    "welcome",
+                    "grade_selection",
+                    "strand_selection",
+                    "standard_selection",
+                    "objective_refinement",
+                    "context_collection",
+                ]
                 if agent.get_state() in form_based_states:
                     # Convert to conversational mode - start fresh in conversational_welcome
                     agent.set_state("conversational_welcome")
         except Exception as e:
             # If restoration fails, continue with fresh agent
             import logging
+
             logging.warning(f"Failed to restore agent state: {e}")
+
+    # Restore conversation history if available
+    if session.conversation_history:
+        try:
+            import json as json_module
+
+            conversation_history = json_module.loads(session.conversation_history)
+            agent.conversation_history = conversation_history
+            logger.info(
+                f"Restored {len(conversation_history)} messages to conversation history"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to restore conversation history: {e}")
 
     # Always pre-populate agent with session context if available
     # This ensures that even if state was restored, we have the latest session context
@@ -322,10 +356,10 @@ def _compose_lesson_from_agent(
     standard = requirements.get("standard")
     standard_label = standard.standard_id if standard else "Selected standard"
     grade_label = requirements.get("grade_level", "the chosen grade level")
-    
+
     # Get file_id for the standard if available
     standard_file_id = None
-    if standard and hasattr(standard, 'file_id'):
+    if standard and hasattr(standard, "file_id"):
         standard_file_id = standard.file_id
 
     # Check if an LLM-generated lesson is available
@@ -374,7 +408,9 @@ def _compose_lesson_from_agent(
             "generated_by": "llm" if generated_lesson else "template",
         },
         "citations": [standard.standard_id] if standard else [],
-        "citation_file_ids": [standard_file_id] if standard and standard_file_id else [],
+        "citation_file_ids": [standard_file_id]
+        if standard and standard_file_id
+        else [],
     }
 
 
@@ -432,7 +468,7 @@ async def send_message(
         _persist_user_message(session_id, agent, session_repo, request.message)
         logger.info(f"Conversation history saved for session {session_id}")
 
-        response_text = agent.chat(request.message)
+        response_text = await agent.chat(request.message)
         _save_agent_state(session_id, agent, session_repo)
 
         lesson_summary, session_payload = _generate_draft_payload(
@@ -464,10 +500,10 @@ async def send_message(
             )
         except Exception as save_error:
             logger.error(f"Failed to save fallback conversation history: {save_error}")
-        
+
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process message and save conversation"
+            detail="Failed to process message and save conversation",
         )
 
 
@@ -495,7 +531,7 @@ async def stream_message(
         logger.info(f"Conversation history saved for session {session_id}")
 
         # Now process message through the agent
-        response_text = agent.chat(request.message)
+        response_text = await agent.chat(request.message)
 
         # Add AI response to conversation history
         conversation_history = agent.get_conversation_history()
@@ -514,7 +550,9 @@ async def stream_message(
         )
 
         if not final_session:
-            logger.error(f"Failed to save final conversation state for session {session_id}")
+            logger.error(
+                f"Failed to save final conversation state for session {session_id}"
+            )
             # Don't fail the request, but log the error
 
         lesson_summary, session_payload = _generate_draft_payload(
@@ -529,18 +567,22 @@ async def stream_message(
 
         async def event_stream():
             # Send confirmation that conversation was persisted
-            yield _sse_event({
-                "type": "persisted",
-                "message": "Conversation saved successfully",
-                "session_updated": final_session is not None
-            })
-            
+            yield _sse_event(
+                {
+                    "type": "persisted",
+                    "message": "Conversation saved successfully",
+                    "session_updated": final_session is not None,
+                }
+            )
+
             yield _sse_event(
                 {"type": "status", "message": "PocketMusec is generating a response..."}
             )
             # Stream the agent's response in chunks
             sentences = [
-                segment.strip() for segment in response_text.split(". ") if segment.strip()
+                segment.strip()
+                for segment in response_text.split(". ")
+                if segment.strip()
             ]
             for sentence in sentences:
                 text = sentence if sentence.endswith(".") else sentence + "."
@@ -571,8 +613,8 @@ async def stream_message(
             )
         except Exception as save_error:
             logger.error(f"Failed to save fallback conversation history: {save_error}")
-        
+
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to process message and save conversation"
+            detail="Failed to process message and save conversation",
         )

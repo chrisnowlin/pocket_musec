@@ -205,6 +205,14 @@ export default function WorkspacePage() {
     );
   }, []);
 
+  const updateMessageWithLesson = useCallback((id: string, text: string, citations: string[], lessonId: string) => {
+    setMessages((prev) =>
+      prev.map((message) =>
+        message.id === id ? { ...message, text, citations, lessonId } : message
+      )
+    );
+  }, []);
+
   const processChatMessage = useCallback(
     async (messageText: string) => {
       const activeSessionId = session?.id;
@@ -253,7 +261,7 @@ export default function WorkspacePage() {
                     updateMessageText(aiMessageId, () => event.message);
                   } else if (event.type === 'complete') {
                     const payloadData = event.payload as ChatResponsePayload;
-                    updateMessageText(aiMessageId, () => payloadData.response);
+                    updateMessageWithLesson(aiMessageId, payloadData.response, payloadData.lesson.citations, payloadData.lesson.id);
                     setSession(payloadData.session);
                   }
                 } catch (err) {

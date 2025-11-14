@@ -1062,6 +1062,8 @@ Web search behavior is controlled through the following environment variables:
 | `BRAVE_SEARCH_TIMEOUT` | integer | 30 | API request timeout in seconds |
 | `BRAVE_SEARCH_EDUCATIONAL_ONLY` | boolean | true | Filter to educational domains only |
 | `BRAVE_SEARCH_MIN_RELEVANCE_SCORE` | float | 0.5 | Minimum relevance score threshold |
+| `CITATION_AUTO_INCLUDE` | boolean | true | Automatically include citations in generated lessons |
+| `CITATION_FORMAT` | string | "footnote" | Citation format: "footnote" or "parenthetical" |
 
 ### Web Search Integration in Lesson Generation
 
@@ -1073,7 +1075,7 @@ When web search is enabled and successful, the lesson response includes:
 
 ```json
 {
-  "lesson_content": "Generated lesson with web-enhanced content...",
+  "lesson_content": "Generated lesson with web-enhanced content and proper citations...",
   "web_search_summary": {
     "query": "grade 3 rhythm music education",
     "results_found": 5,
@@ -1081,9 +1083,34 @@ When web search is enabled and successful, the lesson response includes:
     "relevance_scores": [0.87, 0.82, 0.78, 0.74, 0.69],
     "search_time": 0.8
   },
+  "citations_included": true,
+  "bibliography_generated": true,
   "generation_time": 4.2,
   "cache_hit": false
 }
+```
+
+#### Citation System Integration
+
+The lesson generation system automatically includes proper citations when web search content is used:
+
+**Citation Features:**
+- **Inline Citations**: Web sources are cited inline using format `[Web Source: URL]` or citation numbers `[1]`, `[2]`, etc.
+- **Bibliography Section**: Generated lessons include a comprehensive "Citations" section listing all web sources
+- **Clickable URLs**: Frontend renders citation URLs as clickable hyperlinks that open in new tabs
+- **Source Attribution**: Clear distinction between database sources and web search sources
+
+**Citation Format Examples:**
+```
+Students will learn rhythm patterns using quarter and eighth notes [Web Source: https://www.teachingmusic.org/rhythm].
+
+Interactive tools help reinforce musical concepts [Web Source: www.musictech.com/tools].
+
+## Citations
+
+1. [Web Source: https://www.teachingmusic.org/rhythm] - Comprehensive guide for teaching rhythm patterns
+2. [Web Source: www.musictech.com/tools] - Interactive tools for rhythm composition
+3. [Web Source: https://musiceducation.org/research] - Research-based pedagogy for music education
 ```
 
 ### Web Search Error Handling

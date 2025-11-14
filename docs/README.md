@@ -42,12 +42,7 @@ cp .env.example .env
 # Edit .env with your API keys
 ```
 
-### 2. Import NC Music Standards
-```bash
-pocketmusec ingest standards "NC Music Standards.pdf"
-```
-
-### 3. Generate Your First Lesson
+### 2. Generate Your First Lesson
 ```bash
 pocketmusec generate lesson
 ```
@@ -481,7 +476,7 @@ ls -la data/pocket_musec.db
 
 # Recreate database if corrupted
 rm data/pocket_musec.db
-pocketmusec ingest standards "NC Music Standards.pdf"
+# Note: Document ingestion is no longer available - use existing data
 ```
 
 #### Editor Integration Problems
@@ -529,7 +524,8 @@ uv run python -m pdb main.py generate lesson
 pocketmusec embeddings generate --batch-size 20
 
 # Use custom database on faster storage
-pocketmusec ingest standards "standards.pdf" --db-path "/ssd/pocket_musec.db"
+# Note: Document ingestion is no longer available - use existing data
+# pocketmusec --db-path "/ssd/pocket_musec.db" generate lesson
 
 # Clear old embeddings to free space
 pocketmusec embeddings clear

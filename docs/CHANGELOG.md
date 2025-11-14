@@ -5,6 +5,30 @@ All notable changes to PocketMusec will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-11-13
+
+### Major Changes
+
+#### Ingestion Pipeline Removal
+- **Complete Ingestion Removal**: Removed entire document ingestion pipeline from backend
+- **Frontend Graceful Degradation**: UI elements preserved but display "temporarily unavailable" messaging
+- **Dependency Cleanup**: Removed PDF parsing libraries (pdfplumber, ocrmypdf, pytesseract)
+- **Simplified Architecture**: Eliminated complex parser system and PocketFlow ingestion abstraction
+- **Reduced Maintenance**: Significantly decreased codebase complexity and technical debt
+
+### Removed
+- **Backend Ingestion Components**: 
+  - Complete `/backend/ingestion/` directory with all parsers
+  - PocketFlow ingestion agent and nodes
+  - All ingestion API routes (`/api/ingestion/*`)
+  - PDF parsing and vision API dependencies
+- **Documentation**: Updated README to remove ingestion command references
+
+### Changed
+- **Frontend Error Handling**: Ingestion service now returns appropriate "feature unavailable" messages
+- **User Experience**: Clear messaging when ingestion features are accessed
+- **Backend Startup**: Faster startup with fewer dependencies
+
 ## [0.4.0] - 2025-11-13
 
 ### Major Changes

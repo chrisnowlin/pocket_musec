@@ -22,6 +22,9 @@ class SessionRepository:
         strand_code: Optional[str] = None,
         standard_id: Optional[str] = None,
         additional_context: Optional[str] = None,
+        lesson_duration: Optional[str] = None,
+        class_size: Optional[int] = None,
+        selected_objective: Optional[str] = None,
     ) -> Session:
         session_id = str(uuid.uuid4())
         now = datetime.utcnow().isoformat()
@@ -33,8 +36,9 @@ class SessionRepository:
                 INSERT INTO sessions (
                     id, user_id, grade_level, strand_code,
                     selected_standards, selected_objectives,
-                    additional_context, created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    additional_context, lesson_duration, class_size,
+                    created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     session_id,
@@ -42,8 +46,10 @@ class SessionRepository:
                     grade_level,
                     strand_code,
                     standard_id,
-                    None,
+                    selected_objective,
                     additional_context,
+                    lesson_duration,
+                    class_size,
                     now,
                     now,
                 ),
@@ -90,9 +96,12 @@ class SessionRepository:
         strand_code: Optional[str] = None,
         standard_id: Optional[str] = None,
         additional_context: Optional[str] = None,
+        lesson_duration: Optional[str] = None,
+        class_size: Optional[int] = None,
+        selected_objective: Optional[str] = None,
     ) -> Optional[Session]:
         assignments = []
-        params: List[Optional[str]] = []
+        params: List[Optional[object]] = []
         if grade_level is not None:
             assignments.append("grade_level = ?")
             params.append(grade_level)
@@ -105,6 +114,15 @@ class SessionRepository:
         if additional_context is not None:
             assignments.append("additional_context = ?")
             params.append(additional_context)
+        if lesson_duration is not None:
+            assignments.append("lesson_duration = ?")
+            params.append(lesson_duration)
+        if class_size is not None:
+            assignments.append("class_size = ?")
+            params.append(class_size)
+        if selected_objective is not None:
+            assignments.append("selected_objectives = ?")
+            params.append(selected_objective)
 
         if not assignments:
             return self.get_session(session_id)
@@ -204,6 +222,8 @@ class SessionRepository:
             selected_standards=row["selected_standards"],
             selected_objectives=row["selected_objectives"],
             additional_context=row["additional_context"],
+            lesson_duration=safe_get(row, "lesson_duration"),
+            class_size=safe_get(row, "class_size"),
             agent_state=safe_get(row, "agent_state"),
             conversation_history=safe_get(row, "conversation_history"),
             current_state=safe_get(row, "current_state", "welcome"),

@@ -60,7 +60,10 @@ export function useSession() {
       defaultGrade: string = 'Grade 3',
       defaultStrand: string = 'Connect',
       standardId?: string | null,
-      additionalContext?: string | null
+      additionalContext?: string | null,
+      lessonDuration?: number | null,
+      classSize?: number | null,
+      selectedObjective?: string | null
     ) => {
       try {
         const payload: any = {
@@ -201,22 +204,23 @@ export function useSession() {
     const olderSessions: ConversationItem[] = [];
 
     sessions.forEach((sessionItem) => {
-      // Parse dates with validation - use created_at as fallback if updated_at is invalid
-      let updatedDate = sessionItem.updated_at ? new Date(sessionItem.updated_at) : null;
-      if (!updatedDate || isNaN(updatedDate.getTime())) {
-        // If updated_at is invalid, try created_at
-        updatedDate = sessionItem.created_at ? new Date(sessionItem.created_at) : new Date();
-        // If still invalid, use current time
-        if (!updatedDate || isNaN(updatedDate.getTime())) {
-          updatedDate = new Date();
-        }
+      // Parse dates with validation - handle ISO format properly
+      const parseIsoDate = (dateStr: string): Date => {
+        if (!dateStr) return new Date();
+        
+        // Add Z suffix if missing for proper UTC parsing
+        const normalizedDate = dateStr.includes('Z') || dateStr.includes('+') ? dateStr : dateStr + 'Z';
+        const date = new Date(normalizedDate);
+        return isNaN(date.getTime()) ? new Date() : date;
+      };
+      
+      let updatedDate = parseIsoDate(sessionItem.updated_at || '');
+      if (!sessionItem.updated_at) {
+        // If no updated_at, use created_at
+        updatedDate = parseIsoDate(sessionItem.created_at || '');
       }
       
-      let createdDate = sessionItem.created_at ? new Date(sessionItem.created_at) : updatedDate;
-      if (!createdDate || isNaN(createdDate.getTime())) {
-        // Fallback to current date if created_at is also invalid
-        createdDate = new Date();
-      }
+      let createdDate = parseIsoDate(sessionItem.created_at || '');
       
       // Count messages from conversation history if available
       let messageCount = 0;
@@ -229,11 +233,30 @@ export function useSession() {
         }
       }
       
+      // Generate a more descriptive title based on available context
+      let title = 'New Conversation';
+      
+      if (sessionItem.grade_level) {
+        if (sessionItem.strand_code && sessionItem.strand_code !== 'All Strands') {
+          title = `${sessionItem.grade_level} · ${sessionItem.strand_code}`;
+        } else {
+          title = sessionItem.grade_level;
+        }
+      }
+      
+      // Add standard info if available
+      if (sessionItem.selected_standard?.code) {
+        title += ` · ${sessionItem.selected_standard.code}`;
+      }
+      
+      // Add context indicator if there's additional context
+      if (sessionItem.additional_context && sessionItem.additional_context.trim()) {
+        title += ' 📝';
+      }
+      
       const conversationItem: ConversationItem = {
         id: sessionItem.id,
-        title: sessionItem.grade_level
-          ? `${sessionItem.grade_level} · ${sessionItem.strand_code || 'Unknown'} Strand`
-          : 'Unknown Session',
+        title: title,
         hint: formatTimeAgo(updatedDate, messageCount),
         active: session?.id === sessionItem.id,
         grade: sessionItem.grade_level || undefined,

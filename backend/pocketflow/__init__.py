@@ -6,7 +6,6 @@ from .store import Store
 from .agent import Agent
 from .message import Message, MessageBus
 from .lesson_agent import LessonAgent
-from .ingestion_agent import IngestionAgent
 
 __version__ = "0.1.0"
 __all__ = [
@@ -17,5 +16,4 @@ __all__ = [
     "Message",
     "MessageBus",
     "LessonAgent",
-    "IngestionAgent",
 ]

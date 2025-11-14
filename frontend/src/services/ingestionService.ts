@@ -50,6 +50,10 @@ export interface IngestionResponse {
 class IngestionService {
   private baseUrl = (import.meta.env?.VITE_API_BASE_URL as string) || '/api';
 
+  private handleFeatureUnavailable(feature: string): never {
+    throw new Error(`${feature} is temporarily unavailable. The document ingestion feature has been disabled.`);
+  }
+
   async classifyDocument(file: File): Promise<DocumentClassification> {
     const formData = new FormData();
     formData.append('file', file);
@@ -58,6 +62,10 @@ class IngestionService {
       method: 'POST',
       body: formData,
     });
+
+    if (response.status === 404) {
+      this.handleFeatureUnavailable('Document classification');
+    }
 
     if (!response.ok) {
       throw new Error(`Classification failed: ${response.statusText}`);
@@ -85,6 +93,10 @@ class IngestionService {
       body: formData,
     });
 
+    if (response.status === 404) {
+      this.handleFeatureUnavailable('Document ingestion');
+    }
+
     if (!response.ok) {
       throw new Error(`Ingestion failed: ${response.statusText}`);
     }
@@ -109,6 +121,10 @@ class IngestionService {
   async getDocumentTypes(): Promise<any> {
     const response = await fetch(`${this.baseUrl}/ingestion/document-types`);
     
+    if (response.status === 404) {
+      this.handleFeatureUnavailable('Document type information');
+    }
+    
     if (!response.ok) {
       throw new Error(`Failed to get document types: ${response.statusText}`);
     }
@@ -119,6 +135,10 @@ class IngestionService {
 
   async getAdvancedOptions(documentType: string): Promise<string[]> {
     const response = await fetch(`${this.baseUrl}/ingestion/advanced-options/${documentType}`);
+    
+    if (response.status === 404) {
+      this.handleFeatureUnavailable('Advanced options');
+    }
     
     if (!response.ok) {
       throw new Error(`Failed to get advanced options: ${response.statusText}`);
@@ -136,6 +156,10 @@ class IngestionService {
 
     const response = await fetch(`${this.baseUrl}/ingestion/files?${params}`);
     
+    if (response.status === 404) {
+      this.handleFeatureUnavailable('File management');
+    }
+    
     if (!response.ok) {
       throw new Error(`Failed to get uploaded files: ${response.statusText}`);
     }
@@ -151,6 +175,10 @@ class IngestionService {
 
   async getFileMetadata(fileId: string): Promise<FileStorageResponse> {
     const response = await fetch(`${this.baseUrl}/ingestion/files/${fileId}`);
+    
+    if (response.status === 404) {
+      this.handleFeatureUnavailable('File metadata');
+    }
     
     if (!response.ok) {
       throw new Error(`Failed to get file metadata: ${response.statusText}`);
@@ -168,6 +196,10 @@ class IngestionService {
   async downloadFile(fileId: string): Promise<Blob> {
     const response = await fetch(`${this.baseUrl}/ingestion/files/${fileId}/download`);
     
+    if (response.status === 404) {
+      this.handleFeatureUnavailable('File download');
+    }
+    
     if (!response.ok) {
       throw new Error(`Failed to download file: ${response.statusText}`);
     }
@@ -177,6 +209,10 @@ class IngestionService {
 
   async getFileStatistics(): Promise<any> {
     const response = await fetch(`${this.baseUrl}/ingestion/files/stats`);
+    
+    if (response.status === 404) {
+      this.handleFeatureUnavailable('File statistics');
+    }
     
     if (!response.ok) {
       throw new Error(`Failed to get file statistics: ${response.statusText}`);

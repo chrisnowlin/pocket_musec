@@ -10,6 +10,7 @@ from backend.repositories.standards_repository import StandardsRepository
 from backend.repositories.models import Standard, Objective, StandardWithObjectives
 from backend.llm.chutes_client import ChutesClient, Message
 from backend.llm.prompt_templates import LessonPromptContext, LessonPromptTemplates
+from backend.services.web_search_service import WebSearchService, WebSearchContext
 import logging
 
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ class LessonAgent(Agent):
         llm_client: Optional[ChutesClient] = None,
         conversational_mode: bool = True,
         web_search_enabled: bool = False,
-        web_search_service: Optional['WebSearchService'] = None,
+        web_search_service: Optional["WebSearchService"] = None,
     ):
         super().__init__(flow, store, "LessonAgent")
         self.standards_repo = standards_repo or StandardsRepository()
@@ -34,20 +35,22 @@ class LessonAgent(Agent):
         self.prompt_templates = LessonPromptTemplates()
         self.conversational_mode = conversational_mode
         self.web_search_enabled = web_search_enabled
-        
+
         # Initialize web search service if enabled
         if self.web_search_enabled and web_search_service is None:
             from backend.services.web_search_service import WebSearchService
             from backend.config import config
+
             self.web_search_service = WebSearchService(
                 api_key=config.web_search.api_key,
                 cache_ttl=config.web_search.cache_ttl,
                 max_cache_size=config.web_search.max_cache_size,
                 timeout=config.web_search.timeout,
                 educational_only=config.web_search.educational_only,
-                min_relevance_score=config.web_search.min_relevance_score
+                min_relevance_score=config.web_search.min_relevance_score,
             )
         else:
+            self.web_search_service = web_search_service
             self.web_search_service = web_search_service
 
         # Initialize conversation state
@@ -112,30 +115,30 @@ class LessonAgent(Agent):
         grade_mapping = {
             "kindergarten": "Kindergarten",
             "k": "Kindergarten",
-            "1st grade": "Grade 1",
-            "first grade": "Grade 1",
-            "grade 1": "Grade 1",
-            "1": "Grade 1",
-            "2nd grade": "Grade 2",
-            "second grade": "Grade 2",
-            "grade 2": "Grade 2",
-            "2": "Grade 2",
-            "3rd grade": "Grade 3",
-            "third grade": "Grade 3",
-            "grade 3": "Grade 3",
-            "3": "Grade 3",
-            "4th grade": "Grade 4",
-            "fourth grade": "Grade 4",
-            "grade 4": "Grade 4",
-            "4": "Grade 4",
-            "5th grade": "Grade 5",
-            "fifth grade": "Grade 5",
-            "grade 5": "Grade 5",
-            "5": "Grade 5",
-            "6th grade": "Grade 6",
-            "sixth grade": "Grade 6",
-            "grade 6": "Grade 6",
-            "6": "Grade 6",
+            "1st grade": "First Grade",
+            "first grade": "First Grade",
+            "grade 1": "First Grade",
+            "1": "First Grade",
+            "2nd grade": "Second Grade",
+            "second grade": "Second Grade",
+            "grade 2": "Second Grade",
+            "2": "Second Grade",
+            "3rd grade": "Third Grade",
+            "third grade": "Third Grade",
+            "grade 3": "Third Grade",
+            "3": "Third Grade",
+            "4th grade": "Fourth Grade",
+            "fourth grade": "Fourth Grade",
+            "grade 4": "Fourth Grade",
+            "4": "Fourth Grade",
+            "5th grade": "Fifth Grade",
+            "fifth grade": "Fifth Grade",
+            "grade 5": "Fifth Grade",
+            "5": "Fifth Grade",
+            "6th grade": "Sixth Grade",
+            "sixth grade": "Sixth Grade",
+            "grade 6": "Sixth Grade",
+            "6": "Sixth Grade",
             "7th grade": "Grade 7",
             "seventh grade": "Grade 7",
             "grade 7": "Grade 7",
@@ -191,21 +194,28 @@ Focus on musical education context. If information isn't present, use null."""
             # Debug logging to check response type
             logger.debug(f"Response type: {type(response)}")
             logger.debug(f"Response value: {response}")
-            
+
             # Parse the JSON response
             try:
                 # Handle both ChatResponse object and dictionary
-                if hasattr(response, 'content'):
+                content = ""
+                if hasattr(response, "content"):
                     content = response.content
                 elif isinstance(response, dict):
-                    content = response.get('content', str(response))
+                    content = response.get("content", str(response))
                 else:
                     content = str(response)
-                    
+
                 extracted = json.loads(content)
                 return extracted
-            except json.JSONDecodeError:
-                logger.warning(f"Failed to parse analysis response: {content if 'content' in locals() else response}")
+            except json.JSONDecodeError as e:
+                # Handle case where content might not be defined
+                try:
+                    response_content = content if content else str(response)
+                except NameError:
+                    response_content = str(response)
+                logger.warning(f"Failed to parse analysis response: {response_content}")
+                logger.error(f"JSON decode error: {e}")
                 return {"confidence_score": 0.0}
 
         except Exception as e:
@@ -220,7 +230,7 @@ Focus on musical education context. If information isn't present, use null."""
         if not grade_level:
             logger.warning("No grade level provided for standards search")
             return []
-        
+
         # Normalize grade level for database compatibility
         normalized_grade = self._normalize_grade_level(grade_level)
 
@@ -232,7 +242,7 @@ Focus on musical education context. If information isn't present, use null."""
                     query=f"music education {normalized_grade}",
                     grade_level=normalized_grade,
                     limit=5,
-                    similarity_threshold=0.3  # Lower threshold for broader results
+                    similarity_threshold=0.3,  # Lower threshold for broader results
                 )
                 return [standard for standard, _ in search_results]
             except Exception as e:
@@ -241,31 +251,41 @@ Focus on musical education context. If information isn't present, use null."""
                 return self.standards_repo.get_standards_by_grade(normalized_grade)[:5]
 
         # Create search query from musical topics
-        search_query = " ".join(musical_topics) if musical_topics else f"music education {normalized_grade}"
-        
+        search_query = (
+            " ".join(musical_topics)
+            if musical_topics
+            else f"music education {normalized_grade}"
+        )
+
         try:
             # Use semantic search with the musical topics
             search_results = self.standards_repo.search_standards_semantic(
                 query=search_query,
                 grade_level=normalized_grade,
                 limit=5,
-                similarity_threshold=0.4  # Moderate threshold for topic-specific results
+                similarity_threshold=0.4,  # Moderate threshold for topic-specific results
             )
-            
+
             if search_results:
-                logger.info(f"Found {len(search_results)} relevant standards using semantic search")
+                logger.info(
+                    f"Found {len(search_results)} relevant standards using semantic search"
+                )
                 return [standard for standard, _ in search_results]
             else:
                 # Fallback to keyword-based search if no semantic results
-                logger.warning(f"No semantic search results found for query: {search_query}")
+                logger.warning(
+                    f"No semantic search results found for query: {search_query}"
+                )
                 return self._fallback_keyword_search(normalized_grade, musical_topics)
-                
+
         except Exception as e:
             logger.error(f"Error in semantic search for standards: {e}")
             # Fallback to keyword-based search
             return self._fallback_keyword_search(normalized_grade, musical_topics)
 
-    def _fallback_keyword_search(self, grade_level: str, musical_topics: List[str]) -> List[Standard]:
+    def _fallback_keyword_search(
+        self, grade_level: str, musical_topics: List[str]
+    ) -> List[Standard]:
         """Fallback method using keyword matching when semantic search fails"""
         try:
             # Get all standards for the grade level
@@ -297,7 +317,7 @@ Focus on musical education context. If information isn't present, use null."""
             # Sort by score and return top matches
             scored_standards.sort(key=lambda x: x[1], reverse=True)
             return [standard for standard, _ in scored_standards[:5]]
-            
+
         except Exception as e:
             logger.error(f"Error in fallback keyword search: {e}")
             return []  # Return empty list if all methods fail
@@ -323,14 +343,16 @@ Focus on musical education context. If information isn't present, use null."""
         topic_lower = topic.lower()
         return term_mapping.get(topic_lower, [])
 
-    def _get_teaching_strategies_context(self, extracted_info: Dict[str, Any]) -> List[str]:
+    def _get_teaching_strategies_context(
+        self, extracted_info: Dict[str, Any]
+    ) -> List[str]:
         """
         Retrieve pedagogical content and teaching strategies using semantic search
         from standards and objectives in the database.
-        
+
         Args:
             extracted_info: Dictionary containing extracted lesson information
-            
+
         Returns:
             List of teaching strategy context strings
         """
@@ -338,154 +360,200 @@ Focus on musical education context. If information isn't present, use null."""
             grade_level = extracted_info.get("grade_level", "")
             musical_topics = extracted_info.get("musical_topics", [])
             activity_preferences = extracted_info.get("activity_preferences", [])
-            
+
             # Normalize grade level for database compatibility
             normalized_grade = self._normalize_grade_level(grade_level)
-            
+
             # Build search query for teaching strategies
             search_terms = []
             if musical_topics:
                 search_terms.extend(musical_topics)
             if activity_preferences:
                 search_terms.extend(activity_preferences)
-            
+
             # Add pedagogy-specific terms
-            search_terms.extend(["teaching strategies", "pedagogical approaches", "instructional methods", "activities"])
-            
-            search_query = " ".join(search_terms) if search_terms else f"music teaching strategies {grade_level}"
-            
+            search_terms.extend(
+                [
+                    "teaching strategies",
+                    "pedagogical approaches",
+                    "instructional methods",
+                    "activities",
+                ]
+            )
+
+            search_query = (
+                " ".join(search_terms)
+                if search_terms
+                else f"music teaching strategies {grade_level}"
+            )
+
             logger.info(f"Searching for teaching strategies with query: {search_query}")
-            
+
             # Use semantic search to find relevant standards that contain teaching strategies
             search_results = self.standards_repo.search_standards_semantic(
                 query=search_query,
                 grade_level=normalized_grade,
                 limit=5,
-                similarity_threshold=0.3  # Lower threshold for broader pedagogical results
+                similarity_threshold=0.3,  # Lower threshold for broader pedagogical results
             )
-            
+
             # Extract relevant context from the search results
             context_parts = []
             for standard, similarity in search_results:
                 # Create context snippet with standard info
                 context_part = f"[From Standard: {standard.standard_id} - {standard.strand_name}]\n{standard.standard_text[:300]}..."
                 context_parts.append(context_part)
-                
+
             if context_parts:
-                logger.info(f"Retrieved {len(context_parts)} teaching strategy context items")
+                logger.info(
+                    f"Retrieved {len(context_parts)} teaching strategy context items"
+                )
                 return context_parts
             else:
                 logger.info("No teaching strategies found in standards")
                 return []
-                
+
         except Exception as e:
             logger.error(f"Error retrieving teaching strategies context: {e}")
             return []
 
-    def _get_assessment_guidance_context(self, extracted_info: Dict[str, Any]) -> List[str]:
+    def _get_assessment_guidance_context(
+        self, extracted_info: Dict[str, Any]
+    ) -> List[str]:
         """
         Retrieve assessment strategies and guidance using semantic search
         from standards and objectives in the database.
-        
+
         Args:
             extracted_info: Dictionary containing extracted lesson information
-            
+
         Returns:
             List of assessment guidance context strings
         """
         try:
             grade_level = extracted_info.get("grade_level", "")
             musical_topics = extracted_info.get("musical_topics", [])
-            
+
             # Normalize grade level for database compatibility
             normalized_grade = self._normalize_grade_level(grade_level)
-            
+
             # Build search query for assessment strategies
             search_terms = []
             if musical_topics:
                 search_terms.extend(musical_topics)
-            
+
             # Add assessment-specific terms
-            search_terms.extend(["assessment strategies", "evaluation methods", "rubrics", "formative assessment"])
-            
-            search_query = " ".join(search_terms) if search_terms else f"music assessment strategies {normalized_grade}"
-            
+            search_terms.extend(
+                [
+                    "assessment strategies",
+                    "evaluation methods",
+                    "rubrics",
+                    "formative assessment",
+                ]
+            )
+
+            search_query = (
+                " ".join(search_terms)
+                if search_terms
+                else f"music assessment strategies {normalized_grade}"
+            )
+
             logger.info(f"Searching for assessment guidance with query: {search_query}")
-            
+
             # Use semantic search to find relevant standards that contain assessment guidance
             search_results = self.standards_repo.search_standards_semantic(
                 query=search_query,
                 grade_level=normalized_grade,
                 limit=5,
-                similarity_threshold=0.3  # Lower threshold for broader assessment results
+                similarity_threshold=0.3,  # Lower threshold for broader assessment results
             )
-            
+
             # Extract relevant context from the search results
             context_parts = []
             for standard, similarity in search_results:
                 # Create context snippet with standard info
                 context_part = f"[From Standard: {standard.standard_id} - {standard.strand_name}]\n{standard.standard_text[:300]}..."
                 context_parts.append(context_part)
-                
+
             if context_parts:
-                logger.info(f"Retrieved {len(context_parts)} assessment guidance context items")
+                logger.info(
+                    f"Retrieved {len(context_parts)} assessment guidance context items"
+                )
                 return context_parts
             else:
                 logger.info("No assessment guidance found in standards")
                 return []
-                
+
         except Exception as e:
             logger.error(f"Error retrieving assessment guidance context: {e}")
             return []
 
-    async def _get_web_search_context(self, extracted_info: Dict[str, Any]) -> List[str]:
+    async def _get_web_search_context(
+        self, extracted_info: Dict[str, Any]
+    ) -> Tuple[List[str], Optional["WebSearchContext"]]:
         """
         Retrieve web search context for lesson planning using WebSearchService.
-        
+
         Args:
             extracted_info: Dictionary containing extracted lesson information
-            
+
         Returns:
-            List of web search context strings formatted for LLM consumption
+            Tuple of (formatted context strings, WebSearchContext object for citations)
         """
         if not self.web_search_enabled or not self.web_search_service:
             logger.debug("Web search not enabled or service not available")
-            return []
-        
+            return [], None
+
         try:
             grade_level = extracted_info.get("grade_level", "")
             musical_topics = extracted_info.get("musical_topics", [])
-            
+
             if not musical_topics:
                 logger.info("No musical topics provided for web search")
-                return []
-            
+                return [], None
+
             # Build search query from musical topics
             search_query = " ".join(musical_topics[:3])  # Limit to first 3 topics
-            
+
             logger.info(f"Searching web for educational resources: {search_query}")
-            
+
             # Execute web search
             search_context = await self.web_search_service.search_educational_resources(
                 query=search_query,
                 max_results=5,  # Limit for context
                 grade_level=grade_level,
-                subject="music"
+                subject="music",
             )
-            
+
             if not search_context or not search_context.results:
                 logger.info("No web search results found")
-                return []
-            
+                return [], None
+
+            # Store the search context for later citation generation
+            self._last_web_search_context = search_context
+
             # Format results for LLM consumption with citation support
             formatted_context = []
             for result in search_context.results:
-                citation_number = search_context.get_citation_number(result.citation_id)
-                if citation_number:
-                    context_item = result.to_context_with_citation(citation_number)
-                    formatted_context.append(context_item)
+                if result.citation_id:  # Check if citation_id exists
+                    citation_number = search_context.get_citation_number(
+                        result.citation_id
+                    )
+                    if citation_number:
+                        context_item = result.to_context_with_citation(citation_number)
+                        formatted_context.append(context_item)
+                    else:
+                        # Fallback formatting if citation not assigned
+                        context_item = (
+                            f"[Web Resource - {result.domain}]\n"
+                            f"Title: {result.title}\n"
+                            f"Content: {result.snippet}\n"
+                            f"URL: {result.url}\n"
+                            f"Relevance: {result.relevance_score:.2f}"
+                        )
+                        formatted_context.append(context_item)
                 else:
-                    # Fallback formatting if citation not assigned
+                    # Fallback formatting if citation_id missing
                     context_item = (
                         f"[Web Resource - {result.domain}]\n"
                         f"Title: {result.title}\n"
@@ -494,14 +562,14 @@ Focus on musical education context. If information isn't present, use null."""
                         f"Relevance: {result.relevance_score:.2f}"
                     )
                     formatted_context.append(context_item)
-            
+
             logger.info(f"Retrieved {len(formatted_context)} web search context items")
-            return formatted_context
-            
+            return formatted_context, search_context
+
         except Exception as e:
             logger.error(f"Error retrieving web search context: {e}")
             # Graceful degradation - return empty list on error
-            return []
+            return [], None
 
     def _generate_conversational_response(
         self,
@@ -574,10 +642,10 @@ Write your response as if you're talking to a fellow music educator. Be warm, kn
 
         # Handle both ChatResponse object and dictionary
         # Return the LLM response directly - let it handle all formatting naturally
-        if hasattr(response, 'content'):
+        if hasattr(response, "content"):
             return response.content
         elif isinstance(response, dict):
-            return response.get('content', str(response))
+            return response.get("content", str(response))
         else:
             return str(response)
 
@@ -732,15 +800,17 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
         try:
             # Build lesson context from conversation (now includes RAG and web search context)
             context = await self._build_lesson_context_from_conversation()
-            
+
             # Log that RAG context is being used
             rag_context = self.lesson_requirements.get("rag_context", {})
             teaching_count = len(rag_context.get("teaching_context", []))
             assessment_count = len(rag_context.get("assessment_context", []))
             web_search_count = len(rag_context.get("web_search_context", []))
-            
+
             if teaching_count > 0 or assessment_count > 0 or web_search_count > 0:
-                logger.info(f"Generating lesson plan with {teaching_count} teaching, {assessment_count} assessment, and {web_search_count} web search context items")
+                logger.info(
+                    f"Generating lesson plan with {teaching_count} teaching, {assessment_count} assessment, and {web_search_count} web search context items"
+                )
 
             # Generate the lesson plan with enhanced context
             lesson_plan = self.llm_client.generate_lesson_plan(context, stream=False)
@@ -753,8 +823,48 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
                 # If it's an iterator, join all chunks
                 final_plan = "".join(lesson_plan)
 
+            # Add citations section if web search context is available
+            citations_section = ""
+            if web_search_count > 0:
+                # Get the web search context to extract bibliography
+                web_search_context_list = rag_context.get("web_search_context", [])
+                if web_search_context_list:
+                    # Try to get the bibliography from the stored web search service
+                    try:
+                        if (
+                            hasattr(self, "web_search_service")
+                            and self.web_search_service
+                        ):
+                            # Reconstruct the search context from stored context
+                            # We need to find the original WebSearchContext object
+                            search_context = getattr(
+                                self, "_last_web_search_context", None
+                            )
+                            if search_context and hasattr(
+                                search_context, "get_citation_bibliography"
+                            ):
+                                citations_section = (
+                                    search_context.get_citation_bibliography()
+                                )
+                                if citations_section:
+                                    citations_section = f"\n\n{citations_section}\n"
+                            else:
+                                # Fallback: generate simple citations from context
+                                citations_section = self._generate_fallback_citations(
+                                    web_search_context_list
+                                )
+                    except Exception as e:
+                        logger.warning(f"Failed to generate citations: {e}")
+                        # Fallback citations
+                        citations_section = self._generate_fallback_citations(
+                            web_search_context_list
+                        )
+
+            # Combine lesson plan with citations
+            complete_lesson = final_plan + citations_section
+
             # Store the generated lesson
-            self.lesson_requirements["generated_lesson"] = final_plan
+            self.lesson_requirements["generated_lesson"] = complete_lesson
             self.set_state("complete")
 
             # Enhanced response with RAG and web search context information
@@ -762,19 +872,23 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
             if teaching_count > 0 or assessment_count > 0 or web_search_count > 0:
                 context_parts = []
                 if teaching_count > 0:
-                    context_parts.append(f"{teaching_count} teaching strategy resources")
+                    context_parts.append(
+                        f"{teaching_count} teaching strategy resources"
+                    )
                 if assessment_count > 0:
-                    context_parts.append(f"{assessment_count} assessment guidance resources")
+                    context_parts.append(
+                        f"{assessment_count} assessment guidance resources"
+                    )
                 if web_search_count > 0:
                     context_parts.append(f"{web_search_count} current web resources")
-                
+
                 context_info = f"\n\n## 📚 Enhanced with Educational Resources\n\nThis lesson plan was enhanced with {', '.join(context_parts)} retrieved from our knowledge base and current educational web sources."
 
             response = f"""# 🎉 Your Personalized Music Lesson Plan
 
 ---
 
-{final_plan}
+{complete_lesson}
 
 ---
 
@@ -867,19 +981,28 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         # RAG Context: Retrieve teaching strategies and assessment guidance
         teaching_context = self._get_teaching_strategies_context(extracted)
         assessment_context = self._get_assessment_guidance_context(extracted)
-        
+
         # Web Search Context: Retrieve educational resources from web
-        web_search_context = await self._get_web_search_context(extracted)
-        
+        (
+            web_search_context_list,
+            web_search_context_obj,
+        ) = await self._get_web_search_context(extracted)
+
         # Store all context types in lesson requirements for debugging/analysis
         self.lesson_requirements["rag_context"] = {
             "teaching_context": teaching_context,
             "assessment_context": assessment_context,
-            "web_search_context": web_search_context
+            "web_search_context": web_search_context_list,
         }
-        
+
+        # Store the WebSearchContext object for citation generation
+        if web_search_context_obj:
+            self._last_web_search_context = web_search_context_obj
+
         # Build final additional context (keeping backward compatibility)
-        final_additional_context = " | ".join(additional_context_parts) if additional_context_parts else None
+        final_additional_context = (
+            " | ".join(additional_context_parts) if additional_context_parts else None
+        )
 
         return LessonPromptContext(
             grade_level=extracted.get("grade_level", "Grade 3"),
@@ -894,13 +1017,15 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             else "Custom lesson based on teacher requirements",
             objectives=[obj.objective_text for obj in objectives],
             additional_context=final_additional_context,
-            lesson_duration=extracted.get("time_constraints", "45 minutes"),
-            class_size=25,  # Default, could be extracted in future
+            lesson_duration=self.lesson_requirements.get("lesson_duration")
+            or extracted.get("time_constraints", "45 minutes"),
+            class_size=self.lesson_requirements.get("class_size")
+            or 25,  # Use session value or default
             available_resources=extracted.get("resources", []),
             # NEW: Structured RAG context fields
             teaching_context=teaching_context,
             assessment_context=assessment_context,
-            web_search_context=web_search_context,
+            web_search_context=web_search_context_list,
         )
 
     def _handle_refinement(self, message: str) -> str:
@@ -918,6 +1043,42 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
     async def _handle_generation(self, message: str) -> str:
         """Handle generation state"""
         return await self._generate_lesson_plan()
+
+    def _generate_fallback_citations(self, web_search_context: List[str]) -> str:
+        """Generate fallback citations from web search context strings"""
+        try:
+            citations = ["## 📚 Web Sources References\n"]
+
+            for i, context_item in enumerate(web_search_context, 1):
+                # Extract URL from context item if possible
+                lines = context_item.split("\n")
+                url = ""
+                title = ""
+                domain = ""
+
+                for line in lines:
+                    if line.startswith("URL: "):
+                        url = line.replace("URL: ", "").strip()
+                    elif line.startswith("Title: "):
+                        title = line.replace("Title: ", "").strip()
+                    elif line.startswith("[Web Source: "):
+                        # Extract domain from the header
+                        header = line.split(" - ")[1] if " - " in line else ""
+                        domain = header.replace("]", "").strip()
+
+                # Create citation
+                if title and url:
+                    citation = f"[{i}] {title}"
+                    if domain:
+                        citation += f", {domain}"
+                    citation += f", {url}."
+                    citations.append(citation)
+
+            return "\n".join(citations) if len(citations) > 1 else ""
+
+        except Exception as e:
+            logger.warning(f"Failed to generate fallback citations: {e}")
+            return ""
 
     def _get_timestamp(self) -> str:
         """Get current timestamp"""
@@ -1326,7 +1487,9 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         # Extract basic info for RAG context retrieval
         extracted_info = {
             "grade_level": self.lesson_requirements["grade_level"],
-            "musical_topics": [self.lesson_requirements["standard"].standard_text[:100]],  # Use standard as topic
+            "musical_topics": [
+                self.lesson_requirements["standard"].standard_text[:100]
+            ],  # Use standard as topic
         }
 
         # RAG Context: Retrieve teaching strategies and assessment guidance
@@ -1344,8 +1507,9 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             standard_text=self.lesson_requirements["standard"].standard_text,
             objectives=objective_texts,
             additional_context=self.lesson_requirements.get("additional_context"),
-            lesson_duration=self.lesson_requirements.get("time_constraints"),
-            class_size=self.lesson_requirements.get("class_size", 25),
+            lesson_duration=self.lesson_requirements.get("lesson_duration")
+            or self.lesson_requirements.get("time_constraints"),
+            class_size=self.lesson_requirements.get("class_size") or 25,
             available_resources=self.lesson_requirements.get("available_resources", []),
             # NEW: Structured RAG context fields
             teaching_context=teaching_context,
@@ -1399,6 +1563,31 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
                         }
                         for obj in value
                     ]
+            elif key == "objectives":
+                # Serialize objectives list
+                if value:
+                    serializable_reqs[key] = [
+                        {
+                            "objective_id": obj.objective_id,
+                            "standard_id": obj.standard_id,
+                            "objective_text": obj.objective_text,
+                        }
+                        for obj in value
+                    ]
+            elif key == "suggested_standards":
+                # Serialize standards list
+                if value:
+                    serializable_reqs[key] = [
+                        {
+                            "standard_id": std.standard_id,
+                            "grade_level": std.grade_level,
+                            "strand_code": std.strand_code,
+                            "strand_name": std.strand_name,
+                            "standard_text": std.standard_text,
+                            "strand_description": std.strand_description,
+                        }
+                        for std in value
+                    ]
             elif key in ["strand_info", "recommendations"]:
                 # These are already serializable dicts/lists
                 serializable_reqs[key] = value
@@ -1447,6 +1636,29 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
                     )
                     for obj in value
                 ]
+            elif key == "objectives" and value:
+                # Reconstruct Objective objects
+                self.lesson_requirements[key] = [
+                    Objective(
+                        objective_id=obj["objective_id"],
+                        standard_id=obj["standard_id"],
+                        objective_text=obj["objective_text"],
+                    )
+                    for obj in value
+                ]
+            elif key == "suggested_standards" and value:
+                # Reconstruct Standard objects
+                self.lesson_requirements[key] = [
+                    Standard(
+                        standard_id=std["standard_id"],
+                        grade_level=std["grade_level"],
+                        strand_code=std["strand_code"],
+                        strand_name=std["strand_name"],
+                        standard_text=std["standard_text"],
+                        strand_description=std["strand_description"],
+                    )
+                    for std in value
+                ]
             else:
                 self.lesson_requirements[key] = value
 
@@ -1458,12 +1670,14 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         """Main chat interface - routes to appropriate state handler"""
         try:
             # Store user message in conversation history
-            self.conversation_history.append({
-                "role": "user",
-                "content": message,
-                "state": self.current_state,
-                "timestamp": self._get_timestamp()
-            })
+            self.conversation_history.append(
+                {
+                    "role": "user",
+                    "content": message,
+                    "state": self.current_state,
+                    "timestamp": self._get_timestamp(),
+                }
+            )
 
             current_state = self.get_state()
             handler = self.state_handlers.get(current_state)
@@ -1471,6 +1685,7 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             if handler:
                 # Check if handler is async or sync
                 import inspect
+
                 if inspect.iscoroutinefunction(handler):
                     response = await handler(message)
                 else:
@@ -1481,12 +1696,14 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
                 response = await self._handle_lesson_planning(message)
 
             # Store assistant response in conversation history
-            self.conversation_history.append({
-                "role": "assistant",
-                "content": response,
-                "state": self.current_state,
-                "timestamp": self._get_timestamp()
-            })
+            self.conversation_history.append(
+                {
+                    "role": "assistant",
+                    "content": response,
+                    "state": self.current_state,
+                    "timestamp": self._get_timestamp(),
+                }
+            )
 
             return response
 
@@ -1495,11 +1712,13 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             error_response = f"I apologize, but I encountered an error: {str(e)}. Could you please rephrase that or try a different approach?"
 
             # Store error response in history
-            self.conversation_history.append({
-                "role": "assistant",
-                "content": error_response,
-                "state": self.current_state,
-                "timestamp": self._get_timestamp()
-            })
+            self.conversation_history.append(
+                {
+                    "role": "assistant",
+                    "content": error_response,
+                    "state": self.current_state,
+                    "timestamp": self._get_timestamp(),
+                }
+            )
 
             return error_response

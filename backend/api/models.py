@@ -8,6 +8,7 @@ from datetime import datetime
 # Auth Request Models
 class RegisterRequest(BaseModel):
     """User registration request"""
+
     email: EmailStr
     password: str = Field(..., min_length=8)
     full_name: Optional[str] = None
@@ -16,17 +17,20 @@ class RegisterRequest(BaseModel):
 
 class LoginRequest(BaseModel):
     """User login request"""
+
     email: EmailStr
     password: str
 
 
 class RefreshTokenRequest(BaseModel):
     """Token refresh request"""
+
     refresh_token: str
 
 
 class ChangePasswordRequest(BaseModel):
     """Password change request"""
+
     current_password: str
     new_password: str = Field(..., min_length=8)
 
@@ -34,6 +38,7 @@ class ChangePasswordRequest(BaseModel):
 # Auth Response Models
 class TokenResponse(BaseModel):
     """Authentication token response"""
+
     access_token: str
     refresh_token: str
     token_type: str = "Bearer"
@@ -42,6 +47,7 @@ class TokenResponse(BaseModel):
 
 class UserResponse(BaseModel):
     """User information response"""
+
     id: str
     email: str
     full_name: Optional[str]
@@ -57,23 +63,27 @@ class UserResponse(BaseModel):
 
 class LoginResponse(BaseModel):
     """Login response with user and tokens"""
+
     user: UserResponse
     tokens: TokenResponse
 
 
 class MessageResponse(BaseModel):
     """Generic message response"""
+
     message: str
 
 
 class ErrorResponse(BaseModel):
     """Error response"""
+
     detail: str
     error_code: Optional[str] = None
 
 
 class StandardResponse(BaseModel):
     """Standard metadata for UI"""
+
     id: str
     code: str
     grade: str
@@ -88,22 +98,31 @@ class StandardResponse(BaseModel):
 
 class SessionCreateRequest(BaseModel):
     """Request to start a new session"""
+
     grade_level: Optional[str] = None
     strand_code: Optional[str] = None
     standard_id: Optional[str] = None
     additional_context: Optional[str] = None
+    lesson_duration: Optional[str] = None
+    class_size: Optional[int] = None
+    selected_objective: Optional[str] = None
 
 
 class SessionUpdateRequest(BaseModel):
     """Update session context"""
+
     grade_level: Optional[str] = None
     strand_code: Optional[str] = None
     standard_id: Optional[str] = None
     additional_context: Optional[str] = None
+    lesson_duration: Optional[str] = None
+    class_size: Optional[int] = None
+    selected_objective: Optional[str] = None
 
 
 class SessionResponse(BaseModel):
     """Session summary returned to the client"""
+
     id: str
     grade_level: Optional[str]
     strand_code: Optional[str]
@@ -116,6 +135,7 @@ class SessionResponse(BaseModel):
 
 class LessonSummary(BaseModel):
     """Lesson summary returned with chat response"""
+
     id: str
     title: str
     summary: str
@@ -126,6 +146,7 @@ class LessonSummary(BaseModel):
 
 class ChatMessageRequest(BaseModel):
     """Chat message sent from the workspace"""
+
     message: str
     lesson_duration: Optional[str] = None
     class_size: Optional[str] = None
@@ -133,6 +154,7 @@ class ChatMessageRequest(BaseModel):
 
 class ChatResponse(BaseModel):
     """Response payload containing AI reply and lesson"""
+
     response: str
     lesson: LessonSummary
     session: SessionResponse
@@ -141,6 +163,7 @@ class ChatResponse(BaseModel):
 # Draft Models
 class DraftCreateRequest(BaseModel):
     """Request to create a new draft"""
+
     session_id: str
     title: str
     content: str
@@ -149,6 +172,7 @@ class DraftCreateRequest(BaseModel):
 
 class DraftUpdateRequest(BaseModel):
     """Request to update an existing draft"""
+
     title: Optional[str] = None
     content: Optional[str] = None
     metadata: Optional[Dict[str, Any]] = None
@@ -156,6 +180,7 @@ class DraftUpdateRequest(BaseModel):
 
 class DraftResponse(BaseModel):
     """Draft response for the frontend"""
+
     id: str
     title: str
     content: str

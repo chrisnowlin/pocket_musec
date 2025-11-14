@@ -34,6 +34,9 @@ export interface SessionCreatePayload {
   strand_code?: string
   standard_id?: string
   additional_context?: string
+  lesson_duration?: string
+  class_size?: number
+  selected_objective?: string
 }
 
 export interface SessionUpdatePayload {
@@ -41,6 +44,9 @@ export interface SessionUpdatePayload {
   strand_code?: string
   standard_id?: string
   additional_context?: string
+  lesson_duration?: string
+  class_size?: number
+  selected_objective?: string
 }
 
 export interface ChatMessagePayload {

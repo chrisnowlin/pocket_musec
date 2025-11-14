@@ -32,3 +32,22 @@
 12:00:35 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css
 12:00:35 PM [vite] hmr update /src/components/unified/BrowsePanel.tsx, /src/index.css
 12:00:35 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css, /src/pages/MusecDBPage.tsx, /src/components/unified/BrowsePanel.tsx
+12:11:46 PM [vite] hmr update /src/pages/MusecDBPage.tsx, /src/index.css, /src/components/DocumentIngestion.tsx, /src/components/unified/FileManager.tsx, /src/components/unified/ChatMessage.tsx
+12:11:50 PM [vite] hmr update /src/pages/MusecDBPage.tsx, /src/index.css, /src/components/DocumentIngestion.tsx, /src/components/unified/FileManager.tsx, /src/components/unified/ChatMessage.tsx
+12:12:01 PM [vite] hmr update /src/pages/MusecDBPage.tsx, /src/index.css, /src/components/DocumentIngestion.tsx, /src/components/unified/FileManager.tsx, /src/components/unified/ChatMessage.tsx
+12:12:06 PM [vite] hmr update /src/pages/MusecDBPage.tsx, /src/index.css, /src/components/DocumentIngestion.tsx, /src/components/unified/FileManager.tsx, /src/components/unified/ChatMessage.tsx
+12:12:12 PM [vite] hmr update /src/components/DocumentIngestion.tsx, /src/index.css
+12:12:17 PM [vite] hmr update /src/components/DocumentIngestion.tsx, /src/index.css
+12:12:23 PM [vite] hmr update /src/components/DocumentIngestion.tsx, /src/index.css
+2:55:27 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css, /src/pages/MusecDBPage.tsx
+2:55:31 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css, /src/pages/MusecDBPage.tsx
+2:55:37 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css
+2:55:42 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css
+3:29:08 PM [vite] page reload src/components/Layout.tsx
+3:29:08 PM [vite] page reload src/main.tsx
+3:29:08 PM [vite] hmr update /src/components/unified/ChatPanel.tsx, /src/index.css
+3:29:08 PM [vite] hmr update /src/components/unified/RightPanel.tsx, /src/index.css
+3:29:08 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css
+3:29:08 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css
+3:29:08 PM [vite] hmr update /src/components/unified/BrowsePanel.tsx, /src/index.css
+3:29:08 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css, /src/pages/MusecDBPage.tsx, /src/components/unified/BrowsePanel.tsx

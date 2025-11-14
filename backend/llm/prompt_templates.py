@@ -10,6 +10,7 @@ from backend.repositories.models import Standard, Objective
 @dataclass
 class LessonPromptContext:
     """Context for lesson generation prompts"""
+
     grade_level: str
     strand_code: str
     strand_name: str
@@ -22,80 +23,102 @@ class LessonPromptContext:
     class_size: Optional[int] = None
     available_resources: Optional[List[str]] = None
     # RAG context fields for enhanced lesson generation
-    teaching_context: Optional[List[str]] = None  # Teaching strategies and pedagogical content
+    teaching_context: Optional[List[str]] = (
+        None  # Teaching strategies and pedagogical content
+    )
     assessment_context: Optional[List[str]] = None  # Assessment strategies and guidance
     web_search_context: Optional[List[str]] = None  # Current educational web resources
 
 
 class LessonPromptTemplates:
     """Prompt templates optimized for Qwen models"""
-    
+
     @staticmethod
-    def _format_rag_context(teaching_context: Optional[List[str]] = None,
-                           assessment_context: Optional[List[str]] = None) -> str:
+    def _format_rag_context(
+        teaching_context: Optional[List[str]] = None,
+        assessment_context: Optional[List[str]] = None,
+    ) -> str:
         """
         Format RAG context into structured XML for prompt inclusion.
-        
+
         Args:
             teaching_context: List of teaching strategy context strings
             assessment_context: List of assessment guidance context strings
-            
+
         Returns:
             Formatted XML string with RAG context sections
         """
         context_sections = []
-        
+
         if teaching_context:
             teaching_section = ["<rag_teaching_context>"]
-            teaching_section.append("<header>Teaching Strategies and Pedagogical Content</header>")
+            teaching_section.append(
+                "<header>Teaching Strategies and Pedagogical Content</header>"
+            )
             teaching_section.append("<content>")
             for i, context_item in enumerate(teaching_context, 1):
                 teaching_section.append(f"<item index='{i}'>{context_item}</item>")
             teaching_section.extend(["</content>", "</rag_teaching_context>"])
             context_sections.append("\n".join(teaching_section))
-        
+
         if assessment_context:
             assessment_section = ["<rag_assessment_context>"]
-            assessment_section.append("<header>Assessment Strategies and Guidance</header>")
+            assessment_section.append(
+                "<header>Assessment Strategies and Guidance</header>"
+            )
             assessment_section.append("<content>")
             for i, context_item in enumerate(assessment_context, 1):
                 assessment_section.append(f"<item index='{i}'>{context_item}</item>")
             assessment_section.extend(["</content>", "</rag_assessment_context>"])
             context_sections.append("\n".join(assessment_section))
-        
+
         if context_sections:
             return "\n\n".join(context_sections) + "\n"
         else:
             return ""
-    
+
     @staticmethod
-    def _format_web_search_context(web_search_context: Optional[List[str]] = None) -> str:
+    def _format_web_search_context(
+        web_search_context: Optional[List[str]] = None,
+    ) -> str:
         """
         Format web search context into structured XML for prompt inclusion with citation support.
-        
+
         Args:
             web_search_context: List of web search context strings with citation information
-            
+
         Returns:
             Formatted XML string with web search context section and citation guidance
         """
         if not web_search_context:
             return ""
-        
+
         context_section = ["<rag_web_search_context>"]
         context_section.append("<header>Current Educational Web Resources</header>")
         context_section.append("<citation_guidance>")
-        context_section.append("Web sources include citation markers like [Web Source: 1 - domain.com].")
-        context_section.append("Use these citations when referencing web content in your lesson plan.")
-        context_section.append("Format as [Web Source: URL] or use the provided citation numbers.")
+        context_section.append(
+            "Web sources include citation markers like [Web Source: 1 - domain.com]."
+        )
+        context_section.append(
+            "You MUST include footnote citations when referencing web content in your lesson plan."
+        )
+        context_section.append(
+            "Use the format [Web Source: URL] or the provided citation numbers [1], [2], etc."
+        )
+        context_section.append(
+            "Place citations immediately after the information they support."
+        )
+        context_section.append(
+            "Include a comprehensive 'Citations' section at the end of your response."
+        )
         context_section.append("</citation_guidance>")
         context_section.append("<content>")
         for i, context_item in enumerate(web_search_context, 1):
             context_section.append(f"<item index='{i}'>{context_item}</item>")
         context_section.extend(["</content>", "</rag_web_search_context>"])
-        
+
         return "\n".join(context_section) + "\n"
-    
+
     @staticmethod
     def get_system_prompt() -> str:
         """
@@ -147,19 +170,21 @@ You are an expert music education curriculum specialist with deep knowledge of:
         Enhanced with RAG context for improved educational content.
         """
         objectives_text = "\n".join([f"- {obj}" for obj in context.objectives])
-        resources_text = ", ".join(context.available_resources or ["standard classroom instruments"])
-        
+        resources_text = ", ".join(
+            context.available_resources or ["standard classroom instruments"]
+        )
+
         # Format RAG context using helper method
         rag_context_xml = LessonPromptTemplates._format_rag_context(
             teaching_context=context.teaching_context,
-            assessment_context=context.assessment_context
+            assessment_context=context.assessment_context,
         )
-        
+
         # Format web search context using helper method
         web_search_xml = LessonPromptTemplates._format_web_search_context(
             web_search_context=context.web_search_context
         )
-        
+
         # Build enhanced requirements based on available RAG context
         enhanced_requirements = """1. Create a detailed lesson plan that directly addresses the standard and objectives
 2. Include engaging, age-appropriate musical activities
@@ -168,14 +193,16 @@ You are an expert music education curriculum specialist with deep knowledge of:
 5. Ensure all activities are feasible within the time constraints
 6. Include specific materials and setup requirements
 7. Add reflection and extension opportunities"""
-        
+
         if context.teaching_context:
             enhanced_requirements += "\n8. Integrate proven teaching strategies from educational resources provided"
         if context.assessment_context:
             enhanced_requirements += "\n9. Incorporate evidence-based assessment methods from expert guidance"
         if context.web_search_context:
-            enhanced_requirements += "\n10. Include current, relevant resources from web search results"
-        
+            enhanced_requirements += (
+                "\n10. Include current, relevant resources from web search results"
+            )
+
         return f"""<task>
 Generate a comprehensive, standards-based music lesson plan for {context.grade_level} students.
 </task>
@@ -203,12 +230,12 @@ Generate a comprehensive, standards-based music lesson plan for {context.grade_l
 <available_resources>{resources_text}</available_resources>
 </lesson_parameters>
 
-{f'<additional_context>{context.additional_context}</additional_context>' if context.additional_context else ''}
+{f"<additional_context>{context.additional_context}</additional_context>" if context.additional_context else ""}
 </context>
 
-{rag_context_xml if rag_context_xml else ''}
+{rag_context_xml if rag_context_xml else ""}
 
-{web_search_xml if web_search_xml else ''}
+{web_search_xml if web_search_xml else ""}
 
 <requirements>
 {enhanced_requirements}
@@ -227,8 +254,9 @@ Generate a comprehensive, standards-based music lesson plan for {context.grade_l
 - Ensure all RAG-inspired elements are age-appropriate and standards-aligned
 - Combine retrieved expertise with your own pedagogical knowledge
 - Incorporate relevant current resources from web search where they enhance the lesson
-- **Citation Requirements**: When using information from web search sources, include proper citations in the format [Web Source: URL] or use the provided citation numbers [1], [2], etc.
+- **Citation Requirements**: You MUST include footnote citations when referencing web search sources. Use the format [Web Source: URL] or the provided citation numbers [1], [2], etc. Place citations immediately after the information they support.
 - **Source Attribution**: Clearly distinguish between database sources and web sources in your citations to help users verify information
+- **Bibliography Section**: Include a comprehensive 'Citations' section at the end of your response listing all web sources used
 </rag_guidance>
 
 <structure>
@@ -273,6 +301,10 @@ Generate a comprehensive, standards-based music lesson plan for {context.grade_l
 - Student reflection questions
 - Homework or extension activities
 - Cross-curricular connections
+
+## Citations
+- List all web sources used with proper citation format
+- Include URLs for easy verification
 </structure>
 
 <quality_criteria>
@@ -292,18 +324,18 @@ Generate a comprehensive, standards-based music lesson plan for {context.grade_l
         Uses structured format with clear examples and RAG context.
         """
         objectives_text = "\n".join([f"- {obj}" for obj in context.objectives])
-        
+
         # Format RAG context using helper method
         rag_context_xml = LessonPromptTemplates._format_rag_context(
             teaching_context=context.teaching_context,
-            assessment_context=context.assessment_context
+            assessment_context=context.assessment_context,
         )
-        
+
         # Format web search context using helper method
         web_search_xml = LessonPromptTemplates._format_web_search_context(
             web_search_context=context.web_search_context
         )
-        
+
         return f"""<task>
 Generate 5-7 creative, engaging music activities for {context.grade_level} students that address the following standard.
 </task>
@@ -316,9 +348,9 @@ Generate 5-7 creative, engaging music activities for {context.grade_level} stude
 </objectives>
 </standard>
 
-{rag_context_xml if rag_context_xml else ''}
+{rag_context_xml if rag_context_xml else ""}
 
-{web_search_xml if web_search_xml else ''}
+{web_search_xml if web_search_xml else ""}
 
 <rag_guidance>
 {f"**Teaching Strategy Integration**: Incorporate proven pedagogical approaches and teaching strategies from the RAG context provided. These evidence-based methods are specifically relevant to {context.grade_level} music education." if context.teaching_context else ""}
@@ -332,6 +364,8 @@ Generate 5-7 creative, engaging music activities for {context.grade_level} stude
 - Adapt retrieved content to create engaging, standards-aligned activities
 - Ensure all activities incorporate evidence-based teaching methods when available
 - Include current web resources where they enhance the learning experience
+- **Citation Requirements**: You MUST include footnote citations when referencing web search sources. Use the format [Web Source: URL] or the provided citation numbers [1], [2], etc. Place citations immediately after the information they support.
+- **Bibliography Section**: Include a comprehensive 'Citations' section at the end of your response listing all web sources used
 </rag_guidance>
 
 <activity_requirements>
@@ -369,7 +403,7 @@ For each activity, use this structure:
 **Differentiation:** Support and extension strategies
 **Engagement:** Elements that make it engaging for students
 {"**RAG Integration:** Evidence-based strategies applied" if context.teaching_context else ""}
-{"**Web Search Integration:** Current resources incorporated" if context.web_search_context else ""}
+{"**Web Search Integration:** Current resources incorporated with proper citations" if context.web_search_context else ""}
 </format>"""
 
     @staticmethod
@@ -378,18 +412,18 @@ For each activity, use this structure:
         Generate assessment strategies for a music standard with RAG context.
         """
         objectives_text = "\n".join([f"- {obj}" for obj in context.objectives])
-        
+
         # Format RAG context using helper method
         rag_context_xml = LessonPromptTemplates._format_rag_context(
             teaching_context=context.teaching_context,
-            assessment_context=context.assessment_context
+            assessment_context=context.assessment_context,
         )
-        
+
         # Format web search context using helper method
         web_search_xml = LessonPromptTemplates._format_web_search_context(
             web_search_context=context.web_search_context
         )
-        
+
         return f"""<task>
 Create comprehensive assessment strategies for the following music standard and objectives.
 </task>
@@ -404,9 +438,9 @@ Create comprehensive assessment strategies for the following music standard and 
 {objectives_text}
 </objectives>
 
-{rag_context_xml if rag_context_xml else ''}
+{rag_context_xml if rag_context_xml else ""}
 
-{web_search_xml if web_search_xml else ''}
+{web_search_xml if web_search_xml else ""}
 
 <rag_guidance>
 {f"**Assessment Strategy Integration**: Incorporate the evidence-based assessment methods and evaluation approaches provided in the RAG assessment context. These strategies are specifically designed for {context.grade_level} music education and valid assessment practices." if context.assessment_context else ""}
@@ -420,6 +454,8 @@ Create comprehensive assessment strategies for the following music standard and 
 - Adapt retrieved assessment methods to fit the specific standard and objectives
 - Ensure all assessments are age-appropriate and align with best practices
 - Include relevant current assessment approaches from web search where appropriate
+- **Citation Requirements**: You MUST include footnote citations when referencing web search sources. Use the format [Web Source: URL] or the provided citation numbers [1], [2], etc. Place citations immediately after the information they support.
+- **Bibliography Section**: Include a comprehensive 'Citations' section at the end of your response listing all web sources used
 </rag_guidance>
 
 <assessment_types>
@@ -440,7 +476,7 @@ For each assessment type, include:
 - Materials needed
 - Differentiation strategies
 {"- Integration of evidence-based assessment methods (from RAG context)" if context.assessment_context else ""}
-{"- Incorporation of current assessment approaches (from web search context)" if context.web_search_context else ""}
+{"- Incorporation of current assessment approaches with proper citations (from web search context)" if context.web_search_context else ""}
 </requirements>
 
 <quality_indicators>
@@ -463,9 +499,9 @@ Ensure assessments measure:
         # Format RAG context using helper method
         rag_context_xml = LessonPromptTemplates._format_rag_context(
             teaching_context=context.teaching_context,
-            assessment_context=context.assessment_context
+            assessment_context=context.assessment_context,
         )
-        
+
         return f"""<task>
 Develop comprehensive differentiation strategies for the following music lesson to support all learners.
 </task>
@@ -476,7 +512,7 @@ Develop comprehensive differentiation strategies for the following music lesson 
 <class_size>{context.class_size or "25 students"}</class_size>
 </lesson_context>
 
-{rag_context_xml if rag_context_xml else ''}
+{rag_context_xml if rag_context_xml else ""}
 
 <rag_guidance>
 {f"**Teaching Strategy Integration**: Incorporate the proven pedagogical approaches and differentiation methods provided in the RAG teaching context. These evidence-based strategies are specifically designed for supporting diverse learners in {context.grade_level} music education." if context.teaching_context else ""}
@@ -487,6 +523,8 @@ Develop comprehensive differentiation strategies for the following music lesson 
 - Reference specific differentiation strategies from the provided RAG context
 - Adapt retrieved strategies to address the diverse needs in your music classroom
 - Ensure all differentiation approaches are evidence-based and age-appropriate
+- **Citation Requirements**: When referencing web search sources, include proper citations in the format [Web Source: URL] or use the provided citation numbers [1], [2], etc. Place citations immediately after the information they support.
+- **Bibliography Section**: Include a comprehensive 'Citations' section at the end of your response listing all web sources used
 </rag_guidance>
 
 <learner_groups>
@@ -516,6 +554,7 @@ For each strategy, include:
 - Required resources
 - Assessment considerations
 {"- RAG Context Integration:** Evidence-based approach applied" if context.teaching_context else ""}
+{"- Web Search Integration:** Current resources incorporated with proper citations" if context.web_search_context else ""}
 </format>"""
 
     @staticmethod
@@ -749,20 +788,22 @@ Develop strategies for:
     def generate_prompt(cls, template_type: str, context: LessonPromptContext) -> str:
         """
         Generate a specific type of prompt using the template.
-        
+
         Args:
             template_type: Type of prompt template to use
             context: Lesson context for the prompt
-            
+
         Returns:
             Formatted prompt string
         """
         templates = cls.get_all_templates()
-        
+
         if template_type not in templates:
             available = ", ".join(templates.keys())
-            raise ValueError(f"Unknown template type: {template_type}. Available: {available}")
-        
+            raise ValueError(
+                f"Unknown template type: {template_type}. Available: {available}"
+            )
+
         return templates[template_type](context)
 
     @classmethod
@@ -773,23 +814,23 @@ Develop strategies for:
         # Format RAG context for comprehensive view
         rag_context_xml = cls._format_rag_context(
             teaching_context=context.teaching_context,
-            assessment_context=context.assessment_context
+            assessment_context=context.assessment_context,
         )
-        
+
         # Format web search context for comprehensive view
         web_search_xml = cls._format_web_search_context(
             web_search_context=context.web_search_context
         )
-        
+
         return f"""<task>
 Generate a comprehensive, standards-based music lesson plan for {context.grade_level} students that includes all essential components for effective music instruction.
 </task>
 
 {cls.generate_lesson_plan_prompt(context)}
 
-{rag_context_xml if rag_context_xml else ''}
+{rag_context_xml if rag_context_xml else ""}
 
-{web_search_xml if web_search_xml else ''}
+{web_search_xml if web_search_xml else ""}
 
 <additional_requirements>
 In addition to the lesson plan structure, ensure your response includes:
@@ -814,6 +855,8 @@ In addition to the lesson plan structure, ensure your response includes:
 {f"**Comprehensive Web Search Integration**: Systematically incorporate current educational resources and teaching ideas from the web search context throughout all lesson components. Ensure these modern resources complement evidence-based practices and enhance the learning experience for {context.grade_level} music education." if context.web_search_context else ""}
 
 **Holistic Integration**: Ensure that RAG-provided content and web search resources are woven throughout the entire lesson plan, not just isolated to one section, creating a cohesive, research-informed, and current instructional experience.
+- **Citation Requirements**: You MUST include footnote citations when referencing web search sources. Use the format [Web Source: URL] or the provided citation numbers [1], [2], etc. Place citations immediately after the information they support.
+- **Bibliography Section**: Include a comprehensive 'Citations' section at the end of your response listing all web sources used
 </comprehensive_rag_guidance>
 
 <quality_standards>
