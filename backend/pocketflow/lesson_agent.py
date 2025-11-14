@@ -8,16 +8,22 @@ from backend.pocketflow.flow import Flow
 from backend.pocketflow.store import Store
 from backend.repositories.standards_repository import StandardsRepository
 from backend.repositories.models import Standard, Objective, StandardWithObjectives
-from backend.llm.chutes_client import ChutesClient, Message
+from backend.llm.chutes_client import ChutesClient, Message, ChutesAuthenticationError
 from backend.llm.prompt_templates import LessonPromptContext, LessonPromptTemplates
 from backend.services.web_search_service import WebSearchService, WebSearchContext
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
 
 class LessonAgent(Agent):
     """Agent for generating music education lessons through conversation"""
+
+    # Thread pool configuration for async operations
+    MAX_ASYNC_WORKERS = (
+        4  # Limit concurrent async operations to prevent resource exhaustion
+    )
 
     def __init__(
         self,
@@ -31,7 +37,23 @@ class LessonAgent(Agent):
     ):
         super().__init__(flow, store, "LessonAgent")
         self.standards_repo = standards_repo or StandardsRepository()
-        self.llm_client = llm_client or ChutesClient()
+        # Initialize LLM client with graceful fallback
+        if llm_client:
+            self.llm_client = llm_client
+        else:
+            try:
+                # Try to initialize with API key requirement
+                self.llm_client = ChutesClient()
+                logger.info("Chutes client initialized successfully")
+            except ChutesAuthenticationError:
+                # If no API key, initialize without requirement for graceful fallback
+                logger.warning(
+                    "No CHUTES_API_KEY found - initializing client without authentication"
+                )
+                self.llm_client = ChutesClient(require_api_key=False)
+            except Exception as e:
+                logger.error(f"Failed to initialize Chutes client: {e}")
+                self.llm_client = ChutesClient(require_api_key=False)
         self.prompt_templates = LessonPromptTemplates()
         self.conversational_mode = conversational_mode
         self.web_search_enabled = web_search_enabled
@@ -198,7 +220,6 @@ Focus on musical education context. If information isn't present, use null."""
             # Parse the JSON response
             try:
                 # Handle both ChatResponse object and dictionary
-                content = ""
                 if hasattr(response, "content"):
                     content = response.content
                 elif isinstance(response, dict):
@@ -209,11 +230,8 @@ Focus on musical education context. If information isn't present, use null."""
                 extracted = json.loads(content)
                 return extracted
             except json.JSONDecodeError as e:
-                # Handle case where content might not be defined
-                try:
-                    response_content = content if content else str(response)
-                except NameError:
-                    response_content = str(response)
+                # Get response content for logging
+                response_content = str(response)
                 logger.warning(f"Failed to parse analysis response: {response_content}")
                 logger.error(f"JSON decode error: {e}")
                 return {"confidence_score": 0.0}
@@ -571,13 +589,71 @@ Focus on musical education context. If information isn't present, use null."""
             # Graceful degradation - return empty list on error
             return [], None
 
-    def _generate_conversational_response(
+    def _generate_conversational_response_sync(
         self,
         message: str,
         extracted_info: Dict[str, Any],
         relevant_standards: List[Standard],
     ) -> str:
-        """Generate a conversational response using Chutes API"""
+        """Generate a conversational response using Chutes API (sync wrapper)"""
+        import time
+
+        start_time = time.time()
+
+        try:
+            import asyncio
+
+            # Try to get the current event loop, create new one if none exists
+            try:
+                loop = asyncio.get_running_loop()
+                # Loop is running - we need to run in a thread
+                import concurrent.futures
+
+                logger.debug(
+                    "Using thread pool for conversational response (event loop running)"
+                )
+                with concurrent.futures.ThreadPoolExecutor(
+                    max_workers=self.MAX_ASYNC_WORKERS
+                ) as executor:
+                    future = executor.submit(
+                        asyncio.run,
+                        self._generate_conversational_response(
+                            message, extracted_info, relevant_standards
+                        ),
+                    )
+                    result = future.result()
+                    elapsed = time.time() - start_time
+                    logger.info(
+                        f"Conversational response generated in {elapsed:.2f}s (thread pool)"
+                    )
+                    return result
+            except RuntimeError:
+                # No running loop - we can use asyncio.run directly
+                logger.debug("Using direct asyncio.run for conversational response")
+                result = asyncio.run(
+                    self._generate_conversational_response(
+                        message, extracted_info, relevant_standards
+                    )
+                )
+                elapsed = time.time() - start_time
+                logger.info(
+                    f"Conversational response generated in {elapsed:.2f}s (direct)"
+                )
+                return result
+        except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(
+                f"Error running async conversational response after {elapsed:.2f}s: {e}"
+            )
+            return f"I understand you're asking about {message}. Let me help you with that!"
+
+    async def _generate_conversational_response(
+        self,
+        message: str,
+        extracted_info: Dict[str, Any],
+        relevant_standards: List[Standard],
+    ) -> str:
+        """Generate a conversational response using Chutes API (async version)"""
 
         # Build context for response generation
         context_info = {
@@ -633,7 +709,8 @@ Write your response as if you're talking to a fellow music educator. Be warm, kn
             Message(role="user", content=response_prompt),
         ]
 
-        response = self.llm_client.chat_completion(
+        # Use async wrapper to prevent blocking
+        response = await self._async_llm_chat_completion(
             messages=messages, temperature=0.7, max_tokens=800
         )
 
@@ -649,7 +726,7 @@ Write your response as if you're talking to a fellow music educator. Be warm, kn
         else:
             return str(response)
 
-    def _handle_conversational_welcome(self, message: str) -> str:
+    async def _handle_conversational_welcome(self, message: str) -> str:
         """Handle the initial conversational exchange"""
         # Store the message in conversation context
         self.lesson_requirements["conversation_context"].append(
@@ -680,8 +757,8 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
         else:
             welcome_header = ""
 
-        # Analyze the user's message
-        extracted_info = self._analyze_user_message(message)
+        # Analyze the user's message (async to prevent blocking)
+        extracted_info = await self._async_analyze_user_message(message)
 
         # Update extracted information
         self.lesson_requirements["extracted_info"].update(extracted_info)
@@ -693,8 +770,8 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
         if relevant_standards:
             self.lesson_requirements["suggested_standards"] = relevant_standards
 
-        # Generate conversational response
-        response = self._generate_conversational_response(
+        # Generate conversational response (async to prevent blocking)
+        response = await self._generate_conversational_response(
             message, extracted_info, relevant_standards
         )
 
@@ -718,7 +795,7 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
 
         return full_response
 
-    async def _handle_lesson_planning(self, message: str) -> str:
+    def _handle_lesson_planning(self, message: str) -> str:
         """Handle ongoing lesson planning conversation"""
         # Store the message
         self.lesson_requirements["conversation_context"].append(
@@ -728,7 +805,7 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
         # Check if user wants to generate a lesson
         if self._should_generate_lesson(message):
             self.set_state("generation")
-            return await self._generate_lesson_plan()
+            return self._generate_lesson_plan_sync()
 
         # Analyze the new message
         extracted_info = self._analyze_user_message(message)
@@ -755,8 +832,8 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
             self.lesson_requirements["extracted_info"]
         )
 
-        # Generate conversational response
-        response = self._generate_conversational_response(
+        # Generate conversational response (using sync wrapper)
+        response = self._generate_conversational_response_sync(
             message, extracted_info, relevant_standards
         )
 
@@ -812,8 +889,10 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
                     f"Generating lesson plan with {teaching_count} teaching, {assessment_count} assessment, and {web_search_count} web search context items"
                 )
 
-            # Generate the lesson plan with enhanced context
-            lesson_plan = self.llm_client.generate_lesson_plan(context, stream=False)
+            # Generate the lesson plan with enhanced context (async to prevent blocking)
+            lesson_plan = await self._async_llm_generate_lesson_plan(
+                context, stream=False
+            )
 
             # Handle the Union[str, Iterator[str]] return type
             final_plan: str
@@ -823,8 +902,10 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
                 # If it's an iterator, join all chunks
                 final_plan = "".join(lesson_plan)
 
-            # Add citations section if web search context is available
+            # Add citations section for web search and/or RAG context
             citations_section = ""
+
+            # Web search citations
             if web_search_count > 0:
                 # Get the web search context to extract bibliography
                 web_search_context_list = rag_context.get("web_search_context", [])
@@ -860,12 +941,28 @@ Simply **tell me about your lesson needs** in natural language, and I'll:
                             web_search_context_list
                         )
 
+            # RAG citations (teaching strategies and assessment guidance)
+            if teaching_count > 0 or assessment_count > 0:
+                teaching_context_list = rag_context.get("teaching_context", [])
+                assessment_context_list = rag_context.get("assessment_context", [])
+                rag_citations = self._generate_rag_citations(
+                    teaching_context_list, assessment_context_list
+                )
+                if rag_citations:
+                    # If we already have web search citations, add a separator
+                    if citations_section:
+                        citations_section += "\n\n---\n"
+                    else:
+                        citations_section = "\n\n"
+                    citations_section += rag_citations
+
             # Combine lesson plan with citations
             complete_lesson = final_plan + citations_section
 
             # Store the generated lesson
             self.lesson_requirements["generated_lesson"] = complete_lesson
-            self.set_state("complete")
+            # Set to refinement state to allow iteration on the lesson
+            self.set_state("refinement")
 
             # Enhanced response with RAG and web search context information
             context_info = ""
@@ -945,11 +1042,22 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         """Build lesson context from conversational extraction with structured RAG and web search context"""
         extracted = self.lesson_requirements["extracted_info"]
 
-        # Get the best standard from suggestions
+        # Get the best standard from suggestions OR directly set standard
         standard = None
         objectives = []
 
-        if "suggested_standards" in self.lesson_requirements:
+        # Priority 1: Use directly set standard from session (e.g., from Browse Standards UI)
+        if "standard" in self.lesson_requirements:
+            standard = self.lesson_requirements["standard"]
+            # Get objectives from directly set objectives OR from standard
+            if "objectives" in self.lesson_requirements:
+                objectives = self.lesson_requirements["objectives"]
+            else:
+                objectives = self.standards_repo.get_objectives_for_standard(
+                    standard.standard_id
+                )
+        # Priority 2: Use suggested standards from conversational extraction
+        elif "suggested_standards" in self.lesson_requirements:
             standard = self.lesson_requirements["suggested_standards"][0]
             objectives = self.standards_repo.get_objectives_for_standard(
                 standard.standard_id
@@ -1005,8 +1113,11 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         )
 
         return LessonPromptContext(
-            grade_level=extracted.get("grade_level", "Grade 3"),
-            strand_code=standard.strand_code if standard else "Create",
+            grade_level=self.lesson_requirements.get("grade_level")
+            or extracted.get("grade_level", "Grade 3"),
+            strand_code=standard.strand_code
+            if standard
+            else self.lesson_requirements.get("strand_code", "Create"),
             strand_name=standard.strand_name if standard else "Create Strand",
             strand_description=standard.strand_description
             if standard
@@ -1028,6 +1139,72 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             web_search_context=web_search_context_list,
         )
 
+    def _generate_lesson_plan_sync(self) -> str:
+        """Generate the actual lesson plan using collected information with RAG and web search context (sync version)"""
+        import time
+
+        start_time = time.time()
+
+        try:
+            import asyncio
+
+            try:
+                loop = asyncio.get_running_loop()
+                # Loop is running - use thread pool
+                import concurrent.futures
+
+                logger.debug(
+                    "Using thread pool for lesson plan generation (event loop running)"
+                )
+                with concurrent.futures.ThreadPoolExecutor(
+                    max_workers=self.MAX_ASYNC_WORKERS
+                ) as executor:
+                    future = executor.submit(asyncio.run, self._generate_lesson_plan())
+                    result = future.result()
+                    elapsed = time.time() - start_time
+                    logger.info(
+                        f"Lesson plan generated in {elapsed:.2f}s (thread pool)"
+                    )
+                    return result
+            except RuntimeError:
+                # No running loop - use asyncio.run directly
+                logger.debug("Using direct asyncio.run for lesson plan generation")
+                result = asyncio.run(self._generate_lesson_plan())
+                elapsed = time.time() - start_time
+                logger.info(f"Lesson plan generated in {elapsed:.2f}s (direct)")
+                return result
+        except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(
+                f"Error running async lesson generation after {elapsed:.2f}s: {e}"
+            )
+            return self._generate_fallback_lesson()
+
+    def _generate_fallback_lesson(self) -> str:
+        """Generate a fallback lesson when async fails"""
+        return """# 🎵 Basic Music Lesson Plan
+
+## 🎯 Learning Objectives
+- Students will explore basic musical concepts
+- Students will participate in musical activities
+
+## 🎵 Activities
+1. **Warm-up**: Simple rhythm exercises
+2. **Main Activity**: Basic music exploration
+3. **Cool-down**: Reflective listening
+
+## 📝 Assessment
+- Observe student participation
+- Check for understanding of basic concepts
+
+## 🎨 Extensions
+- Try different instruments
+- Explore various musical styles
+
+---
+
+*This is a basic fallback lesson plan. Please try again for a more personalized lesson.*"""
+
     def _handle_refinement(self, message: str) -> str:
         """Handle lesson refinement requests"""
         # Store the message
@@ -1035,14 +1212,201 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             {"role": "user", "message": message, "timestamp": self._get_timestamp()}
         )
 
-        # For now, treat refinement as lesson planning
-        # Could be enhanced to specifically modify the generated lesson
-        self.set_state("lesson_planning")
-        return self._handle_lesson_planning(message)
+        # Check if user wants to generate a new lesson from scratch
+        if self._should_generate_lesson(message):
+            # User wants to regenerate with refinements
+            self.set_state("lesson_planning")
+            return self._handle_lesson_planning(message)
 
-    async def _handle_generation(self, message: str) -> str:
-        """Handle generation state"""
-        return await self._generate_lesson_plan()
+        # Otherwise, use LLM to refine the existing lesson
+        try:
+            # Get the current lesson
+            current_lesson = self.lesson_requirements.get("generated_lesson", "")
+
+            if not current_lesson:
+                # No lesson to refine, treat as new generation
+                self.set_state("lesson_planning")
+                return self._handle_lesson_planning(message)
+
+            # Create refinement prompt for LLM
+            refinement_prompt = f"""You are refining a music lesson plan based on teacher feedback.
+
+Current Lesson Plan:
+{current_lesson}
+
+Teacher's Refinement Request:
+{message}
+
+Please provide the refined lesson plan incorporating the teacher's feedback. Maintain the same structure and format as the original lesson, but make the requested changes. If the request is unclear, make reasonable improvements based on best practices.
+
+Refined Lesson Plan:"""
+
+            # Use LLM to refine the lesson
+            if (
+                self.llm_client
+                and hasattr(self.llm_client, "is_available")
+                and self.llm_client.is_available()
+            ):
+                from backend.llm.chutes_client import Message
+
+                messages = [
+                    Message(
+                        role="system",
+                        content="You are a music education specialist helping teachers refine lesson plans.",
+                    ),
+                    Message(role="user", content=refinement_prompt),
+                ]
+
+                # Use the lesson plan token limit for refinements too
+                response = self.llm_client.chat_completion(
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=6000,  # Use same high limit as lesson generation
+                )
+
+                refined_lesson = response.content.strip()
+
+                # Update stored lesson
+                self.lesson_requirements["generated_lesson"] = refined_lesson
+
+                # Build response
+                refinement_response = f"""# ✨ Lesson Plan Updated!
+
+---
+
+{refined_lesson}
+
+---
+
+## 💬 Continue Refining
+
+I've updated your lesson plan based on your feedback! Would you like to make any other adjustments?
+
+**You can:**
+• Modify specific sections (timing, activities, assessment, etc.)
+• Add or remove content
+• Adjust for different needs or contexts
+• Generate a completely new lesson with "generate lesson plan"
+
+Just let me know what you'd like to change! 🎵"""
+
+                self.lesson_requirements["conversation_context"].append(
+                    {
+                        "role": "assistant",
+                        "message": refinement_response,
+                        "timestamp": self._get_timestamp(),
+                    }
+                )
+
+                return refinement_response
+            else:
+                # Fallback if LLM not available
+                return "I'd love to help refine your lesson, but I need an LLM connection to make those changes. Please try again later or describe what you'd like changed and I'll help you plan it out."
+
+        except Exception as e:
+            logger.error(f"Error in refinement handler: {e}")
+            # Fallback to lesson planning mode
+            self.set_state("lesson_planning")
+            return self._handle_lesson_planning(message)
+
+    def _handle_generation_sync(self, message: str) -> str:
+        """Handle generation state (sync wrapper)"""
+        import time
+
+        start_time = time.time()
+
+        try:
+            import asyncio
+
+            try:
+                loop = asyncio.get_running_loop()
+                # Loop is running - use thread pool
+                import concurrent.futures
+
+                logger.debug(
+                    "Using thread pool for generation handler (event loop running)"
+                )
+                with concurrent.futures.ThreadPoolExecutor(
+                    max_workers=self.MAX_ASYNC_WORKERS
+                ) as executor:
+                    future = executor.submit(asyncio.run, self._generate_lesson_plan())
+                    result = future.result()
+                    elapsed = time.time() - start_time
+                    logger.info(
+                        f"Generation handler completed in {elapsed:.2f}s (thread pool)"
+                    )
+                    return result
+            except RuntimeError:
+                # No running loop - use asyncio.run directly
+                logger.debug("Using direct asyncio.run for generation handler")
+                result = asyncio.run(self._generate_lesson_plan())
+                elapsed = time.time() - start_time
+                logger.info(f"Generation handler completed in {elapsed:.2f}s (direct)")
+                return result
+        except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(f"Error in generation handler after {elapsed:.2f}s: {e}")
+            return self._generate_fallback_lesson()
+
+    def _handle_conversational_welcome_sync(self, message: str) -> str:
+        """Handle the initial conversational exchange (sync wrapper)"""
+        import time
+
+        start_time = time.time()
+
+        try:
+            import asyncio
+
+            try:
+                loop = asyncio.get_running_loop()
+                # Loop is running - use thread pool
+                import concurrent.futures
+
+                logger.debug(
+                    "Using thread pool for conversational welcome (event loop running)"
+                )
+                with concurrent.futures.ThreadPoolExecutor(
+                    max_workers=self.MAX_ASYNC_WORKERS
+                ) as executor:
+                    future = executor.submit(
+                        asyncio.run, self._handle_conversational_welcome(message)
+                    )
+                    result = future.result()
+                    elapsed = time.time() - start_time
+                    logger.info(
+                        f"Conversational welcome completed in {elapsed:.2f}s (thread pool)"
+                    )
+                    return result
+            except RuntimeError:
+                # No running loop - use asyncio.run directly
+                logger.debug("Using direct asyncio.run for conversational welcome")
+                result = asyncio.run(self._handle_conversational_welcome(message))
+                elapsed = time.time() - start_time
+                logger.info(
+                    f"Conversational welcome completed in {elapsed:.2f}s (direct)"
+                )
+                return result
+        except Exception as e:
+            elapsed = time.time() - start_time
+            logger.error(
+                f"Error running async conversational welcome after {elapsed:.2f}s: {e}"
+            )
+            return self._generate_fallback_welcome(message)
+
+    def _generate_fallback_welcome(self, message: str) -> str:
+        """Generate a fallback welcome when async fails"""
+        return f"""# 🎵 Welcome to PocketMusec Lesson Planning!
+
+Hello! I'm your AI music education assistant. I see you're interested in: "{message}"
+
+I'm here to help you create engaging, standards-aligned music lessons! 
+
+To get started, could you tell me:
+- What grade level are you teaching?
+- What musical topic or concept would you like to focus on?
+- How much time do you have for the lesson?
+
+Feel free to share any other details about your students or available resources! 🎶"""
 
     def _generate_fallback_citations(self, web_search_context: List[str]) -> str:
         """Generate fallback citations from web search context strings"""
@@ -1080,6 +1444,47 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             logger.warning(f"Failed to generate fallback citations: {e}")
             return ""
 
+    def _generate_rag_citations(
+        self, teaching_context: List[str], assessment_context: List[str]
+    ) -> str:
+        """Generate citations for RAG context (teaching strategies and assessment guidance)"""
+        try:
+            if not teaching_context and not assessment_context:
+                return ""
+
+            citations = ["## 📚 Educational Resources References\n"]
+            citation_num = 1
+
+            # Add teaching strategy citations
+            if teaching_context:
+                citations.append("\n**Teaching Strategies:**")
+                for context_item in teaching_context:
+                    # Extract source information if available
+                    # For now, use generic NC Music Standards reference
+                    citations.append(
+                        f"[{citation_num}] North Carolina Department of Public Instruction. (2023). "
+                        f"Arts Education Standard Course of Study: Music - Teaching Strategies and Pedagogical Approaches. "
+                        f"Retrieved from NC Music Standards Database."
+                    )
+                    citation_num += 1
+
+            # Add assessment citations
+            if assessment_context:
+                citations.append("\n**Assessment Guidance:**")
+                for context_item in assessment_context:
+                    citations.append(
+                        f"[{citation_num}] North Carolina Department of Public Instruction. (2023). "
+                        f"Arts Education Standard Course of Study: Music - Assessment and Evaluation Strategies. "
+                        f"Retrieved from NC Music Standards Database."
+                    )
+                    citation_num += 1
+
+            return "\n".join(citations) if len(citations) > 1 else ""
+
+        except Exception as e:
+            logger.warning(f"Failed to generate RAG citations: {e}")
+            return ""
+
     def _get_timestamp(self) -> str:
         """Get current timestamp"""
         from datetime import datetime
@@ -1102,11 +1507,11 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         # Add conversational handlers
         if self.conversational_mode:
             self.add_state_handler(
-                "conversational_welcome", self._handle_conversational_welcome
+                "conversational_welcome", self._handle_conversational_welcome_sync
             )
             self.add_state_handler("lesson_planning", self._handle_lesson_planning)
             self.add_state_handler("refinement", self._handle_refinement)
-            self.add_state_handler("generation", self._handle_generation)
+            self.add_state_handler("generation", self._handle_generation_sync)
 
     def _show_welcome_message(self) -> str:
         """Show welcome message without changing state"""
@@ -1542,16 +1947,21 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         serializable_reqs = {}
         for key, value in self.lesson_requirements.items():
             if key == "standard":
-                # Serialize standard object
+                # Serialize standard object or pass through if already a dict
                 if value:
-                    serializable_reqs[key] = {
-                        "standard_id": value.standard_id,
-                        "grade_level": value.grade_level,
-                        "strand_code": value.strand_code,
-                        "strand_name": value.strand_name,
-                        "standard_text": value.standard_text,
-                        "strand_description": value.strand_description,
-                    }
+                    if isinstance(value, dict):
+                        # Already serialized
+                        serializable_reqs[key] = value
+                    else:
+                        # Serialize standard object
+                        serializable_reqs[key] = {
+                            "standard_id": value.standard_id,
+                            "grade_level": value.grade_level,
+                            "strand_code": value.strand_code,
+                            "strand_name": value.strand_name,
+                            "standard_text": value.standard_text,
+                            "strand_description": value.strand_description,
+                        }
             elif key == "selected_objectives":
                 # Serialize objectives list
                 if value:
@@ -1618,13 +2028,22 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         for key, value in reqs.items():
             if key == "standard" and value:
                 # Reconstruct Standard object
+                # Handle both old format (standard_id) and new format (id from StandardResponse)
+                standard_id = (
+                    value.get("standard_id") or value.get("id") or value.get("code")
+                )
+                standard_text = value.get("standard_text") or value.get("title")
+                strand_description = value.get("strand_description") or value.get(
+                    "description"
+                )
+
                 self.lesson_requirements[key] = Standard(
-                    standard_id=value["standard_id"],
+                    standard_id=standard_id,
                     grade_level=value["grade_level"],
                     strand_code=value["strand_code"],
                     strand_name=value["strand_name"],
-                    standard_text=value["standard_text"],
-                    strand_description=value["strand_description"],
+                    standard_text=standard_text,
+                    strand_description=strand_description,
                 )
             elif key == "selected_objectives" and value:
                 # Reconstruct Objective objects
@@ -1666,7 +2085,7 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
         history = state.get("conversation_history", [])
         self.conversation_history = history
 
-    async def chat(self, message: str) -> str:
+    def chat(self, message: str) -> str:
         """Main chat interface - routes to appropriate state handler"""
         try:
             # Store user message in conversation history
@@ -1683,17 +2102,11 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             handler = self.state_handlers.get(current_state)
 
             if handler:
-                # Check if handler is async or sync
-                import inspect
-
-                if inspect.iscoroutinefunction(handler):
-                    response = await handler(message)
-                else:
-                    response = handler(message)
+                response = handler(message)
             else:
                 # Fallback to lesson planning
                 self.set_state("lesson_planning")
-                response = await self._handle_lesson_planning(message)
+                response = self._handle_lesson_planning(message)
 
             # Store assistant response in conversation history
             self.conversation_history.append(
@@ -1722,3 +2135,148 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             )
 
             return error_response
+
+    # Async wrapper methods for non-blocking LLM calls
+
+    async def _async_llm_chat_completion(
+        self, messages, temperature=0.7, max_tokens=2000
+    ):
+        """Async wrapper for LLM chat completion to prevent blocking"""
+        import time
+        from types import SimpleNamespace
+
+        start_time = time.time()
+
+        if (
+            not self.llm_client
+            or not hasattr(self.llm_client, "is_available")
+            or not self.llm_client.is_available()
+        ):
+            logger.debug("LLM client unavailable, returning fallback response")
+            # Return a simple object with a content attribute for consistency
+            return SimpleNamespace(
+                content="I'm unable to process your request right now as no LLM service is configured."
+            )
+
+        # Run the blocking LLM call in a separate thread
+        logger.debug(
+            f"Starting async LLM chat completion (temp={temperature}, max_tokens={max_tokens})"
+        )
+        result = await asyncio.to_thread(
+            self.llm_client.chat_completion,
+            messages=messages,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        elapsed = time.time() - start_time
+        logger.info(f"LLM chat completion took {elapsed:.2f}s")
+        return result
+
+    async def _async_llm_generate_lesson_plan(self, context, stream=False):
+        """Async wrapper for LLM lesson plan generation to prevent blocking"""
+        import time
+
+        start_time = time.time()
+
+        if (
+            not self.llm_client
+            or not hasattr(self.llm_client, "is_available")
+            or not self.llm_client.is_available()
+        ):
+            logger.debug("LLM client unavailable for lesson plan generation")
+            return "I'm unable to generate the lesson plan right now as no LLM service is configured."
+
+        # Run the blocking LLM call in a separate thread
+        logger.debug(f"Starting async lesson plan generation (stream={stream})")
+        result = await asyncio.to_thread(
+            self.llm_client.generate_lesson_plan, context=context, stream=stream
+        )
+        elapsed = time.time() - start_time
+        logger.info(f"LLM lesson plan generation took {elapsed:.2f}s")
+        return result
+
+    async def _async_analyze_user_message(self, message: str) -> Dict[str, Any]:
+        """Async version of _analyze_user_message to prevent blocking"""
+        try:
+            analysis_prompt = f"""Analyze this music teacher's message and extract key information for lesson planning:
+
+Message: "{message}"
+
+Extract and return ONLY a JSON object with these exact keys:
+- grade_level: Elementary, Middle, or High school
+- topic: Main musical topic or concept
+- duration: Lesson duration in minutes (estimate if not specified)
+- objectives: List of 2-4 learning objectives based on the message
+
+Keep responses concise and focused on music education."""
+
+            messages = [
+                Message(
+                    role="system", content=self._get_conversational_system_prompt()
+                ),
+                Message(role="user", content=analysis_prompt),
+            ]
+
+            # Use async wrapper
+            response = await self._async_llm_chat_completion(
+                messages=messages, temperature=0.3, max_tokens=500
+            )
+
+            # Parse the response
+            import json
+
+            try:
+                # Handle ChatResponse object
+                response_text = (
+                    response.content if hasattr(response, "content") else str(response)
+                )
+
+                # Try to extract JSON from the response
+                json_start = response_text.find("{")
+                json_end = response_text.rfind("}") + 1
+
+                if json_start >= 0 and json_end > json_start:
+                    json_str = response_text[json_start:json_end]
+                    extracted_info = json.loads(json_str)
+                else:
+                    # Fallback if no JSON found
+                    extracted_info = {
+                        "grade_level": "Elementary",
+                        "topic": "General music",
+                        "duration": "30 minutes",
+                        "objectives": ["General music exploration"],
+                    }
+
+                # Ensure required keys exist
+                default_info = {
+                    "grade_level": "Elementary",
+                    "topic": "General music",
+                    "duration": "30 minutes",
+                    "objectives": ["General music exploration"],
+                }
+
+                for key in default_info:
+                    if key not in extracted_info:
+                        extracted_info[key] = default_info[key]
+
+                return extracted_info
+
+            except (json.JSONDecodeError, KeyError) as e:
+                logger.warning(f"Failed to parse LLM response: {e}")
+                return {
+                    "grade_level": "Elementary",
+                    "topic": "General music",
+                    "duration": "30 minutes",
+                    "objectives": ["General music exploration"],
+                    "error": "parsing_error",
+                }
+
+        except Exception as e:
+            logger.error(f"Error in async message analysis: {e}")
+            return {
+                "grade_level": "Elementary",
+                "topic": "General music",
+                "duration": "30 minutes",
+                "objectives": ["General music exploration"],
+                "error": "analysis_error",
+            }

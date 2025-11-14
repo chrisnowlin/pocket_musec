@@ -62,6 +62,7 @@ class ChutesClient:
         default_model: Optional[str] = None,
         timeout: int = 120,
         max_retries: int = 3,
+        require_api_key: bool = True,
     ):
         self.api_key = api_key or config.chutes.api_key
         self.base_url = (base_url or config.chutes.base_url).rstrip("/")
@@ -70,11 +71,16 @@ class ChutesClient:
         self.timeout = timeout
         self.max_retries = max_retries
         self.rate_limit_delay = 1.0  # Base delay for rate limiting
+        self.require_api_key = require_api_key
 
-        if not self.api_key:
+        if require_api_key and not self.api_key:
             raise ChutesAuthenticationError(
                 "CHUTES_API_KEY not found. Please set it in .env file."
             )
+
+    def is_available(self) -> bool:
+        """Check if the Chutes client is properly configured and available"""
+        return bool(self.api_key)
 
     def _make_request(self, method: str, endpoint: str, **kwargs) -> requests.Response:
         """Make HTTP request with retry logic"""
@@ -313,6 +319,10 @@ class ChutesClient:
             Generated lesson plan content
         """
         messages = self._prepare_messages(context, template_type)
+
+        # Use higher token limit for lesson plans unless explicitly overridden
+        if "max_tokens" not in kwargs:
+            kwargs["max_tokens"] = config.llm.lesson_plan_max_tokens
 
         if stream:
             return self.chat_completion_stream(messages=messages, **kwargs)
