@@ -1063,6 +1063,66 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
                 standard.standard_id
             )
 
+        # Filter objectives based on selected_objectives from session (if provided)
+        selected_objectives_str = self.lesson_requirements.get("selected_objectives")
+        if selected_objectives_str and objectives:
+            try:
+                logger.info(
+                    f"Filtering objectives: selected_objectives_str={selected_objectives_str}, objectives_count={len(objectives)}"
+                )
+
+                # Debug: log objective types
+                for i, obj in enumerate(objectives):
+                    logger.info(f"Objective {i}: type={type(obj)}, repr={repr(obj)}")
+
+                # Parse comma-separated objective IDs (e.g., "3.CN.1.1, 3.CN.1.2")
+                selected_objective_ids = [
+                    obj_id.strip()
+                    for obj_id in selected_objectives_str.split(",")
+                    if obj_id.strip()
+                ]
+
+                logger.info(f"Parsed selected_objective_ids: {selected_objective_ids}")
+
+                # Filter objectives to only include selected ones
+                filtered_objectives = []
+                for obj in objectives:
+                    # Handle both Objective objects and dictionaries
+                    obj_id = None
+                    if hasattr(obj, "objective_id"):
+                        obj_id = obj.objective_id
+                    elif isinstance(obj, dict) and "objective_id" in obj:
+                        obj_id = obj["objective_id"]
+
+                    logger.info(f"Checking obj: obj_id={obj_id}, type={type(obj)}")
+
+                    if obj_id and obj_id in selected_objective_ids:
+                        filtered_objectives.append(obj)
+
+                # Use filtered objectives if any matches found
+                if filtered_objectives:
+                    objectives = filtered_objectives
+                    filtered_ids = [
+                        obj.objective_id
+                        if hasattr(obj, "objective_id")
+                        else obj.get("objective_id", "unknown")
+                        for obj in objectives
+                    ]
+                    logger.info(
+                        f"Filtered to {len(objectives)} selected objectives: {filtered_ids}"
+                    )
+                else:
+                    logger.warning(
+                        f"No objectives matched selected IDs: {selected_objective_ids}"
+                    )
+            except Exception as e:
+                logger.error(f"Error filtering objectives: {e}")
+                # Continue with original objectives if filtering fails
+            else:
+                logger.warning(
+                    f"No objectives matched selected IDs: {selected_objective_ids}"
+                )
+
         # Build additional context from conversation (non-RAG)
         additional_context_parts = []
 
@@ -1126,7 +1186,9 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
             standard_text=standard.standard_text
             if standard
             else "Custom lesson based on teacher requirements",
-            objectives=[obj.objective_text for obj in objectives],
+            objectives=[
+                f"{obj.objective_id} - {obj.objective_text}" for obj in objectives
+            ],
             additional_context=final_additional_context,
             lesson_duration=self.lesson_requirements.get("lesson_duration")
             or extracted.get("time_constraints", "45 minutes"),
@@ -1740,7 +1802,9 @@ Feel free to share any other details about your students or available resources!
         )
 
         for i, objective in enumerate(objectives, 1):
-            response += f"{i}. {objective.objective_text}\n\n"
+            response += (
+                f"{i}. {objective.objective_id} - {objective.objective_text}\n\n"
+            )
 
         response += (
             "Please enter a number to select an objective, "
@@ -1884,10 +1948,19 @@ Feel free to share any other details about your students or available resources!
 
     def _build_lesson_context(self) -> LessonPromptContext:
         """Build context dictionary for lesson generation with RAG context support"""
-        objective_texts = [
-            obj.objective_text
-            for obj in self.lesson_requirements.get("selected_objectives", [])
-        ]
+        # Handle both Objective objects and pre-formatted strings
+        objectives = self.lesson_requirements.get("selected_objectives", [])
+        objective_texts = []
+        for obj in objectives:
+            if hasattr(obj, "objective_id") and hasattr(obj, "objective_text"):
+                # Objective object - format with code and text
+                objective_texts.append(f"{obj.objective_id} - {obj.objective_text}")
+            elif isinstance(obj, str):
+                # Already formatted string or just text
+                objective_texts.append(obj)
+            else:
+                # Fallback for other formats
+                objective_texts.append(str(obj))
 
         # Extract basic info for RAG context retrieval
         extracted_info = {
@@ -1963,16 +2036,21 @@ Feel free to share any other details about your students or available resources!
                             "strand_description": value.strand_description,
                         }
             elif key == "selected_objectives":
-                # Serialize objectives list
+                # Serialize objectives list or string
                 if value:
-                    serializable_reqs[key] = [
-                        {
-                            "objective_id": obj.objective_id,
-                            "standard_id": obj.standard_id,
-                            "objective_text": obj.objective_text,
-                        }
-                        for obj in value
-                    ]
+                    if isinstance(value, str):
+                        # Handle comma-separated string format
+                        serializable_reqs[key] = value
+                    else:
+                        # Handle list of Objective objects
+                        serializable_reqs[key] = [
+                            {
+                                "objective_id": obj.objective_id,
+                                "standard_id": obj.standard_id,
+                                "objective_text": obj.objective_text,
+                            }
+                            for obj in value
+                        ]
             elif key == "objectives":
                 # Serialize objectives list
                 if value:

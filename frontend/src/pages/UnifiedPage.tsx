@@ -5,7 +5,6 @@ import { useImages } from '../hooks/useImages';
 import { useDrafts } from '../hooks/useDrafts';
 import { useResizing, useMessageContainerResizing } from '../hooks/useResizing';
 import Sidebar from '../components/unified/Sidebar';
-import HeroFocus from '../components/unified/HeroFocus';
 import ChatPanel from '../components/unified/ChatPanel';
 import BrowsePanel from '../components/unified/BrowsePanel';
 import ImagePanel from '../components/unified/ImagePanel';
@@ -173,7 +172,10 @@ export default function UnifiedPage() {
       lessonSettings.selectedGrade,
       lessonSettings.selectedStrand,
       lessonSettings.selectedStandard?.id || null,
-      lessonSettings.lessonContext || null
+      lessonSettings.lessonContext || null,
+      parseInt(lessonSettings.lessonDuration) || 30,
+      parseInt(lessonSettings.classSize) || 25,
+      lessonSettings.selectedObjective || null
     );
     
     if (newSession) {
@@ -204,7 +206,7 @@ export default function UnifiedPage() {
         selectedGrade: loadedSession.grade_level || 'All Grades',
         selectedStrand: loadedSession.strand_code || 'All Strands',
         selectedStandard: loadedSession.selected_standard || null,
-        selectedObjective: null,
+        selectedObjective: loadedSession.selected_objectives || null,
         lessonContext: loadedSession.additional_context || '',
       });
       
@@ -528,16 +530,6 @@ export default function UnifiedPage() {
 
         {/* Main Content */}
         <section className="flex-1 flex flex-col panel workspace-panel-glass">
-          <HeroFocus
-            selectedStandard={lessonSettings.selectedStandard}
-            selectedGrade={lessonSettings.selectedGrade}
-            selectedStrand={lessonSettings.selectedStrand}
-            lessonDuration={lessonSettings.lessonDuration}
-            classSize={lessonSettings.classSize}
-            session={session}
-            sessionError={sessionError}
-          />
-
           {/* Dynamic Content Area */}
           <div className="flex-1 overflow-hidden">
             {uiState.mode === 'chat' && (

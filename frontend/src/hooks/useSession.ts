@@ -79,6 +79,10 @@ export function useSession() {
           payload.additional_context = additionalContext;
         }
         
+        if (selectedObjective) {
+          payload.selected_objectives = selectedObjective;
+        }
+        
         const result = await api.createSession(payload);
 
         if (result.ok) {
