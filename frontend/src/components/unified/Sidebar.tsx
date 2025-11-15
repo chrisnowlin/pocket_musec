@@ -7,7 +7,7 @@ interface SidebarProps {
   width: number;
   mode: ViewMode;
   onModeChange: (mode: ViewMode) => void;
-  onNewConversation: () => void;
+  onBrowseStandards: () => void;
   onUploadDocuments: () => void;
   onUploadImages: () => void;
   onOpenSettings: () => void;
@@ -26,7 +26,6 @@ export default function Sidebar({
   width,
   mode,
   onModeChange,
-  onNewConversation,
   onUploadDocuments,
   onUploadImages,
   onOpenSettings,
@@ -68,15 +67,6 @@ export default function Sidebar({
             <p className="text-xs text-parchment-300">AI Assistant</p>
           </div>
         </div>
-        <button
-          onClick={onNewConversation}
-          className="w-full bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-          </svg>
-          New Conversation
-        </button>
       </div>
 
       <div className="p-3 border-b border-ink-700">

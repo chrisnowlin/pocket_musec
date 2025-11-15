@@ -33,7 +33,7 @@ interface RightPanelProps {
   onLessonContextChange: (context: string) => void;
   onLessonDurationChange: (duration: string) => void;
   onClassSizeChange: (size: string) => void;
-  onBrowseStandards: () => void;
+  onNewConversation: () => void;
   onViewConversations?: () => void;
   onViewMessages?: () => void;
   onViewDrafts?: () => void;
@@ -67,7 +67,7 @@ export default function RightPanel({
   onLessonContextChange,
   onLessonDurationChange,
   onClassSizeChange,
-  onBrowseStandards,
+  onNewConversation,
   onViewConversations,
   onViewMessages,
   onViewDrafts,
@@ -211,7 +211,7 @@ export default function RightPanel({
 
       <div className="flex-1 scrollable p-6 space-y-4">
         <div className="workspace-card p-4 space-y-4">
-          {/* Current Selections */}
+          {/* Lesson Settings */}
           <div>
             <h3 className="font-semibold text-ink-800 mb-3 flex items-center gap-2">
               <svg
@@ -227,7 +227,7 @@ export default function RightPanel({
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
-              Current Selections
+              Lesson Settings
             </h3>
             <div className="space-y-3 text-sm text-ink-700">
               <div>
@@ -289,18 +289,7 @@ export default function RightPanel({
               
               
             </div>
-            <button
-              onClick={onBrowseStandards}
-              className="mt-4 w-full px-4 py-2 bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700"
-            >
-              Browse Standards
-            </button>
-          </div>
-
-          {/* Lesson Settings */}
-          <div className="border-t border-ink-300 pt-4">
-            <h3 className="font-semibold text-ink-800">Lesson Settings</h3>
-            <div>
+            <div className="mt-4">
               <label className="text-xs font-semibold text-ink-700 mb-1 block">
                 Additional Context
               </label>
@@ -338,6 +327,19 @@ export default function RightPanel({
                 />
               </div>
             </div>
+          </div>
+          
+          {/* New Conversation Button */}
+          <div className="border-t border-ink-300 pt-4">
+            <button
+              onClick={onNewConversation}
+              className="w-full px-4 py-2 bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700 flex items-center justify-center gap-2"
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Conversation
+            </button>
           </div>
         </div>
 

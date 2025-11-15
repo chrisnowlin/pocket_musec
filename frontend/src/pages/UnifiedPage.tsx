@@ -512,7 +512,7 @@ export default function UnifiedPage() {
           width={sidebarWidth}
           mode={uiState.mode}
           onModeChange={(newMode) => updateUIState({ mode: newMode })}
-          onNewConversation={handleNewConversation}
+          onBrowseStandards={() => updateUIState({ mode: 'browse' })}
           onUploadDocuments={() => updateUIState({ mode: 'ingestion' })}
           onUploadImages={() => updateUIState({ imageModalOpen: true })}
           onOpenSettings={() => updateUIState({ mode: 'settings' })}
@@ -663,7 +663,7 @@ export default function UnifiedPage() {
           onLessonContextChange={(context) => updateLessonSettings({ lessonContext: context })}
           onLessonDurationChange={(duration) => updateLessonSettings({ lessonDuration: duration })}
           onClassSizeChange={(size) => updateLessonSettings({ classSize: size })}
-          onBrowseStandards={() => updateUIState({ mode: 'browse' })}
+          onNewConversation={handleNewConversation}
           onViewConversations={() => {
             updateUIState({ mode: 'chat' });
             // Scroll to sidebar conversations if needed

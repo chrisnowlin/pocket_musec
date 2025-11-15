@@ -198,7 +198,7 @@ export default function MusecDBPage() {
   }, [loadDatabaseContent]);
 
   // Dummy handlers for sidebar
-  const handleNewConversation = () => {
+  const handleBrowseStandards = () => {
     // Placeholder
   };
 
@@ -253,7 +253,7 @@ export default function MusecDBPage() {
           width={sidebarWidth}
           mode="chat"
           onModeChange={() => {}}
-          onNewConversation={handleNewConversation}
+          onBrowseStandards={handleBrowseStandards}
           onUploadDocuments={() => {}}
           onUploadImages={() => {}}
           onOpenSettings={() => {}}
