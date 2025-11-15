@@ -1,0 +1,219 @@
+================================================================================
+TEST 1: Standard lesson generation with objectives
+================================================================================
+
+# 🎵 Welcome to PocketMusec Lesson Planning!
+
+Hello! I'm your AI music education assistant, and I'm excited to help you create engaging, standards-aligned music lessons!
+
+---
+
+## 💫 How This Works
+
+Simply **tell me about your lesson needs** in natural language, and I'll:
+• • *Understand your grade level and musical topics*
+• • *Suggest relevant standards automatically*
+• • *Recommend activities based on your resources*
+• • *Create a personalized lesson plan when you're ready*
+
+---
+
+## 🚀 Let's Get Started!
+
+Hi there! 👋  
+Thanks so much for sharing your focus on **3.CN.1.1** and **3.CN.1.2** — you’re clearly thinking deeply about how music connects to culture, and that’s such a rich, meaningful place to take your students. 🌍🎶
+
+I love that you’re targeting *elementary* learners — this age group is so curious and open to new sounds and stories. And with a 45-minute window, we can pack in a lot of musical discovery without overwhelming them!
+
+---
+
+### 🎯 Relevant Standards (Just to Confirm & Celebrate!)
+
+You’re targeting two beautiful standards from the **Cultural Understanding** strand:
+
+- **3.CN.1.1**: *Compare and contrast musical traditions from different cultures.*  
+  → Think: “How is this rhythm different from that one? What instruments do they use? What does it *feel* like?”
+
+- **3.CN.1.2**: *Identify how music reflects cultural values and practices.*  
+  → Think: “Why might this song be used for a celebration? What does it tell us about how people live or what they value?”
+
+These are perfect for sparking empathy, curiosity, and global awareness — all while having fun with sound! ✨
+
+---
+
+### 🎵 Activity Ideas to Bring These Standards to Life
+
+Here are a few playful, hands-on ideas you could adapt based on your students’ energy and resources:
+
+- *Listen & Move*: Play short clips (30–60 sec) of music from two cultures — maybe West African drumming 🥁 and Japanese taiko 🥁 — and have students “move like the music.” Then ask: *“What’s the same? What’s different? What do you think this music is for?”*
+
+- *Story & Song*: Share a simple cultural story (e.g., a harvest festival or lullaby tradition) and pair it with the music. Ask: *“Why do you think they sing this at this time? What does it tell us about their lives?”*
+
+- *Instrument Exploration*: Bring in or show pictures of instruments from different cultures (didgeridoo, djembe, shamisen, pan flute). Let students guess where they’re from and what they might be used for. 🎶
+
+- *Create a “Culture Sound Map”*: Draw a big world map. As you listen to music from different places, students place sticky notes with drawings or words that describe the music and what it might mean to that culture.
+
+---
+
+### 💡 Quick Questions to Help Me Tailor This Even More:
+
+- Do you have access to audio/video clips, or would you like suggestions for kid-friendly, copyright-free sources?  
+- Any specific cultures or regions you’d like to highlight? (e.g., Latin America, Southeast Asia, Indigenous communities, etc.)  
+- Do you have instruments, movement space, or tech (projector, tablets) available?  
+- Any students with special needs or language learners I should keep in mind?
+
+---
+
+When you’re ready, just say:  
+**“generate lesson plan”**  
+…and I’ll whip up a full, ready-to-teach 45-minute plan with warm-up, activities, transitions, and reflection — all aligned to your standards and tailored to your class. 🎼✨
+
+You’ve got this — and I’m here to help make it joyful, meaningful, and totally doable. Let me know how you’d like to proceed! 🎤💖
+
+================================================================================
+TEST 2: Refined with explicit objective alignment
+================================================================================
+
+Hi there, music friend! 🎶  
+Thank you *so much* for clarifying those objectives — you’re clearly thinking intentionally about how to root music learning in students’ lived experiences and cross-disciplinary connections. That’s the heart of culturally responsive teaching, and I’m here to help you make it shine! ✨
+
+---
+
+### 🎯 Relevant Standards (Let’s Anchor Our Lesson!)
+
+You’re targeting two *fantastic* standards from the **Cultural Understanding (CN)** strand — perfect for elementary learners who are naturally curious about the world around them:
+
+- **3.CN.1.1**: *Describe music found in the local community or region*  
+  → Think: *“What songs do we hear at the farmers’ market? At school assemblies? In our neighborhoods?”*  
+  → This invites students to become *musical detectives* in their own backyards 🕵️‍♀️🎶
+
+- **3.CN.1.2**: *Compare elements of music with elements of other disciplines*  
+  → Think: *“How is rhythm like math? How is melody like a story? How is dynamics like weather?”*  
+  → This builds bridges between music and science, language arts, math, and social studies 🌉📚
+
+These standards are *so* rich for sparking real-world connections — and they’re totally doable in 45 minutes with the right scaffolding!
+
+---
+
+### 🎵 Activity Ideas (Tailored for Elementary + Local + Cross-Disciplinary)
+
+Here are some playful, hands-on ideas that bring both standards to life — and can be adapted based on your resources:
+
+- *Local Sound Safari* 🗺️👂  
+  Send students (or you!) on a mini “sound hunt” around the school or neighborhood (with permission!). Record or describe:  
+  • The bell that rings at dismissal  
+  • A street musician’s tune  
+  • A school chorus singing  
+  Then ask: *“What does this sound tell us about our community? Who made it? When do we hear it?”*
+
+- *Music + Math = Rhythm Patterns* 🎹➕🔢  
+  Use clapping or body percussion to create rhythms that match math patterns (ABAB, AABA, etc.).  
+  → *“How is this like a number pattern? Can you ‘solve’ the rhythm?”*
+
+- *Music + Science = Weather Soundscape* 🌦️🎼  
+  Have students create a “weather symphony” using classroom instruments or found sounds:  
+  • Rain = shakers  
+  • Thunder = drums  
+  • Wind = swishing ribbons  
+  → *“How does this music match the science of weather? What mood does it create?”*
+
+- *Community Music Map* 🗺️🎨  
+  Draw a big map of your town or school. As students share local music they’ve heard, place sticky notes with drawings or words (e.g., “parade drums,” “school choir,” “coffee shop guitar”).  
+  → *“What do these sounds tell us about our community? How are they different from other places?”*
+
+---
+
+### 💡 Quick Questions to Personalize This Even More:
+
+- Do you have any local musicians, cultural events, or community traditions you’d like to highlight? (e.g., a local festival, church choir, street performer, etc.)  
+- Any specific cross-disciplinary links you want to emphasize? (e.g., math patterns, science concepts, storytelling, visual art)  
+- Do you have access to recording devices, instruments, or tech (projector, tablets) for sound exploration?  
+- Any students with special needs, language learners, or sensory preferences I should keep in mind?
+
+---
+
+When you’re ready, just say:  
+**“generate lesson plan”**  
+…and I’ll create a full, ready-to-teach 45
+
+================================================================================
+TEST 3: Direct objective-focused generation
+================================================================================
+
+# 🎵 Welcome to PocketMusec Lesson Planning!
+
+Hello! I'm your AI music education assistant, and I'm excited to help you create engaging, standards-aligned music lessons!
+
+---
+
+## 💫 How This Works
+
+Simply **tell me about your lesson needs** in natural language, and I'll:
+• • *Understand your grade level and musical topics*
+• • *Suggest relevant standards automatically*
+• • *Recommend activities based on your resources*
+• • *Create a personalized lesson plan when you're ready*
+
+---
+
+## 🚀 Let's Get Started!
+
+Hi there! 🎶  
+Thanks so much for sharing this — I *love* that you’re helping your elementary students tune into the music all around them. It’s such a meaningful way to connect music learning to their lived experiences. 🌟
+
+You’re focusing on **3.CN.1.1**, which asks students to *describe music found in the local community or region* — and you’ve already nailed the heart of it: getting kids to notice and talk about the music they hear right in their own neighborhoods. That’s gold. 💡
+
+---
+
+### 🎯 Relevant Standards (North Carolina)
+Since you’re targeting **3.CN.1.1**, here’s how it fits into the bigger picture:
+
+- **3.CN.1.1** – *Describe music found in the local community or region.*  
+  → *Strand: Connecting (CN)*  
+  → *Key Focus: Students make personal and cultural connections to music in their environment.*
+
+This standard pairs beautifully with:
+- **3.CN.1.2** – *Compare and contrast music from different communities or regions.* (Great for extension!)
+- **3.MU.1.1** – *Identify and describe musical elements in a variety of styles and genres.* (Perfect for building vocabulary!)
+
+---
+
+### 🎵 Activity Ideas for Your 45-Minute Lesson
+
+Let’s make this super engaging and age-appropriate for elementary students:
+
+• **“Sound Walk” Journal 📚**  
+   *Before class*: Send students home with a simple “sound map” or “music scavenger hunt” sheet. Ask them to jot down or draw 3 places they heard music (e.g., grocery store, church, car radio, birthday party). Bring it back to share!
+
+• **“What’s That Tune?” Listening Circle 🎤**  
+   *In class*: Play short clips (or have students share recordings) of music they heard — maybe a jingle, a hymn, a street performer, or a radio song. Use prompts like:  
+   → “What instrument do you hear?”  
+   → “Is it fast or slow?”  
+   → “Does it make you feel happy, calm, or excited?”
+
+• **“Neighborhood Sound Collage” 🎨**  
+   *Group activity*: Give each group a poster labeled “Our Neighborhood Sounds.” They can draw, write, or stick pictures of music they heard — then present to the class with a 1-sentence description. (“We heard a drum at the parade — it was loud and made us want to dance!”)
+
+• **Vocabulary Boost ✨**  
+   Introduce 3-5 simple musical terms: *loud/soft, fast/slow, beat, melody, instrument*. Use gesture or movement to reinforce — e.g., “Show me a slow beat with your hands!”
+
+---
+
+### 💬 Quick Check-In Questions for You:
+- Do you have access to audio recording devices or apps (like Voice Memos) for students to capture sounds?
+- Would you like to include a family component (e.g., “Ask a grown-up what music they remember from their neighborhood”)?
+- Any specific neighborhoods or cultural communities you’d like to highlight?
+
+---
+
+If you’re ready, just say **“generate lesson plan”** and I’ll whip up a full, ready-to-use 45-minute plan with objectives, materials, timing, and assessment ideas — all aligned to **3.CN.1.1** and your students’ needs. 🎼
+
+You’re doing amazing work — let’s make those little ears even more curious about the music all around them! 🥁✨
+
+================================================================================
+ANALYSIS SUMMARY
+================================================================================
+
+Objectives mentioned: False
+Objective codes found: []
+Standard references: True

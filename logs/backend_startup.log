@@ -1,0 +1,8 @@
+INFO:     Will watch for changes in these directories: ['/Users/cnowlin/Developer/pocket_musec']
+ERROR:    [Errno 48] Address already in use
+Starting PocketMusec API server...
+Host: 0.0.0.0
+Port: 8000
+Auto-reload: True
+API Docs: http://0.0.0.0:8000/api/docs
+

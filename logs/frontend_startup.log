@@ -1,0 +1,13 @@
+
+> pocket-musec-frontend@0.3.0 dev
+> vite
+
+
+  VITE v5.4.21  ready in 118 ms
+
+  ➜  Local:   http://localhost:5173/
+  ➜  Network: use --host to expose
+5:39:23 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css
+5:39:39 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css
+5:40:08 PM [vite] page reload src/lib/types.ts
+5:40:21 PM [vite] hmr update /src/pages/UnifiedPage.tsx, /src/index.css

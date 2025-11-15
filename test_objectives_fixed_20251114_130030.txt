@@ -1,0 +1,221 @@
+================================================================================
+TEST 1: Single objective (3.CN.1.1)
+================================================================================
+
+# 🎵 Welcome to PocketMusec Lesson Planning!
+
+Hello! I'm your AI music education assistant, and I'm excited to help you create engaging, standards-aligned music lessons!
+
+---
+
+## 💫 How This Works
+
+Simply **tell me about your lesson needs** in natural language, and I'll:
+• • *Understand your grade level and musical topics*
+• • *Suggest relevant standards automatically*
+• • *Recommend activities based on your resources*
+• • *Create a personalized lesson plan when you're ready*
+
+---
+
+## 🚀 Let's Get Started!
+
+Hey there, music friend! 🎶  
+Thanks for sharing your vision for this elementary lesson — I love that you’re focusing on *active exploration*, *listening*, and *collaboration*. That’s the heart of joyful music learning! 💡✨
+
+Before I whip up a full lesson plan for you (just say “generate lesson plan” when you’re ready!), I’d love to gently nudge a few details to make it *perfectly* tailored to your class:
+
+---
+
+### 🤔 Quick Clarifying Qs (so I can personalize this just right!):
+- What *age range* are your students? (K–2? 3–5? This helps me pick the right vocabulary and movement level.)  
+- Do you have any *instruments* or *props* available? (e.g., rhythm sticks, scarves, drums, xylophones, or just voices and bodies?)  
+- Any *special needs* or *classroom dynamics* I should keep in mind? (e.g., high energy, limited mobility, ESL learners?)  
+- Are you looking for more *movement*, *singing*, *improvisation*, or *listening games*?  
+
+---
+
+### 🎯 Relevant Standards (for NC Elementary General Music)  
+Even though none were listed yet, here are a few *likely matches* for your goals — I’ll weave them in when we build the plan:
+
+- **MU:Cr1.1.Ka** – *Suggest and demonstrate musical ideas for a specific purpose* (great for collaborative games!)  
+- **MU:Re7.1.Ka** – *Identify and describe expressive qualities in music* (perfect for listening & response!)  
+- **MU:Pr4.1.Ka** – *Perform simple rhythmic patterns with body percussion or instruments* (ideal for active participation!)  
+
+---
+
+### 🎵 Activity Ideas (based on your objectives!)  
+Here’s a sneak peek of what we could include — let me know what resonates:
+
+- *“Sound Safari” Listening Walk* 🐘  
+  Students close eyes and “hunt” for sounds in the room — then mimic them with voices or instruments. Builds listening + response skills!
+
+- *“Rhythm Pass” Circle Game* 🥁  
+  Pass a drum or stick around the circle, each student adding one beat. Teaches collaboration + active participation!
+
+- *“Emotion Orchestra”* 🎼  
+  Play short musical clips (happy, sad, scary, etc.) — students choose instruments or movements to match the mood. Connects listening + expression!
+
+---
+
+When you’re ready, just say:  
+**“generate lesson plan”**  
+…and I’ll craft a full, standards-aligned, 30-minute plan with timing, transitions, and tips for smooth delivery! 🌟
+
+You’ve got this — and I’m here to help make it magical. 🎤💖
+
+================================================================================
+TEST 2: Multiple objectives (3.CN.1.1, 3.CN.1.2)
+================================================================================
+
+# 🎵 Welcome to PocketMusec Lesson Planning!
+
+Hello! I'm your AI music education assistant, and I'm excited to help you create engaging, standards-aligned music lessons!
+
+---
+
+## 💫 How This Works
+
+Simply **tell me about your lesson needs** in natural language, and I'll:
+• • *Understand your grade level and musical topics*
+• • *Suggest relevant standards automatically*
+• • *Recommend activities based on your resources*
+• • *Create a personalized lesson plan when you're ready*
+
+---
+
+## 🚀 Let's Get Started!
+
+Hey there, music friend! 🎶  
+Thanks for jumping in with “generate lesson plan” — I love that energy! You’re clearly ready to dive into some joyful, hands-on music-making with your elementary crew. 💡✨
+
+I’ve got a good sense of what you’re aiming for:  
+- **Grade level**: Elementary 🎒  
+- **Focus**: General Music Fundamentals — perfect for building those foundational skills through play!  
+- **Time**: 30 minutes — just enough to pack in some magic without rushing.  
+- **Goals**: Active participation, rhythm/melody through movement or singing, and collaborative fun. 🥁🎤
+
+---
+
+### 🎯 Let’s Clarify Just a Bit (Quickly!)
+
+Before I whip up your lesson plan, I’d love to know:  
+- *Do you have any specific instruments or props available?* (e.g., rhythm sticks, scarves, xylophones, or just voices and bodies?)  
+- *Any favorite songs or chants your kids already love?* (We can build around those!)  
+- *Is there a particular musical element you want to spotlight?* (e.g., steady beat, high/low, fast/slow, or maybe dynamics?)
+
+---
+
+### 🎵 Activity Ideas (Based on What You Shared)
+
+Here are a few quick, playful ideas to spark your thinking:
+
+• *“Echo Walk”* — Walk around the room while you chant a simple rhythm (like “ta ta ti-ti ta”) and have students echo it with their feet or claps. Great for steady beat + movement! 🚶‍♀️🥁
+
+• *“Melody Mirror”* — Sing a short 3-note melody (like “do-re-mi”) and have students echo you with their voices — then switch roles! Add scarves to “float” the notes in the air. 🎼🎨
+
+• *“Group Sound Sculpture”* — Divide kids into small groups. Each group creates a 4-beat rhythm pattern using body percussion. Then perform them together — a mini “rhythm orchestra”! 🎶🌟
+
+---
+
+### 📚 Relevant Standards (North Carolina K-12 Music)
+
+Since you’re in NC, here are a few standards that align beautifully with your goals:
+
+- **MU:Cr1.1.Ka** — *Generate musical ideas for a specific purpose, using iconic or symbolic notation.*  
+  → Perfect for creating simple rhythms with students using claps or notation cards.
+
+- **MU:Pr4.2.1a** — *Perform expressively, with appropriate dynamics, tempo, and articulation.*  
+  → Great for adding “loud/soft” or “fast/slow” to your movement or singing activities.
+
+- **MU:Re7.1.1a** — *Identify and describe expressive qualities in music.*  
+  → Use movement or facial expressions to “show” how a melody feels — happy, bouncy, calm, etc.
+
+---
+
+### ✨ Ready When You Are!
+
+If you’re good to go — just say **“generate lesson plan”** and I’ll build you a full, ready-to-teach 30-minute plan with warm-up, activities, transitions, and even a closing reflection. 🎯
+
+Or, if you want to tweak anything first — just let me know! I’m here to help you make music magic happen. 🎹💖
+
+You’ve got this — and I’ve got you!
+
+================================================================================
+TEST 3: Explicit objective request
+================================================================================
+
+# 🎵 Welcome to PocketMusec Lesson Planning!
+
+Hello! I'm your AI music education assistant, and I'm excited to help you create engaging, standards-aligned music lessons!
+
+---
+
+## 💫 How This Works
+
+Simply **tell me about your lesson needs** in natural language, and I'll:
+• • *Understand your grade level and musical topics*
+• • *Suggest relevant standards automatically*
+• • *Recommend activities based on your resources*
+• • *Create a personalized lesson plan when you're ready*
+
+---
+
+## 🚀 Let's Get Started!
+
+Hey there, music friend! 🎶  
+Thanks so much for sharing your goal — I *love* that you’re focusing on **3.CN.1.1** and making sure kids are actually *listening to and describing* music they hear in their own neighborhoods. That’s such a powerful way to ground music learning in their lived experience. ✨
+
+You’ve already got a solid foundation with your objectives — identifying, describing, and connecting local music to culture and context. That’s the heart of authentic music education right there. 💡
+
+---
+
+### 🎯 Relevant Standards (North Carolina)
+
+Since you’re targeting **3.CN.1.1**, here’s how it fits into the bigger picture:
+
+- **3.CN.1.1** — *Describe music found in the local community or region.*  
+  → This falls under the **Connecting** strand — helping students make personal, cultural, and community connections to music.  
+  → Perfect for elementary learners who are naturally curious about the world around them!
+
+---
+
+### 🎵 Activity Ideas (Elementary-Friendly & Hands-On!)
+
+Let’s make this fun, sensory, and student-driven. Here are a few ideas to spark your lesson:
+
+• **“Sound Walk & Sketch”** 🎨  
+Take students on a short, supervised walk around the school or nearby area (or have them do this as homework with a parent). They listen for music — a busker, a radio from a shop, a church bell, a car stereo — and sketch or write down what they hear. Back in class, they share: *“I heard a drum beat from the park — it was fast and made me want to dance!”*
+
+• **“My Local Music Map”** 🗺️  
+Students draw a simple map of their neighborhood and mark where they heard music. Add sticky notes with descriptions: *“At the bakery — piano music, slow, made me feel cozy.”*
+
+• **“Community Music Interview”** 🎤  
+Invite a local musician, DJ, or even a parent who plays music in their job (e.g., a grocery store cashier who listens to country, a barber who plays hip-hop). Students prepare 2–3 questions: *“What instrument do you hear most? Why do you think that music is played here?”*
+
+• **“Sound Collage”** 🎼  
+Students bring in short audio clips (or describe sounds they remember) from their community. As a class, create a “sound collage” — play snippets and have students describe what they hear using musical vocabulary: *“I hear a steady beat… it’s probably from a marching band.”*
+
+---
+
+### 💬 Quick Questions to Help Me Tailor This Further:
+
+- Do you have access to recording devices or audio apps for students to capture sounds? (Even a phone or tablet works!)
+- Are you teaching K–2 or 3–5? That’ll help me adjust vocabulary and activity complexity.
+- Any specific local music traditions or genres you’d like to highlight? (e.g., bluegrass, gospel, hip-hop, mariachi, etc.)
+
+---
+
+When you’re ready, just say:  
+👉 **“generate lesson plan”**  
+…and I’ll whip up a full, ready-to-teach 45-minute lesson with materials, timing, and differentiation tips. 🎹🥁
+
+You’re doing amazing work — connecting music to students’ real lives is where the magic happens. Let’s make this lesson unforgettable! 🌟
+
+================================================================================
+ANALYSIS SUMMARY
+================================================================================
+
+Objectives mentioned: True
+Objective codes found: ['3.CN.1.1']
+Objectives in activities: True
