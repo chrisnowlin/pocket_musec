@@ -1,8 +1,9 @@
 """Lesson generation endpoints"""
 
 from typing import List, Dict, Any, Optional
-from fastapi import APIRouter, Depends, HTTPException, status, Body
+from fastapi import APIRouter, Depends, HTTPException, status, Body, Query
 from pydantic import BaseModel
+import json
 
 from ..dependencies import get_current_user
 from ...auth import User
@@ -10,6 +11,103 @@ from ..models import LessonSummary
 from ...repositories.lesson_repository import LessonRepository
 
 router = APIRouter(prefix="/api/lessons", tags=["lessons"])
+
+
+@router.get("", response_model=List[LessonSummary])
+async def list_lessons(
+    is_draft: Optional[bool] = Query(None),
+    current_user: User = Depends(get_current_user),
+) -> List[LessonSummary]:
+    """List lessons for the current user, optionally filtered by is_draft status"""
+    lesson_repo = LessonRepository()
+
+    # Get lessons with optional is_draft filter
+    lessons = lesson_repo.list_lessons_for_user(
+        current_user.id,
+        is_draft=is_draft,
+    )
+
+    # Convert to LessonSummary responses
+    results = []
+    for lesson in lessons:
+        # Parse metadata
+        metadata = {}
+        if lesson.metadata:
+            try:
+                metadata = json.loads(lesson.metadata)
+            except (json.JSONDecodeError, TypeError):
+                metadata = {}
+
+        results.append(LessonSummary(
+            id=lesson.id,
+            title=lesson.title,
+            summary=lesson.content[:200] + "..." if len(lesson.content) > 200 else lesson.content,
+            content=lesson.content,
+            metadata=metadata,
+            citations=[],
+        ))
+
+    return results
+
+
+@router.get("/{lesson_id}", response_model=LessonSummary)
+async def get_lesson(
+    lesson_id: str,
+    current_user: User = Depends(get_current_user),
+) -> LessonSummary:
+    """Get a specific lesson by ID"""
+    lesson_repo = LessonRepository()
+
+    lesson = lesson_repo.get_lesson(lesson_id)
+    if not lesson or lesson.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lesson not found"
+        )
+
+    # Parse metadata
+    metadata = {}
+    if lesson.metadata:
+        try:
+            metadata = json.loads(lesson.metadata)
+        except (json.JSONDecodeError, TypeError):
+            metadata = {}
+
+    return LessonSummary(
+        id=lesson.id,
+        title=lesson.title,
+        summary=lesson.content[:200] + "..." if len(lesson.content) > 200 else lesson.content,
+        content=lesson.content,
+        metadata=metadata,
+        citations=[],
+    )
+
+
+@router.delete("/{lesson_id}")
+async def delete_lesson(
+    lesson_id: str,
+    current_user: User = Depends(get_current_user),
+) -> dict:
+    """Delete a lesson"""
+    lesson_repo = LessonRepository()
+
+    # Verify ownership
+    lesson = lesson_repo.get_lesson(lesson_id)
+    if not lesson or lesson.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lesson not found"
+        )
+
+    # Delete the lesson
+    success = lesson_repo.delete_lesson(lesson_id)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete lesson"
+        )
+
+    return {"message": "Lesson deleted successfully"}
 
 
 class LessonGenerationRequest(BaseModel):
