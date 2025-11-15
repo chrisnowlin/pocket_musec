@@ -2,7 +2,6 @@ import { useRef, useEffect, MouseEvent as ReactMouseEvent, RefObject } from 'rea
 import type { ChatMessage as ChatMessageType } from '../../types/unified';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
-import ModelSelector from './ModelSelector';
 
 interface ChatPanelProps {
   messages: ChatMessageType[];
@@ -68,19 +67,6 @@ export default function ChatPanel({
           <div className="border-b border-ink-300 pb-4 mb-4">
             <h2 className="text-lg font-semibold text-ink-800">Lesson Planning Chat</h2>
             <p className="text-sm text-ink-600">Conversational AI guidance</p>
-            
-            {/* Model Selector */}
-            {sessionId && onModelChange && (
-              <div className="mt-3">
-                <ModelSelector
-                  sessionId={sessionId}
-                  currentModel={selectedModel || null}
-                  onModelChange={onModelChange}
-                  disabled={isTyping || isLoadingConversation}
-                  processingMode={processingMode}
-                />
-              </div>
-            )}
           </div>
           
           {isLoadingConversation ? (
@@ -126,6 +112,10 @@ export default function ChatPanel({
             disabled={isTyping || isLoadingConversation}
             sessionError={sessionError}
             chatError={chatError}
+            sessionId={sessionId}
+            selectedModel={selectedModel}
+            onModelChange={onModelChange}
+            processingMode={processingMode}
           />
         </div>
       </div>

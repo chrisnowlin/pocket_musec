@@ -36,7 +36,8 @@ export interface SessionCreatePayload {
   additional_context?: string
   lesson_duration?: string
   class_size?: number
-  selected_objective?: string
+  selected_objectives?: string[]
+  additional_standards?: string[]
   selected_model?: string
 }
 
@@ -47,7 +48,8 @@ export interface SessionUpdatePayload {
   additional_context?: string
   lesson_duration?: string
   class_size?: number
-  selected_objective?: string
+  selected_objectives?: string[]
+  additional_standards?: string[]
   selected_model?: string
 }
 

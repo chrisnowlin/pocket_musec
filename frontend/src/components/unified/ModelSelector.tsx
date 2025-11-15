@@ -68,10 +68,8 @@ export default function ModelSelector({
         throw new Error(`Failed to update model: ${response.statusText}`);
       }
 
+      // Call parent callback to update session state in parent component
       onModelChange(newModel);
-      
-      // Refresh model availability to update current model
-      fetchAvailableModels();
     } catch (err) {
       console.error('Error updating model:', err);
       setError(err instanceof Error ? err.message : 'Failed to update model');
@@ -85,12 +83,9 @@ export default function ModelSelector({
 
   if (isLoading) {
     return (
-      <div className="mb-3">
-        <label className="block text-sm font-medium text-ink-700 mb-1">
-          AI Model
-        </label>
-        <div className="flex items-center space-x-2 text-sm text-ink-500">
-          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-ink-500"></div>
+      <div className="mb-2">
+        <div className="flex items-center space-x-2 text-xs text-ink-500">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-ink-500"></div>
           <span>Loading models...</span>
         </div>
       </div>
@@ -99,11 +94,8 @@ export default function ModelSelector({
 
   if (error) {
     return (
-      <div className="mb-3">
-        <label className="block text-sm font-medium text-ink-700 mb-1">
-          AI Model
-        </label>
-        <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">
+      <div className="mb-2">
+        <div className="text-xs text-red-600 bg-red-50 border border-red-200 rounded px-2 py-1">
           {error}
         </div>
       </div>
@@ -112,11 +104,8 @@ export default function ModelSelector({
 
   if (!modelAvailability || modelAvailability.available_models.length === 0) {
     return (
-      <div className="mb-3">
-        <label className="block text-sm font-medium text-ink-700 mb-1">
-          AI Model
-        </label>
-        <div className="text-sm text-ink-500 bg-ink-50 border border-ink-200 rounded px-2 py-1">
+      <div className="mb-2">
+        <div className="text-xs text-ink-500 bg-ink-50 border border-ink-200 rounded px-2 py-1">
           No models available
         </div>
       </div>
@@ -124,55 +113,23 @@ export default function ModelSelector({
   }
 
   return (
-    <div className="mb-3">
-      <label className="block text-sm font-medium text-ink-700 mb-1">
-        AI Model
-      </label>
-      <select
-        value={currentModel || ''}
-        onChange={(e) => handleModelChange(e.target.value)}
-        disabled={disabled}
-        className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm bg-parchment-50 text-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <option value="">Select a model...</option>
-        {modelAvailability.available_models.map((model) => (
-          <option
-            key={model.id}
-            value={model.id}
-            disabled={!model.available}
-          >
-            {model.name} {!model.available && '(Unavailable)'}
-            {model.recommended && ' ⭐'}
-          </option>
-        ))}
-      </select>
-      
-      {/* Model description */}
-      {currentModel && (
-        <div className="mt-1 text-xs text-ink-600">
-          {(() => {
-            const selectedModel = modelAvailability.available_models.find(m => m.id === currentModel);
-            return selectedModel?.description || '';
-          })()}
-        </div>
-      )}
-      
-      {/* Model capabilities */}
-      {currentModel && (
-        <div className="mt-1 flex flex-wrap gap-1">
-          {(() => {
-            const selectedModel = modelAvailability.available_models.find(m => m.id === currentModel);
-            return selectedModel?.capabilities.map(capability => (
-              <span
-                key={capability}
-                className="inline-block px-2 py-1 text-xs bg-ink-100 text-ink-700 rounded"
-              >
-                {capability}
-              </span>
-            )) || [];
-          })()}
-        </div>
-      )}
-    </div>
+    <select
+      value={currentModel || ''}
+      onChange={(e) => handleModelChange(e.target.value)}
+      disabled={disabled}
+      className="w-28 border border-ink-300 rounded-lg px-2 py-1.5 text-xs bg-parchment-50 text-ink-800 focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <option value="">Select a model...</option>
+      {modelAvailability.available_models.map((model) => (
+        <option
+          key={model.id}
+          value={model.id}
+          disabled={!model.available}
+        >
+          {model.name} {!model.available && '(Unavailable)'}
+          {model.recommended && ' ⭐'}
+        </option>
+      ))}
+    </select>
   );
 }

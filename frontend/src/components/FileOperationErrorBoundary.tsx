@@ -65,6 +65,20 @@ class FileOperationErrorBoundary extends Component<Props, State> {
     }
   }
 
+  private formatErrorForDisplay(error: Error): string {
+    try {
+      // If the error has additional details (like Pydantic validation errors), include them
+      const errorDetails = (error as any).details;
+      if (errorDetails) {
+        return `Error: ${error.message}\n\nDetails:\n${JSON.stringify(errorDetails, null, 2)}`;
+      }
+      return error.toString();
+    } catch (e) {
+      // Fallback if JSON.stringify fails
+      return error.toString();
+    }
+  }
+
   handleRetry = () => {
     this.setState({
       hasError: false,
@@ -91,13 +105,13 @@ class FileOperationErrorBoundary extends Component<Props, State> {
               </p>
               
               {/* Show error details in development */}
-              {process.env.NODE_ENV === 'development' && this.state.error && (
+              {this.state.error && (
                 <details className="mt-2">
                   <summary className="text-red-400 cursor-pointer text-xs">
                     Technical Details
                   </summary>
                   <pre className="text-red-400 text-xs mt-1 bg-red-950 p-2 rounded overflow-auto">
-                    {this.state.error.toString()}
+                    {this.formatErrorForDisplay(this.state.error)}
                   </pre>
                 </details>
               )}
@@ -128,11 +142,8 @@ class FileOperationErrorBoundary extends Component<Props, State> {
 // Hook for handling file operation errors
 export const useFileOperationError = () => {
   const handleError = (error: Error, operation: string) => {
-    // Log to error tracking service in production
-    if (process.env.NODE_ENV === 'production') {
-      // Could integrate with error tracking service like Sentry
-      console.error(`File operation error tracked: ${operation}`, error);
-    }
+    // Log to error tracking service
+    console.error(`File operation error tracked: ${operation}`, error);
     
     // Show user-friendly notification
     const userMessages: Record<string, string> = {

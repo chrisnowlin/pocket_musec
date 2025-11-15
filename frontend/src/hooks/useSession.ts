@@ -98,11 +98,11 @@ export function useSession() {
         }
         
         if (selectedObjectives && selectedObjectives.length > 0) {
-          payload.selected_objectives = selectedObjectives.join(',');
+          payload.selected_objectives = selectedObjectives;
         }
         
         if (additionalStandards && additionalStandards.length > 0) {
-          payload.additional_standards = additionalStandards.map(s => s.id).join(',');
+          payload.additional_standards = additionalStandards.map(s => s.id);
         }
         
         if (selectedModel) {
@@ -390,9 +390,11 @@ export function useSession() {
   );
 
   useEffect(() => {
-    initSession();
+    // Only run on mount - don't create a session automatically
+    // Sessions should be created explicitly by user action (New Conversation button)
     loadSessions();
-  }, [initSession, loadSessions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return {
     session,

@@ -1,4 +1,5 @@
 import { useRef, FormEvent } from 'react';
+import ModelSelector from './ModelSelector';
 
 interface ChatInputProps {
   value: string;
@@ -7,6 +8,11 @@ interface ChatInputProps {
   disabled?: boolean;
   sessionError?: string | null;
   chatError?: string | null;
+  // Model selector props
+  sessionId?: string;
+  selectedModel?: string | null;
+  onModelChange?: (model: string | null) => void;
+  processingMode?: string;
 }
 
 export default function ChatInput({
@@ -16,6 +22,10 @@ export default function ChatInput({
   disabled,
   sessionError,
   chatError,
+  sessionId,
+  selectedModel,
+  onModelChange,
+  processingMode = 'cloud',
 }: ChatInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -47,25 +57,38 @@ export default function ChatInput({
               handleSend();
             }
           }}
-          className="w-full border border-ink-300 rounded-xl px-4 py-3 pr-12 resize-none focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent text-sm bg-parchment-50 text-ink-800"
-          rows={1}
+          className="w-full border border-ink-300 rounded-xl px-4 py-3 pr-36 resize-none focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent text-sm bg-parchment-50 text-ink-800"
+          rows={2}
           placeholder="Type a message or use the buttons above..."
           disabled={disabled}
         />
-        <button
-          onClick={handleSend}
-          disabled={disabled || !value.trim()}
-          className="absolute right-3 bottom-3 text-ink-500 hover:text-ink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+        
+        {/* Stacked Model Selector and Send Button */}
+        <div className="absolute right-3 top-2 flex flex-col items-end gap-2 z-10">
+          {sessionId && onModelChange && (
+            <ModelSelector
+              sessionId={sessionId}
+              currentModel={selectedModel || null}
+              onModelChange={onModelChange}
+              disabled={disabled}
+              processingMode={processingMode}
             />
-          </svg>
-        </button>
+          )}
+          <button
+            onClick={handleSend}
+            disabled={disabled || !value.trim()}
+            className="text-ink-500 hover:text-ink-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
       {sessionError && (
         <div className="mt-2 rounded-md bg-parchment-300 px-3 py-2 text-xs text-ink-800 border border-ink-400">
