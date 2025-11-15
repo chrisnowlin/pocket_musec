@@ -61,7 +61,7 @@ export default function UnifiedPage() {
     selectedGrade: 'All Grades',
     selectedStrand: 'All Strands',
     selectedObjectives: [],
-    lessonContext: 'Class has recorders and a 30-minute block with mixed instruments.',
+    lessonContext: '',
     lessonDuration: '30 minutes',
     classSize: '25',
   });
@@ -170,16 +170,25 @@ export default function UnifiedPage() {
   const handleNewConversation = async () => {
     // Create a new session with the current lesson settings (not defaults)
     // This allows users to set grade/strand in the right panel before starting a conversation
+    console.log('[NewConversation] Starting new conversation with settings:', {
+      grade: lessonSettings.selectedGrade,
+      strand: lessonSettings.selectedStrand,
+      standards: lessonSettings.selectedStandards,
+      objectives: lessonSettings.selectedObjectives,
+    });
+    
     const newSession = await initSession(
       lessonSettings.selectedGrade,
       lessonSettings.selectedStrand,
       lessonSettings.selectedStandards.length > 0 ? lessonSettings.selectedStandards[0].id : null,
       lessonSettings.lessonContext || null,
-      parseInt(lessonSettings.lessonDuration) || 30,
-      parseInt(lessonSettings.classSize) || 25,
+      null, // lessonDuration is not used in session creation
+      null, // classSize is not used in session creation
       lessonSettings.selectedObjectives,
       lessonSettings.selectedStandards.slice(1) // All standards except the first one
     );
+    
+    console.log('[NewConversation] Session created:', newSession);
     
     if (newSession) {
       // Update lesson settings to match the created session
@@ -193,11 +202,18 @@ export default function UnifiedPage() {
       
       // Refresh the sessions list so the new conversation appears in Recent Chats
       await loadSessions();
+      
+      console.log('[NewConversation] Current session after loadSessions:', session);
+      
+      // Reset messages for the new conversation
+      resetMessages();
+      updateUIState({ mode: 'chat' });
+      
+      console.log('[NewConversation] Completed - should be showing new conversation:', newSession.id);
+    } else {
+      // Session creation failed - show error to user
+      error('Failed to create new conversation. Please try again.');
     }
-    
-    // Reset messages for the new conversation
-    resetMessages();
-    updateUIState({ mode: 'chat' });
   };
 
   const handleSelectConversation = async (sessionId: string) => {
@@ -551,7 +567,12 @@ export default function UnifiedPage() {
                 onUpdateMessage={handleUpdateMessage}
                 sessionId={session?.id}
                 selectedModel={session?.selected_model ?? null}
-                onModelChange={(model) => session?.id && updateSelectedModel(session.id, model)}
+                onModelChange={(model) => {
+                  // ModelSelector already handles the API call, we just need to update local state
+                  if (session) {
+                    setSession({ ...session, selected_model: model });
+                  }
+                }}
                 processingMode={settingsState.processingMode}
               />
             )}

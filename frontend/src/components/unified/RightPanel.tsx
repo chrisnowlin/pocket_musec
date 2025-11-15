@@ -299,6 +299,9 @@ export default function RightPanel({
                 rows={3}
                 className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
               />
+              <p className="text-xs text-ink-500 mt-1.5">
+                Examples: available instruments, classroom setup, student skill levels, special accommodations, or other relevant details
+              </p>
             </div>
             <div className="grid grid-cols-2 gap-4 mt-3">
               <div>
