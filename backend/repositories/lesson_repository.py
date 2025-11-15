@@ -151,6 +151,14 @@ class LessonRepository:
         finally:
             conn.close()
 
+    def promote_lesson(self, lesson_id: str) -> Optional[Lesson]:
+        """Promote a draft lesson to a permanent lesson by toggling is_draft=False"""
+        return self.update_lesson(lesson_id, is_draft=False)
+
+    def demote_lesson(self, lesson_id: str) -> Optional[Lesson]:
+        """Demote a permanent lesson to a draft by toggling is_draft=True"""
+        return self.update_lesson(lesson_id, is_draft=True)
+
     def delete_lesson(self, lesson_id: str) -> bool:
         conn = self.db_manager.get_connection()
         try:

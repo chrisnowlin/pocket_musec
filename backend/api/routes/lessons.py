@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from ..dependencies import get_current_user
 from ...auth import User
 from ..models import LessonSummary
+from ...repositories.lesson_repository import LessonRepository
 
 router = APIRouter(prefix="/api/lessons", tags=["lessons"])
 
@@ -163,3 +164,89 @@ This lesson aligns with National Core Arts Standards for Music Education, specif
 
 # Import at module level for the f-string
 from datetime import datetime
+
+
+@router.post("/{lesson_id}/promote", response_model=LessonSummary)
+async def promote_lesson(
+    lesson_id: str,
+    current_user: User = Depends(get_current_user),
+) -> LessonSummary:
+    """Promote a draft lesson to a permanent lesson"""
+    lesson_repo = LessonRepository()
+
+    # Get the existing lesson
+    lesson = lesson_repo.get_lesson(lesson_id)
+    if not lesson or lesson.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lesson not found"
+        )
+
+    # Promote the lesson
+    promoted_lesson = lesson_repo.promote_lesson(lesson_id)
+    if not promoted_lesson:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to promote lesson"
+        )
+
+    # Parse metadata
+    metadata = {}
+    if promoted_lesson.metadata:
+        try:
+            import json
+            metadata = json.loads(promoted_lesson.metadata)
+        except (json.JSONDecodeError, TypeError):
+            metadata = {}
+
+    return LessonSummary(
+        id=promoted_lesson.id,
+        title=promoted_lesson.title,
+        summary=promoted_lesson.content[:200] + "..." if len(promoted_lesson.content) > 200 else promoted_lesson.content,
+        content=promoted_lesson.content,
+        metadata=metadata,
+        citations=[],
+    )
+
+
+@router.post("/{lesson_id}/demote", response_model=LessonSummary)
+async def demote_lesson(
+    lesson_id: str,
+    current_user: User = Depends(get_current_user),
+) -> LessonSummary:
+    """Demote a permanent lesson back to a draft"""
+    lesson_repo = LessonRepository()
+
+    # Get the existing lesson
+    lesson = lesson_repo.get_lesson(lesson_id)
+    if not lesson or lesson.user_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Lesson not found"
+        )
+
+    # Demote the lesson
+    demoted_lesson = lesson_repo.demote_lesson(lesson_id)
+    if not demoted_lesson:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to demote lesson"
+        )
+
+    # Parse metadata
+    metadata = {}
+    if demoted_lesson.metadata:
+        try:
+            import json
+            metadata = json.loads(demoted_lesson.metadata)
+        except (json.JSONDecodeError, TypeError):
+            metadata = {}
+
+    return LessonSummary(
+        id=demoted_lesson.id,
+        title=demoted_lesson.title,
+        summary=demoted_lesson.content[:200] + "..." if len(demoted_lesson.content) > 200 else demoted_lesson.content,
+        content=demoted_lesson.content,
+        metadata=metadata,
+        citations=[],
+    )

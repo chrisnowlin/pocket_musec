@@ -108,7 +108,7 @@ export default function DraftPreview({ draft, isLoading = false }: DraftPreviewP
       <div className="px-4 py-3 border-t border-ink-200 bg-ink-50">
         <div className="flex items-center justify-between text-xs text-ink-500">
           <div>
-            Last updated {formatDate(draft.updatedAt)}
+            Last updated {formatDateTime(draft.updatedAt)}
           </div>
           <div>
             {draft.content.length} characters

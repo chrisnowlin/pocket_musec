@@ -207,6 +207,13 @@ const api = {
     apiClient.post<DraftItem>('/drafts', payload),
   updateDraft: (draftId: string, payload: { title?: string; content?: string; metadata?: Record<string, unknown> }) =>
     apiClient.put<DraftItem>(`/drafts/${draftId}`, payload),
+
+  // Lesson operations (permanent lessons)
+  getLessons: () => apiClient.get<DraftItem[]>('/lessons', { params: { is_draft: false } }),
+  getPermanentLesson: (lessonId: string) => apiClient.get<DraftItem>(`/lessons/${lessonId}`),
+  promoteLesson: (lessonId: string) => apiClient.post<DraftItem>(`/lessons/${lessonId}/promote`),
+  demoteLesson: (lessonId: string) => apiClient.post<DraftItem>(`/lessons/${lessonId}/demote`),
+  deleteLesson: (lessonId: string) => apiClient.delete(`/lessons/${lessonId}`),
 }
 
 export default api

@@ -73,6 +73,18 @@ export interface DraftItem {
   updatedAt: string;
 }
 
+export interface LessonItem {
+  id: string;
+  title: string;
+  content: string;
+  metadata?: Record<string, unknown>;
+  grade?: string;
+  strand?: string;
+  standard?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DraftsModalProps {
   isOpen: boolean;
   onClose: () => void;
