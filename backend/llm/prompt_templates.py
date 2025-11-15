@@ -19,6 +19,8 @@ class LessonPromptContext:
     standard_text: str
     objectives: List[str]
     additional_context: Optional[str] = None
+    additional_standards: Optional[str] = None  # Additional standards for inclusion
+    additional_objectives: Optional[str] = None  # Additional objectives for inclusion
     lesson_duration: Optional[str] = None
     class_size: Optional[int] = None
     available_resources: Optional[List[str]] = None
@@ -202,6 +204,14 @@ You are an expert music education curriculum specialist with deep knowledge of:
             enhanced_requirements += (
                 "\n10. Include current, relevant resources from web search results"
             )
+        if context.additional_standards:
+            enhanced_requirements += (
+                "\n11. Integrate concepts from the additional standards provided"
+            )
+        if context.additional_objectives:
+            enhanced_requirements += (
+                "\n12. Address the additional learning objectives in lesson activities"
+            )
 
         return f"""<task>
 Generate a comprehensive, standards-based music lesson plan for {context.grade_level} students.
@@ -231,6 +241,10 @@ Generate a comprehensive, standards-based music lesson plan for {context.grade_l
 </lesson_parameters>
 
 {f"<additional_context>{context.additional_context}</additional_context>" if context.additional_context else ""}
+
+{f"<additional_standards>{context.additional_standards}</additional_standards>" if context.additional_standards else ""}
+
+{f"<additional_objectives>{context.additional_objectives}</additional_objectives>" if context.additional_objectives else ""}
 </context>
 
 {rag_context_xml if rag_context_xml else ""}

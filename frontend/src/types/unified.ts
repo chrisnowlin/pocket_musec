@@ -64,6 +64,7 @@ export interface DraftItem {
   id: string;
   title: string;
   content: string;
+  originalContent?: string;
   metadata?: Record<string, unknown>;
   grade?: string;
   strand?: string;
@@ -114,10 +115,10 @@ export interface ChatState {
 }
 
 export interface LessonSettings {
-  selectedStandard: StandardRecord | null;
+  selectedStandards: StandardRecord[];
   selectedGrade: string;
   selectedStrand: string;
-  selectedObjective: string | null;
+  selectedObjectives: string[];
   lessonContext: string;
   lessonDuration: string;
   classSize: string;
@@ -129,6 +130,21 @@ export interface BrowseState {
 
 export interface SettingsState {
   processingMode: string;
+}
+
+export interface ChatModel {
+  id: string;
+  name: string;
+  description: string;
+  capabilities: string[];
+  available: boolean;
+  recommended?: boolean;
+}
+
+export interface ModelAvailability {
+  available_models: ChatModel[];
+  current_model: string | null;
+  processing_mode: string;
 }
 
 export interface UnifiedPageState {
@@ -145,10 +161,10 @@ export interface LegacyUnifiedPageState {
   messages: ChatMessage[];
   chatInput: string;
   isTyping: boolean;
-  selectedStandard: StandardRecord | null;
+  selectedStandards: StandardRecord[];
   selectedGrade: string;
   selectedStrand: string;
-  selectedObjective: string | null;
+  selectedObjectives: string[];
   lessonContext: string;
   lessonDuration: string;
   classSize: string;

@@ -1,13 +1,17 @@
+import React, { useState, useMemo, useEffect } from 'react';
 import type { StandardRecord, SessionResponsePayload } from '../../lib/types';
 import type { ViewMode, StorageInfo } from '../../types/unified';
 import { gradeOptions, strandOptions } from '../../constants/unified';
+import MultiSelectStandard from './MultiSelectStandard';
+import MultiSelectObjectives from './MultiSelectObjectives';
+import api from '../../lib/api';
 
 interface RightPanelProps {
   width: number;
   selectedGrade: string;
   selectedStrand: string;
-  selectedStandard: StandardRecord | null;
-  selectedObjective: string | null;
+  selectedStandards: StandardRecord[];
+  selectedObjectives: string[];
   lessonContext: string;
   lessonDuration: string;
   classSize: string;
@@ -24,8 +28,8 @@ interface RightPanelProps {
   retryMessage?: string;
   onGradeChange: (grade: string) => void;
   onStrandChange: (strand: string) => void;
-  onStandardChange: (standard: StandardRecord | null) => void;
-  onObjectiveChange: (objective: string | null) => void;
+  onSelectedStandardsChange: (standards: StandardRecord[]) => void;
+  onSelectedObjectivesChange: (objectives: string[]) => void;
   onLessonContextChange: (context: string) => void;
   onLessonDurationChange: (duration: string) => void;
   onClassSizeChange: (size: string) => void;
@@ -40,8 +44,8 @@ export default function RightPanel({
   width,
   selectedGrade,
   selectedStrand,
-  selectedStandard,
-  selectedObjective,
+  selectedStandards,
+  selectedObjectives,
   lessonContext,
   lessonDuration,
   classSize,
@@ -54,12 +58,12 @@ export default function RightPanel({
   draftCount,
   lessonsCount,
   isRetryingSession = false,
-  retrySuccess = null,
-  retryMessage = '',
+  retrySuccess = false,
+  retryMessage,
   onGradeChange,
   onStrandChange,
-  onStandardChange,
-  onObjectiveChange,
+  onSelectedStandardsChange,
+  onSelectedObjectivesChange,
   onLessonContextChange,
   onLessonDurationChange,
   onClassSizeChange,
@@ -69,6 +73,9 @@ export default function RightPanel({
   onViewDrafts,
   onRetrySession,
 }: RightPanelProps) {
+  const [allStandards, setAllStandards] = useState<StandardRecord[]>([]);
+  const [isLoadingAllStandards, setIsLoadingAllStandards] = useState(false);
+
   const sessionStatusLabel = session
     ? 'Connected to PocketMusec'
     : sessionError
@@ -80,6 +87,116 @@ export default function RightPanel({
     ? 'bg-parchment-300 text-ink-800 border-ink-400'
     : 'bg-parchment-200 text-ink-700 border-ink-300';
   const sessionStatusDetail = session ? 'Live' : sessionError ? 'Retry' : 'Loading';
+
+  // Helper function to transform API response
+  const transformStandard = (standard: any): StandardRecord => {
+    const transformed = {
+      ...standard,
+      learningObjectives: standard.learning_objectives || standard.learningObjectives || [],
+    };
+    
+    // Debug logging for first few standards
+    if (standard.code && standard.code.startsWith('K.CN')) {
+      console.log('Transforming standard:', {
+        code: standard.code,
+        hasLearningObjectives: !!standard.learning_objectives,
+        objectivesCount: standard.learning_objectives?.length || 0,
+        objectives: standard.learning_objectives
+      });
+    }
+    
+    return transformed;
+  };
+
+  // Load all standards when component mounts to enable independent multi-select
+  useEffect(() => {
+    const loadAllStandards = async () => {
+      if (isLoadingAllStandards || allStandards.length > 0) return;
+      
+      setIsLoadingAllStandards(true);
+      try {
+        // Request all standards with a limit high enough to get all grades (default is 50, but we have 112+ standards)
+        const result = await api.listStandards({ limit: 200 });
+        if (result.ok) {
+          const transformedStandards = result.data.map(transformStandard);
+          setAllStandards(transformedStandards);
+          console.log('Loaded all standards:', transformedStandards.length);
+        }
+      } catch (error) {
+        console.error('Failed to load all standards:', error);
+      } finally {
+        setIsLoadingAllStandards(false);
+      }
+    };
+
+    loadAllStandards();
+  }, [allStandards.length, isLoadingAllStandards]);
+
+  // Compute available standards filtered by grade and strand (exclude already selected standards)
+  const availableStandards = useMemo(() => {
+    let filtered = allStandards;
+    
+    // Filter by selected grade (if not "All Grades" or "Kindergarten")
+    if (selectedGrade && selectedGrade !== 'All Grades') {
+      filtered = filtered.filter(standard => standard.grade === selectedGrade);
+    }
+    
+    // Filter by selected strand (if not "All Strands")
+    if (selectedStrand && selectedStrand !== 'All Strands') {
+      filtered = filtered.filter(standard => standard.strand_name === selectedStrand);
+    }
+    
+    // Exclude already selected standards
+    const available = filtered.filter(standard => 
+      !selectedStandards.find(selected => selected.id === standard.id)
+    );
+    
+    console.log('Available standards:', {
+      allStandardsCount: allStandards.length,
+      filteredByGradeStrand: filtered.length,
+      selectedCount: selectedStandards.length,
+      availableCount: available.length,
+      selectedGrade,
+      selectedStrand
+    });
+    
+    return available;
+  }, [allStandards, selectedStandards, selectedGrade, selectedStrand]);
+
+  // Compute available objectives from all selected standards
+  const availableObjectives = useMemo(() => {
+    const allObjectives = new Set<string>();
+    
+    // Add objectives from all selected standards
+    // The API already returns objectives in the format "K.CN.1.1 - Description"
+    selectedStandards.forEach(standard => {
+      if (standard.learningObjectives && Array.isArray(standard.learningObjectives)) {
+        standard.learningObjectives.forEach(objective => {
+          // Objectives are already formatted strings from the API
+          allObjectives.add(objective);
+        });
+      }
+    });
+    
+    console.log('Available objectives computation:', {
+      selectedStandardsCount: selectedStandards.length,
+      selectedStandardsCodes: selectedStandards.map(s => s.code),
+      selectedStandardsWithObjectives: selectedStandards.map(s => ({
+        code: s.code,
+        hasLearningObjectives: !!s.learningObjectives,
+        objectivesCount: s.learningObjectives?.length || 0,
+        objectives: s.learningObjectives
+      })),
+      totalObjectives: allObjectives.size,
+      selectedObjectivesCount: selectedObjectives.length,
+      objectivesList: Array.from(allObjectives)
+    });
+    
+    // Remove already selected objectives
+    return Array.from(allObjectives).filter(objective => 
+      !selectedObjectives.includes(objective)
+    );
+  }, [selectedStandards, selectedObjectives]);
 
   return (
     <aside
@@ -121,7 +238,7 @@ export default function RightPanel({
                   value={selectedGrade}
                   onChange={(event) => {
                     onGradeChange(event.target.value);
-                    onObjectiveChange(null);
+                    onSelectedObjectivesChange([]);
                   }}
                   className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
                 >
@@ -138,7 +255,7 @@ export default function RightPanel({
                   value={selectedStrand}
                   onChange={(event) => {
                     onStrandChange(event.target.value);
-                    onObjectiveChange(null);
+                    onSelectedObjectivesChange([]);
                   }}
                   className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
                 >
@@ -149,57 +266,28 @@ export default function RightPanel({
                   ))}
                 </select>
               </div>
-              <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1">Standard</label>
-                <select
-                  value={selectedStandard?.id || ''}
-                  onChange={(event) => {
-                    const standard = standards.find((s) => s.id === event.target.value);
-                    onStandardChange(standard || null);
-                    onObjectiveChange(null);
-                  }}
-                  className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 bg-parchment-50 text-ink-800"
-                >
-                  <option value="">Not selected yet</option>
-                  {standards
-                    .filter(
-                      (standard) =>
-                        standard.grade === selectedGrade && standard.strand_name === selectedStrand
-                    )
-                    .map((standard) => (
-                      <option key={standard.id} value={standard.id}>
-                        {standard.code} - {standard.title}
-                      </option>
-                    ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-ink-700 mb-1">Objective</label>
-                <select
-                  value={selectedObjective || ''}
-                  onChange={(event) => onObjectiveChange(event.target.value || null)}
-                  disabled={
-                    !selectedStandard ||
-                    !selectedStandard.learningObjectives ||
-                    selectedStandard.learningObjectives.length === 0
-                  }
-                  className="w-full border border-ink-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ink-500 disabled:bg-parchment-200 disabled:text-ink-500 disabled:cursor-not-allowed bg-parchment-50 text-ink-800"
-                >
-                  <option value="">
-                    {!selectedStandard
-                      ? 'Select a standard first'
-                      : !selectedStandard.learningObjectives ||
-                        selectedStandard.learningObjectives.length === 0
-                      ? 'No objectives available'
-                      : 'Not selected yet'}
-                  </option>
-                  {selectedStandard?.learningObjectives?.map((objective, index) => (
-                    <option key={index} value={objective}>
-                      {objective}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <MultiSelectStandard
+                standards={availableStandards} // Use all available standards for independent selection
+                selectedStandards={selectedStandards}
+                availableStandards={availableStandards} // Use all available standards for independent selection
+                onSelectionChange={onSelectedStandardsChange}
+                label="Standards"
+                placeholder="Select standards to include..."
+              />
+              <MultiSelectObjectives
+                selectedObjectives={selectedObjectives}
+                availableObjectives={availableObjectives}
+                onSelectionChange={onSelectedObjectivesChange}
+                label="Objectives"
+                placeholder={
+                  selectedStandards.length === 0 
+                    ? "First select standards to see objectives..." 
+                    : "Select objectives to include..."
+                }
+                selectedStandardsCount={selectedStandards.length}
+              />
+              
+              
             </div>
             <button
               onClick={onBrowseStandards}

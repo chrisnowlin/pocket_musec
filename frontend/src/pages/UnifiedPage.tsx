@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
 import { useChat } from '../hooks/useChat';
 import { useSession } from '../hooks/useSession';
 import { useImages } from '../hooks/useImages';
@@ -15,7 +15,6 @@ import ImageUploadModal from '../components/unified/ImageUploadModal';
 import ImageDetailModal from '../components/unified/ImageDetailModal';
 import DocumentIngestion from '../components/DocumentIngestion';
 import IngestionStatus, { IngestionStatusRef } from '../components/IngestionStatus';
-import LessonEditor from '../components/unified/LessonEditor';
 import ErrorBoundary from '../components/ErrorBoundary';
 import ToastContainer from '../components/unified/ToastContainer';
 import ConfirmDialog from '../components/unified/ConfirmDialog';
@@ -31,6 +30,8 @@ import type {
   SettingsState
 } from '../types/unified';
 import type { StandardRecord } from '../lib/types';
+
+const LessonEditor = lazy(() => import('../components/unified/LessonEditor'));
 
 export default function UnifiedPage() {
   // Grouped state management
@@ -56,10 +57,10 @@ export default function UnifiedPage() {
   });
 
   const [lessonSettings, setLessonSettings] = useState<LessonSettings>({
-    selectedStandard: null,
+    selectedStandards: [],
     selectedGrade: 'All Grades',
     selectedStrand: 'All Strands',
-    selectedObjective: null,
+    selectedObjectives: [],
     lessonContext: 'Class has recorders and a 30-minute block with mixed instruments.',
     lessonDuration: '30 minutes',
     classSize: '25',
@@ -112,6 +113,7 @@ export default function UnifiedPage() {
     loadStandards,
     sessions,
     setSessions,
+    updateSelectedModel,
   } = useSession();
   const {
     messages,
@@ -171,11 +173,12 @@ export default function UnifiedPage() {
     const newSession = await initSession(
       lessonSettings.selectedGrade,
       lessonSettings.selectedStrand,
-      lessonSettings.selectedStandard?.id || null,
+      lessonSettings.selectedStandards.length > 0 ? lessonSettings.selectedStandards[0].id : null,
       lessonSettings.lessonContext || null,
       parseInt(lessonSettings.lessonDuration) || 30,
       parseInt(lessonSettings.classSize) || 25,
-      lessonSettings.selectedObjective || null
+      lessonSettings.selectedObjectives,
+      lessonSettings.selectedStandards.slice(1) // All standards except the first one
     );
     
     if (newSession) {
@@ -183,8 +186,8 @@ export default function UnifiedPage() {
       updateLessonSettings({
         selectedGrade: newSession.grade_level || lessonSettings.selectedGrade,
         selectedStrand: newSession.strand_code || lessonSettings.selectedStrand,
-        selectedStandard: newSession.selected_standard || null,
-        selectedObjective: null,
+        selectedStandards: newSession.selected_standards || [],
+        selectedObjectives: newSession.selected_objectives || [],
         lessonContext: newSession.additional_context || lessonSettings.lessonContext,
       });
       
@@ -205,8 +208,8 @@ export default function UnifiedPage() {
       updateLessonSettings({
         selectedGrade: loadedSession.grade_level || 'All Grades',
         selectedStrand: loadedSession.strand_code || 'All Strands',
-        selectedStandard: loadedSession.selected_standard || null,
-        selectedObjective: loadedSession.selected_objectives || null,
+        selectedStandards: loadedSession.selected_standards || [],
+        selectedObjectives: loadedSession.selected_objectives || [],
         lessonContext: loadedSession.additional_context || '',
       });
       
@@ -237,7 +240,7 @@ export default function UnifiedPage() {
   const handleStartChat = async (standard: StandardRecord, prompt: string) => {
     updateUIState({ mode: 'chat' });
     updateLessonSettings({ 
-      selectedStandard: standard,
+      selectedStandards: [standard],
       selectedGrade: standard.grade,
       selectedStrand: standard.strand_name
     });
@@ -475,7 +478,7 @@ export default function UnifiedPage() {
               session_id: conversationEditorSessionId,
               grade_level: session.grade_level,
               strand_code: session.strand_code,
-              standard_id: session.selected_standard?.code,
+              standard_id: session.selected_standards?.[0]?.code,
             },
           });
           if (createResult.ok) {
@@ -546,6 +549,10 @@ export default function UnifiedPage() {
                 resizing={resizingMessageContainer}
                 isLoadingConversation={isLoadingConversation}
                 onUpdateMessage={handleUpdateMessage}
+                sessionId={session?.id}
+                selectedModel={session?.selected_model ?? null}
+                onModelChange={(model) => session?.id && updateSelectedModel(session.id, model)}
+                processingMode={settingsState.processingMode}
               />
             )}
 
@@ -554,11 +561,11 @@ export default function UnifiedPage() {
                 standards={standards}
                 selectedGrade={lessonSettings.selectedGrade}
                 selectedStrand={lessonSettings.selectedStrand}
-                selectedStandard={lessonSettings.selectedStandard}
+                selectedStandard={lessonSettings.selectedStandards[0] || null}
                 browseQuery={browseState.query}
                 onGradeChange={(grade) => updateLessonSettings({ selectedGrade: grade })}
                 onStrandChange={(strand) => updateLessonSettings({ selectedStrand: strand })}
-                onStandardSelect={(standard) => updateLessonSettings({ selectedStandard: standard })}
+                onStandardSelect={(standard) => updateLessonSettings({ selectedStandards: [standard] })}
                 onBrowseQueryChange={(query) => updateBrowseState({ query })}
                 onStartChat={handleStartChat}
               />
@@ -633,8 +640,8 @@ export default function UnifiedPage() {
           width={rightPanelWidth}
           selectedGrade={lessonSettings.selectedGrade}
           selectedStrand={lessonSettings.selectedStrand}
-          selectedStandard={lessonSettings.selectedStandard}
-          selectedObjective={lessonSettings.selectedObjective}
+          selectedStandards={lessonSettings.selectedStandards}
+          selectedObjectives={lessonSettings.selectedObjectives}
           lessonContext={lessonSettings.lessonContext}
           lessonDuration={lessonSettings.lessonDuration}
           classSize={lessonSettings.classSize}
@@ -651,8 +658,8 @@ export default function UnifiedPage() {
           retryMessage={retryMessage}
           onGradeChange={(grade) => updateLessonSettings({ selectedGrade: grade })}
           onStrandChange={(strand) => updateLessonSettings({ selectedStrand: strand })}
-          onStandardChange={(standard) => updateLessonSettings({ selectedStandard: standard })}
-          onObjectiveChange={(objective) => updateLessonSettings({ selectedObjective: objective })}
+          onSelectedStandardsChange={(standards) => updateLessonSettings({ selectedStandards: standards })}
+          onSelectedObjectivesChange={(objectives) => updateLessonSettings({ selectedObjectives: objectives })}
           onLessonContextChange={(context) => updateLessonSettings({ lessonContext: context })}
           onLessonDurationChange={(duration) => updateLessonSettings({ lessonDuration: duration })}
           onClassSizeChange={(size) => updateLessonSettings({ classSize: size })}
@@ -726,12 +733,14 @@ export default function UnifiedPage() {
               </div>
             )}
             <ErrorBoundary>
-              <LessonEditor
-                content={conversationEditorContent}
-                onSave={handleSaveConversationEditor}
-                onCancel={handleCancelConversationEditor}
-                autoSave={false}
-              />
+              <Suspense fallback={<div className="flex-1 flex items-center justify-center text-ink-600">Loading editor...</div>}>
+                <LessonEditor
+                  content={conversationEditorContent}
+                  onSave={handleSaveConversationEditor}
+                  onCancel={handleCancelConversationEditor}
+                  autoSave={false}
+                />
+              </Suspense>
             </ErrorBoundary>
           </div>
         </div>

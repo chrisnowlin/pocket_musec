@@ -55,8 +55,10 @@ class DatabaseManager:
                     user_id TEXT NOT NULL,
                     grade_level TEXT,
                     strand_code TEXT,
-                    selected_standards TEXT,
-                    selected_objectives TEXT,
+                    selected_standards TEXT,  -- Primary standard
+                    selected_objectives TEXT,  -- Primary objectives
+                    additional_standards TEXT,  -- Additional standards for inclusion
+                    additional_objectives TEXT,  -- Additional objectives for inclusion
                     additional_context TEXT,
                     lesson_duration TEXT,
                     class_size INTEGER,

@@ -1,4 +1,5 @@
 import MarkdownRenderer from '../MarkdownRenderer';
+import { formatDateTime } from '../../lib/dateUtils';
 import type { DraftItem } from '../../types/unified';
 
 interface DraftPreviewProps {
@@ -7,17 +8,6 @@ interface DraftPreviewProps {
 }
 
 export default function DraftPreview({ draft, isLoading = false }: DraftPreviewProps) {
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center bg-parchment-50 rounded-lg border border-ink-200">
@@ -79,7 +69,7 @@ export default function DraftPreview({ draft, isLoading = false }: DraftPreviewP
                   <span>•</span>
                 </>
               )}
-              <span>Created {formatDate(draft.createdAt)}</span>
+              <span>Created {formatDateTime(draft.createdAt)}</span>
             </div>
           </div>
         </div>

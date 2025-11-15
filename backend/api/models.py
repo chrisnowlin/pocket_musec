@@ -101,11 +101,15 @@ class SessionCreateRequest(BaseModel):
 
     grade_level: Optional[str] = None
     strand_code: Optional[str] = None
-    standard_id: Optional[str] = None
+    standard_id: Optional[str] = None  # Primary standard (for backward compatibility)
+    standard_ids: Optional[List[str]] = (
+        None  # Multiple standards (new unified approach)
+    )
     additional_context: Optional[str] = None
     lesson_duration: Optional[str] = None
     class_size: Optional[int] = None
-    selected_objective: Optional[str] = None
+    selected_objectives: Optional[List[str]] = None  # Multiple objectives
+    selected_model: Optional[str] = None  # Selected AI model for cloud mode
 
 
 class SessionUpdateRequest(BaseModel):
@@ -113,11 +117,15 @@ class SessionUpdateRequest(BaseModel):
 
     grade_level: Optional[str] = None
     strand_code: Optional[str] = None
-    standard_id: Optional[str] = None
+    standard_id: Optional[str] = None  # Primary standard (for backward compatibility)
+    standard_ids: Optional[List[str]] = (
+        None  # Multiple standards (new unified approach)
+    )
     additional_context: Optional[str] = None
     lesson_duration: Optional[str] = None
     class_size: Optional[int] = None
-    selected_objective: Optional[str] = None
+    selected_objectives: Optional[List[str]] = None  # Multiple objectives
+    selected_model: Optional[str] = None  # Selected AI model for cloud mode
 
 
 class SessionResponse(BaseModel):
@@ -126,7 +134,9 @@ class SessionResponse(BaseModel):
     id: str
     grade_level: Optional[str]
     strand_code: Optional[str]
-    selected_standard: Optional[StandardResponse]
+    selected_standards: Optional[List[StandardResponse]] = None  # Multiple standards
+    selected_objectives: Optional[List[str]] = None  # Multiple objectives
+    selected_model: Optional[str] = None  # Selected AI model for cloud mode
     additional_context: Optional[str]
     conversation_history: Optional[str] = None
     created_at: Optional[datetime]
@@ -150,6 +160,20 @@ class ChatMessageRequest(BaseModel):
     message: str
     lesson_duration: Optional[str] = None
     class_size: Optional[str] = None
+
+
+class ModelSelectionRequest(BaseModel):
+    """Request to update the selected model for a session"""
+
+    selected_model: Optional[str] = None
+
+
+class ModelAvailabilityResponse(BaseModel):
+    """Response with available models and their status"""
+
+    available_models: List[Dict[str, Any]]
+    current_model: Optional[str] = None
+    processing_mode: str
 
 
 class ChatResponse(BaseModel):

@@ -7,7 +7,16 @@ from fastapi.exceptions import RequestValidationError
 import logging
 from pathlib import Path
 
-from .routes import images, settings, sessions, standards, drafts, embeddings
+from .routes import (
+    images,
+    settings,
+    sessions,
+    standards,
+    drafts,
+    embeddings,
+    citations,
+    lessons,
+)
 from .middleware import (
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
@@ -58,6 +67,8 @@ app.include_router(sessions.router)
 app.include_router(standards.router)
 app.include_router(drafts.router)
 app.include_router(embeddings.router)
+app.include_router(citations.router)
+app.include_router(lessons.router)
 
 
 # Exception handlers

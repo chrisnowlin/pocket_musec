@@ -1,0 +1,41 @@
+{
+  "test_results": [
+    {
+      "test": "Single Objective",
+      "status": "PASSED",
+      "generation_time": 17.796308040618896,
+      "lesson_length": 2892,
+      "expected_objectives": [
+        "4.CR.1.1"
+      ],
+      "found_objectives": [],
+      "has_standard": false
+    },
+    {
+      "test": "Multiple Objectives",
+      "status": "FAILED",
+      "generation_time": 12.288352012634277,
+      "lesson_length": 2669,
+      "expected_objectives": [
+        "3.PR.1.1",
+        "3.PR.1.2"
+      ],
+      "found_objectives": [],
+      "has_standard": false
+    },
+    {
+      "test": "No Objectives (Backward Compatibility)",
+      "status": "FAILED",
+      "generation_time": 13.021663188934326,
+      "lesson_length": 1668,
+      "expected_objectives": [],
+      "found_objectives": [],
+      "has_standard": false
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "total": 3,
+    "success_rate": 33.33333333333333
+  }
+}

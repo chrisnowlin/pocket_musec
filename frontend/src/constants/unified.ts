@@ -2,6 +2,7 @@ import type { ConversationGroup, QuickAccessLink, QuickStats } from '../types/un
 import type { StandardRecord } from '../lib/types';
 
 export const gradeOptions = [
+  'All Grades',
   'Kindergarten',
   'Grade 1',
   'Grade 2',
@@ -19,7 +20,7 @@ export const gradeOptions = [
   'Advanced',
 ];
 
-export const strandOptions = ['Connect', 'Create', 'Respond', 'Present'];
+export const strandOptions = ['All Strands', 'Connect', 'Create', 'Respond', 'Present'];
 
 export const standardLibrary: StandardRecord[] = [];
 

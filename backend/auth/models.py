@@ -67,11 +67,14 @@ class Session:
     user_id: str
     grade_level: Optional[str] = None
     strand_code: Optional[str] = None
-    selected_standards: Optional[str] = None
-    selected_objectives: Optional[str] = None
+    selected_standards: Optional[str] = None  # Primary standard
+    selected_objectives: Optional[str] = None  # Primary objectives
+    additional_standards: Optional[str] = None  # Additional standards for inclusion
+    additional_objectives: Optional[str] = None  # Additional objectives for inclusion
     additional_context: Optional[str] = None
     lesson_duration: Optional[str] = None
     class_size: Optional[int] = None
+    selected_model: Optional[str] = None  # Selected AI model for cloud mode
     agent_state: Optional[str] = None  # JSON serialized agent state
     conversation_history: Optional[str] = None  # JSON serialized conversation history
     current_state: Optional[str] = "welcome"  # Current conversation state

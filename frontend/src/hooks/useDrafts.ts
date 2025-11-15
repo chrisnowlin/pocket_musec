@@ -170,10 +170,16 @@ export function useDrafts() {
       // Capture draft data outside to prevent stale closures
       const capturedDraft = { ...currentDraft };
 
+      // Store original content if this is the first edit
       const optimisticUpdates: Partial<DraftItem> = {
         content,
         updatedAt: new Date().toISOString()
       };
+      
+      // Only set originalContent if it doesn't exist yet (first edit)
+      if (!currentDraft.originalContent) {
+        optimisticUpdates.originalContent = currentDraft.content;
+      }
       
       if (title !== undefined) {
         optimisticUpdates.title = title;

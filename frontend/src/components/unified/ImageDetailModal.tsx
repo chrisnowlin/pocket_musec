@@ -1,4 +1,5 @@
 import type { ImageData } from '../../types/unified';
+import BaseModal from './BaseModal';
 
 interface ImageDetailModalProps {
   image: ImageData | null;
@@ -10,13 +11,9 @@ export default function ImageDetailModal({ image, onClose, onDelete }: ImageDeta
   if (!image) return null;
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
-      onClick={onClose}
-    >
+    <BaseModal isOpen={!!image} onClose={onClose} size="lg">
       <div
-        className="workspace-card rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6"
-        onClick={(event) => event.stopPropagation()}
+        className="max-h-[90vh] overflow-y-auto"
       >
         <div className="flex justify-between items-start mb-4">
           <h3 className="text-2xl font-bold text-ink-800">{image.filename}</h3>
@@ -60,6 +57,6 @@ export default function ImageDetailModal({ image, onClose, onDelete }: ImageDeta
           </div>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }

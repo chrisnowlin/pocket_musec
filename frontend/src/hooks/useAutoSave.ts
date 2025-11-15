@@ -23,12 +23,14 @@ export function useAutoSave({
   enabled = true,
 }: UseAutoSaveOptions): UseAutoSaveReturn {
   const [isSaving, setIsSaving] = useState(false);
-  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const intervalTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalIdRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const lastContentRef = useRef<string>('');
+  const latestContentRef = useRef<string>('');
+  const pendingSaveRef = useRef(false);
 
-  const saveContent = useCallback(async (content: string) => {
-    if (!enabled || content === lastContentRef.current) return;
+  const saveContent = useCallback(async (content: string, force = false) => {
+    if ((!enabled && !force) || content === lastContentRef.current) return;
     
     setIsSaving(true);
     
@@ -43,32 +45,28 @@ export function useAutoSave({
     }
   }, [onSave, enabled]);
 
+  const flushPendingSave = useCallback(async () => {
+    if (!pendingSaveRef.current) return;
+    pendingSaveRef.current = false;
+    await saveContent(latestContentRef.current);
+  }, [saveContent]);
+
   const triggerSave = useCallback((content: string) => {
     if (!enabled) return;
+    latestContentRef.current = content;
+    pendingSaveRef.current = true;
 
-    // Clear existing timeouts to prevent memory leaks
     if (debounceTimeoutRef.current) {
       clearTimeout(debounceTimeoutRef.current);
-      debounceTimeoutRef.current = null;
     }
 
-    if (intervalTimeoutRef.current) {
-      clearTimeout(intervalTimeoutRef.current);
-      intervalTimeoutRef.current = null;
-    }
-
-    // Set new debounce timeout
     debounceTimeoutRef.current = setTimeout(() => {
-      saveContent(content);
-      debounceTimeoutRef.current = null; // Clear reference after execution
+      flushPendingSave().catch(() => {
+        // Errors are already logged inside saveContent
+      });
+      debounceTimeoutRef.current = null;
     }, debounceMs);
-
-    // Set interval timeout for periodic saves
-    intervalTimeoutRef.current = setTimeout(() => {
-      saveContent(content);
-      intervalTimeoutRef.current = null; // Clear reference after execution
-    }, intervalMs);
-  }, [enabled, debounceMs, intervalMs, saveContent]);
+  }, [enabled, debounceMs, flushPendingSave]);
 
   const saveImmediately = useCallback(async (content: string) => {
     // Clear pending saves to prevent memory leaks
@@ -76,28 +74,47 @@ export function useAutoSave({
       clearTimeout(debounceTimeoutRef.current);
       debounceTimeoutRef.current = null;
     }
-    if (intervalTimeoutRef.current) {
-      clearTimeout(intervalTimeoutRef.current);
-      intervalTimeoutRef.current = null;
-    }
-
-    return saveContent(content);
+    pendingSaveRef.current = false;
+    latestContentRef.current = content;
+    return saveContent(content, true);
   }, [saveContent]);
 
   // Cleanup on unmount and when dependencies change
   useEffect(() => {
     return () => {
-      // Clear timeout references to prevent memory leaks
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
         debounceTimeoutRef.current = null;
       }
-      if (intervalTimeoutRef.current) {
-        clearTimeout(intervalTimeoutRef.current);
-        intervalTimeoutRef.current = null;
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
       }
     };
-  }, [enabled, onSave]); // Add dependencies to ensure cleanup when they change
+  }, [enabled, onSave]);
+
+  useEffect(() => {
+    if (!enabled || intervalMs <= 0) {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
+      }
+      return;
+    }
+
+    intervalIdRef.current = setInterval(() => {
+      flushPendingSave().catch(() => {
+        // Errors already handled in saveContent
+      });
+    }, intervalMs);
+
+    return () => {
+      if (intervalIdRef.current) {
+        clearInterval(intervalIdRef.current);
+        intervalIdRef.current = null;
+      }
+    };
+  }, [enabled, intervalMs, flushPendingSave]);
 
   return {
     triggerSave,

@@ -1,0 +1,100 @@
+{
+  "total_tests": 13,
+  "passed_tests": 13,
+  "failed_tests": 0,
+  "success_rate": 100.0,
+  "duration": 4.392269,
+  "results": [
+    {
+      "test": "API Health Check",
+      "passed": true,
+      "details": "Status: healthy",
+      "response_time": 0.006713151931762695,
+      "timestamp": "2025-11-14T10:18:06.043977"
+    },
+    {
+      "test": "Frontend Access",
+      "passed": true,
+      "details": "Frontend server responding",
+      "response_time": 0.002524852752685547,
+      "timestamp": "2025-11-14T10:18:06.046562"
+    },
+    {
+      "test": "Get Grade Levels",
+      "passed": true,
+      "details": "Found 14 grades",
+      "response_time": 0.0018489360809326172,
+      "timestamp": "2025-11-14T10:18:06.048443"
+    },
+    {
+      "test": "Get Strands",
+      "passed": true,
+      "details": "Found 4 strands",
+      "response_time": 0.001753091812133789,
+      "timestamp": "2025-11-14T10:18:06.050229"
+    },
+    {
+      "test": "Create Session",
+      "passed": true,
+      "details": "Session ID: 32d3ac47-2fe4-482f-ab80-d4d3dae52875",
+      "response_time": 0.0032470226287841797,
+      "timestamp": "2025-11-14T10:18:06.053519"
+    },
+    {
+      "test": "Get Session",
+      "passed": true,
+      "details": "Retrieved session 32d3ac47-2fe4-482f-ab80-d4d3dae52875",
+      "response_time": 0.001605987548828125,
+      "timestamp": "2025-11-14T10:18:06.055155"
+    },
+    {
+      "test": "Lesson Generation",
+      "passed": true,
+      "details": "Generated: Grade 3 CN Music Lesson",
+      "response_time": 0.001046895980834961,
+      "timestamp": "2025-11-14T10:18:06.056239"
+    },
+    {
+      "test": "Embeddings Search",
+      "passed": true,
+      "details": "Found 6 results",
+      "response_time": 3.9129958152770996,
+      "timestamp": "2025-11-14T10:18:09.969278"
+    },
+    {
+      "test": "Image Upload",
+      "passed": true,
+      "details": "Upload successful: Image uploaded and processed successfully",
+      "response_time": 0.45433592796325684,
+      "timestamp": "2025-11-14T10:18:10.423695"
+    },
+    {
+      "test": "Get Settings",
+      "passed": true,
+      "details": "Retrieved 2 processing modes, current: cloud",
+      "response_time": 0.0024950504302978516,
+      "timestamp": "2025-11-14T10:18:10.426244"
+    },
+    {
+      "test": "Citation Formatting",
+      "passed": true,
+      "details": "Formatted 1 citations",
+      "response_time": 0.0011398792266845703,
+      "timestamp": "2025-11-14T10:18:10.427422"
+    },
+    {
+      "test": "404 Error Handling",
+      "passed": true,
+      "details": "Correctly returns 404 for invalid endpoint",
+      "response_time": 0.0009818077087402344,
+      "timestamp": "2025-11-14T10:18:10.428429"
+    },
+    {
+      "test": "Invalid JSON Handling",
+      "passed": true,
+      "details": "Correctly returns 422 for invalid JSON",
+      "response_time": 0.0009560585021972656,
+      "timestamp": "2025-11-14T10:18:10.429405"
+    }
+  ]
+}

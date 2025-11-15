@@ -16,6 +16,7 @@ import {
   DOCUMENT_TYPE_ICONS,
   DOCUMENT_TYPE_LABELS
 } from '../types/fileStorage';
+import { formatDateTime } from '../lib/dateUtils';
 import { gradeOptions, strandOptions } from '../constants/unified';
 import { frontendToBackendGrade, frontendToBackendStrand } from '../lib/gradeUtils';
 
@@ -89,7 +90,8 @@ export default function MusecDBPage() {
       
       const response = await api.listStandards({
         grade_level: gradeParam,
-        strand_code: strandParam
+        strand_code: strandParam,
+        limit: 200 // Request all standards (default is 50, but we have 112+ standards)
       });
       
       if (response.ok && response.data && Array.isArray(response.data)) {
@@ -479,7 +481,7 @@ export default function MusecDBPage() {
                                         💾 {formatFileSize(standard.source_file.file_size)}
                                       </span>
                                       <span className="flex items-center gap-1">
-                                        🕐 {formatDate(standard.source_file.created_at)}
+                                        🕐 {formatDateTime(standard.source_file.created_at)}
                                       </span>
                                     </>
                                   )}

@@ -2,6 +2,7 @@ import { useRef, useEffect, MouseEvent as ReactMouseEvent, RefObject } from 'rea
 import type { ChatMessage as ChatMessageType } from '../../types/unified';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
+import ModelSelector from './ModelSelector';
 
 interface ChatPanelProps {
   messages: ChatMessageType[];
@@ -19,6 +20,10 @@ interface ChatPanelProps {
   resizing: boolean;
   isLoadingConversation?: boolean;
   onUpdateMessage?: (id: string, newText: string) => void;
+  sessionId?: string;
+  selectedModel?: string | null;
+  onModelChange?: (model: string | null) => void;
+  processingMode?: string;
 }
 
 export default function ChatPanel({
@@ -34,6 +39,10 @@ export default function ChatPanel({
   resizing,
   isLoadingConversation = false,
   onUpdateMessage,
+  sessionId,
+  selectedModel,
+  onModelChange,
+  processingMode = 'cloud',
 }: ChatPanelProps) {
   const messageContainerRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +68,19 @@ export default function ChatPanel({
           <div className="border-b border-ink-300 pb-4 mb-4">
             <h2 className="text-lg font-semibold text-ink-800">Lesson Planning Chat</h2>
             <p className="text-sm text-ink-600">Conversational AI guidance</p>
+            
+            {/* Model Selector */}
+            {sessionId && onModelChange && (
+              <div className="mt-3">
+                <ModelSelector
+                  sessionId={sessionId}
+                  currentModel={selectedModel || null}
+                  onModelChange={onModelChange}
+                  disabled={isTyping || isLoadingConversation}
+                  processingMode={processingMode}
+                />
+              </div>
+            )}
           </div>
           
           {isLoadingConversation ? (

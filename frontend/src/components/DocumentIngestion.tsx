@@ -10,6 +10,7 @@ import {
   getRelativeTime,
   FILE_STATUS_LABELS
 } from '../types/fileStorage';
+import { formatDateTime } from '../lib/dateUtils';
 
 interface DocumentIngestionProps {
   onIngestionComplete?: (response: IngestionResponse) => void;
@@ -182,7 +183,7 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
       });
       fileMetrics.push({
         label: 'Upload Date',
-        value: formatDate(fileMetadata.created_at),
+        value: formatDateTime(fileMetadata.created_at),
         icon: '📅',
         detail: getRelativeTime(fileMetadata.created_at)
       });
@@ -443,7 +444,7 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
               </div>
               <div>
                 <span className="text-ink-600">Upload Date:</span>
-                <span className="ml-2 font-medium text-ink-800">{formatDate(duplicateWarning.existing_file.upload_date)}</span>
+                <span className="ml-2 font-medium text-ink-800">{formatDateTime(duplicateWarning.existing_file.upload_date)}</span>
               </div>
               <div>
                 <span className="text-ink-600">Status:</span>

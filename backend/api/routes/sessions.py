@@ -15,6 +15,7 @@ from ...pocketflow.lesson_agent import LessonAgent
 from ...pocketflow.flow import Flow
 from ...pocketflow.store import Store
 from ...utils.standards import format_grade_display
+from ...llm.model_router import ModelRouter
 from ..models import (
     SessionCreateRequest,
     SessionUpdateRequest,
@@ -23,6 +24,8 @@ from ..models import (
     ChatResponse,
     LessonSummary,
     StandardResponse,
+    ModelSelectionRequest,
+    ModelAvailabilityResponse,
 )
 from ..dependencies import get_current_user
 from ...auth import User
@@ -49,24 +52,45 @@ def _standard_to_response(standard, repo: StandardsRepository) -> StandardRespon
         strand_code=standard.strand_code,
         strand_name=standard.strand_name,
         title=standard.standard_text,
-        description=standard.strand_description,
+        description=standard.standard_text,  # Use standard-specific text instead of strand description
         objectives=len(objectives),
         learning_objectives=learning_objectives,
     )
 
 
 def _session_to_response(session, repo: StandardsRepository) -> SessionResponse:
-    standard_resp = None
+    """Convert session database model to API response"""
+    # Resolve all selected standards from database format
+    selected_standards_resp = []
+
+    # Handle new unified array format (stored as comma-separated in database)
     if session.selected_standards:
-        standard = repo.get_standard_by_id(session.selected_standards)
-        if standard:
-            standard_resp = _standard_to_response(standard, repo)
+        standard_ids = [
+            sid.strip() for sid in session.selected_standards.split(",") if sid.strip()
+        ]
+        for standard_id in standard_ids:
+            standard = repo.get_standard_by_id(standard_id)
+            if standard:
+                standard_response = _standard_to_response(standard, repo)
+                selected_standards_resp.append(standard_response)
+
+    # Handle backward compatibility - old single standard format
+    # Note: This is for legacy data that might have used a different field name
+
+    # Parse selected objectives from comma-separated string to array
+    selected_objectives_resp = []
+    if session.selected_objectives:
+        selected_objectives_resp = [
+            obj.strip() for obj in session.selected_objectives.split(",") if obj.strip()
+        ]
 
     return SessionResponse(
         id=session.id,
         grade_level=session.grade_level,
         strand_code=session.strand_code,
-        selected_standard=standard_resp,
+        selected_standards=selected_standards_resp,
+        selected_objectives=selected_objectives_resp,
+        selected_model=getattr(session, "selected_model", None),
         additional_context=session.additional_context,
         conversation_history=session.conversation_history,
         created_at=session.created_at,
@@ -92,15 +116,33 @@ async def create_session(
 ) -> SessionResponse:
     repo = SessionRepository()
     standard_repo = StandardsRepository()
+
+    # Handle both new array format and backward compatibility
+    standard_ids = request.standard_ids or []
+    if request.standard_id and not standard_ids:
+        # Backward compatibility: single standard_id
+        standard_ids = [request.standard_id]
+
+    # Convert objectives array to comma-separated string for database
+    objectives_str = None
+    if request.selected_objectives:
+        objectives_str = ",".join(request.selected_objectives)
+
+    # Convert standards array to comma-separated string for database
+    standards_str = None
+    if standard_ids:
+        standards_str = ",".join(standard_ids)
+
     session = repo.create_session(
         user_id=current_user.id,
         grade_level=request.grade_level,
         strand_code=request.strand_code,
-        standard_id=request.standard_id,
+        standard_id=standards_str,  # Use unified standards string
         additional_context=request.additional_context,
         lesson_duration=request.lesson_duration,
         class_size=request.class_size,
-        selected_objective=request.selected_objective,
+        selected_objectives=objectives_str,
+        selected_model=request.selected_model,
     )
     return _session_to_response(session, standard_repo)
 
@@ -140,12 +182,31 @@ async def update_session(
     if not session or session.user_id != current_user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
 
+    # Handle both new array format and backward compatibility
+    standard_ids = request.standard_ids or []
+    if request.standard_id and not standard_ids:
+        # Backward compatibility: single standard_id
+        standard_ids = [request.standard_id]
+
+    # Convert objectives array to comma-separated string for database
+    objectives_str = None
+    if request.selected_objectives:
+        objectives_str = ",".join(request.selected_objectives)
+
+    # Convert standards array to comma-separated string for database
+    standards_str = None
+    if standard_ids:
+        standards_str = ",".join(standard_ids)
+
     updated = repo.update_session(
         session_id,
         grade_level=request.grade_level,
         strand_code=request.strand_code,
-        standard_id=request.standard_id,
+        standard_id=standards_str,  # Use unified standards string
         additional_context=request.additional_context,
+        lesson_duration=request.lesson_duration,
+        class_size=request.class_size,
+        selected_objective=objectives_str,  # Use unified objectives string
     )
     standard_repo = StandardsRepository()
     return _session_to_response(updated, standard_repo)
@@ -245,6 +306,7 @@ def _create_lesson_agent(session: Any, use_conversational: bool = True) -> Lesso
         conversational_mode=use_conversational,
         web_search_enabled=web_search_enabled,
         web_search_service=web_search_service,
+        selected_model=getattr(session, "selected_model", None),
     )
 
     # Try to restore agent state from session if available
@@ -298,6 +360,20 @@ def _create_lesson_agent(session: Any, use_conversational: bool = True) -> Lesso
             )
             agent.lesson_requirements["objectives"] = objectives
 
+    # Add specific selected objectives if available
+    if session.selected_objectives:
+        agent.lesson_requirements["selected_objectives"] = session.selected_objectives
+
+    # Add additional standards if available
+    if session.additional_standards:
+        agent.lesson_requirements["additional_standards"] = session.additional_standards
+
+    # Add additional objectives if available
+    if session.additional_objectives:
+        agent.lesson_requirements["additional_objectives"] = (
+            session.additional_objectives
+        )
+
     return agent
 
 
@@ -343,8 +419,68 @@ def _persist_user_message(
     if not saved_session:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to save conversation history",
+            detail="Failed to process message and save conversation",
         )
+
+
+@router.get("/{session_id}/models", response_model=ModelAvailabilityResponse)
+async def get_available_models(
+    session_id: str,
+    current_user: User = Depends(get_current_user),
+) -> ModelAvailabilityResponse:
+    """Get available models for the session"""
+    session_repo = SessionRepository()
+    session = session_repo.get_session(session_id)
+    if not session or session.user_id != current_user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    model_router = ModelRouter()
+    available_models = model_router.get_available_cloud_models()
+
+    return ModelAvailabilityResponse(
+        available_models=available_models,
+        current_model=session.selected_model,
+        processing_mode="cloud" if model_router.is_cloud_available() else "local",
+    )
+
+
+@router.put("/{session_id}/models", response_model=SessionResponse)
+async def update_selected_model(
+    session_id: str,
+    request: ModelSelectionRequest,
+    current_user: User = Depends(get_current_user),
+) -> SessionResponse:
+    """Update the selected model for a session"""
+    session_repo = SessionRepository()
+    session = session_repo.get_session(session_id)
+    if not session or session.user_id != current_user.id:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
+
+    # Validate model availability
+    if request.selected_model:
+        model_router = ModelRouter()
+        if not model_router.is_model_available(request.selected_model):
+            raise HTTPException(
+                status.HTTP_400_BAD_REQUEST,
+                detail=f"Model {request.selected_model} is not available",
+            )
+
+    # Update session with selected model
+    updated_session = session_repo.update_session(
+        session_id=session_id, selected_model=request.selected_model
+    )
+
+    if not updated_session:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update session model",
+        )
+
+    # Convert to response format
+    standard_repo = StandardsRepository()
+    session_response = _session_to_response(updated_session, standard_repo)
+
+    return session_response
 
 
 def _compose_lesson_from_agent(
@@ -468,7 +604,7 @@ async def send_message(
         _persist_user_message(session_id, agent, session_repo, request.message)
         logger.info(f"Conversation history saved for session {session_id}")
 
-        response_text = await agent.chat(request.message)
+        response_text = agent.chat(request.message)
         _save_agent_state(session_id, agent, session_repo)
 
         lesson_summary, session_payload = _generate_draft_payload(
@@ -488,7 +624,10 @@ async def send_message(
         )
 
     except Exception as e:
+        import traceback
+
         logger.error(f"Error in send_message for session {session_id}: {e}")
+        logger.error(f"Full traceback: {traceback.format_exc()}")
         # Try to save at least the user message if everything else fails
         try:
             conversation_history = [{"role": "user", "content": request.message}]
@@ -531,7 +670,7 @@ async def stream_message(
         logger.info(f"Conversation history saved for session {session_id}")
 
         # Now process message through the agent
-        response_text = await agent.chat(request.message)
+        response_text = agent.chat(request.message)
 
         # Add AI response to conversation history
         conversation_history = agent.get_conversation_history()

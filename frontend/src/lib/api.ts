@@ -37,6 +37,7 @@ export interface SessionCreatePayload {
   lesson_duration?: string
   class_size?: number
   selected_objective?: string
+  selected_model?: string
 }
 
 export interface SessionUpdatePayload {
@@ -47,6 +48,7 @@ export interface SessionUpdatePayload {
   lesson_duration?: string
   class_size?: number
   selected_objective?: string
+  selected_model?: string
 }
 
 export interface ChatMessagePayload {

@@ -22,8 +22,7 @@ router = APIRouter(prefix="/api/images", tags=["images"])
 def get_image_processor() -> ImageProcessor:
     """Get ImageProcessor instance"""
     return ImageProcessor(
-        storage_path=config.image_processing.storage_path,
-        api_key=config.chutes.api_key
+        storage_path=config.image_processing.storage_path, api_key=config.chutes.api_key
     )
 
 
@@ -40,6 +39,7 @@ from datetime import datetime
 
 class ImageResponse(BaseModel):
     """Image metadata response"""
+
     id: str
     filename: str
     file_size: int
@@ -57,6 +57,7 @@ class ImageResponse(BaseModel):
 
 class ImageUploadResponse(BaseModel):
     """Image upload response"""
+
     id: str
     filename: str
     file_size: int
@@ -70,6 +71,7 @@ class ImageUploadResponse(BaseModel):
 
 class StorageInfoResponse(BaseModel):
     """Storage quota information"""
+
     usage_mb: float
     limit_mb: float
     available_mb: float
@@ -77,13 +79,15 @@ class StorageInfoResponse(BaseModel):
     image_count: int
 
 
-@router.post("/upload", response_model=ImageUploadResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/upload", response_model=ImageUploadResponse, status_code=status.HTTP_201_CREATED
+)
 async def upload_image(
     file: UploadFile = File(...),
     analyze_vision: bool = Form(True),
     current_user: User = Depends(get_current_user),
     processor: ImageProcessor = Depends(get_image_processor),
-    repo: ImageRepository = Depends(get_image_repository)
+    repo: ImageRepository = Depends(get_image_repository),
 ):
     """
     Upload and process an image
@@ -103,11 +107,11 @@ async def upload_image(
         413: If file too large
     """
     # Validate file type
-    allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/tiff', 'image/webp']
+    allowed_types = ["image/jpeg", "image/jpg", "image/png", "image/tiff", "image/webp"]
     if file.content_type not in allowed_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}"
+            detail=f"Invalid file type. Allowed: {', '.join(allowed_types)}",
         )
 
     # Check file size (max 10MB)
@@ -116,18 +120,20 @@ async def upload_image(
     if len(file_content) > max_size:
         raise HTTPException(
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-            detail=f"File too large. Maximum size: {max_size / (1024*1024):.1f}MB"
+            detail=f"File too large. Maximum size: {max_size / (1024 * 1024):.1f}MB",
         )
 
     # Check storage quota
     if not processor.storage.check_quota(len(file_content)):
         raise HTTPException(
             status_code=status.HTTP_507_INSUFFICIENT_STORAGE,
-            detail="Storage quota exceeded. Please delete old images."
+            detail="Storage quota exceeded. Please delete old images.",
         )
 
     # Save to temporary file
-    with tempfile.NamedTemporaryFile(delete=False, suffix=Path(file.filename).suffix) as tmp_file:
+    with tempfile.NamedTemporaryFile(
+        delete=False, suffix=Path(file.filename).suffix
+    ) as tmp_file:
         tmp_file.write(file_content)
         tmp_path = tmp_file.name
 
@@ -137,20 +143,20 @@ async def upload_image(
             image_path=tmp_path,
             user_id=current_user.id,
             original_filename=file.filename,
-            analyze_vision=analyze_vision
+            analyze_vision=analyze_vision,
         )
 
         # Save to database
         image_model = repo.save_image(
             user_id=current_user.id,
             filename=file.filename,
-            file_path=result['stored_path'],
-            file_size=result['file_size'],
-            mime_type=result['mime_type'],
-            extracted_text=result['extracted_text'],
-            vision_summary=result['vision_summary'],
-            ocr_confidence=result['ocr_confidence'],
-            metadata=result.get('metadata')
+            file_path=result["stored_path"],
+            file_size=result["file_size"],
+            mime_type=result["mime_type"],
+            extracted_text=result["extracted_text"],
+            vision_summary=result["vision_summary"],
+            ocr_confidence=result["ocr_confidence"],
+            metadata=result.get("metadata"),
         )
 
         logger.info(f"User {current_user.id} uploaded image: {image_model.id}")
@@ -158,13 +164,13 @@ async def upload_image(
         return ImageUploadResponse(
             id=image_model.id,
             filename=file.filename,
-            file_size=result['file_size'],
-            mime_type=result['mime_type'],
-            extracted_text=result['extracted_text'],
-            vision_summary=result['vision_summary'],
-            ocr_confidence=result['ocr_confidence'],
-            image_type=result['image_type'],
-            message="Image uploaded and processed successfully"
+            file_size=result["file_size"],
+            mime_type=result["mime_type"],
+            extracted_text=result["extracted_text"],
+            vision_summary=result["vision_summary"],
+            ocr_confidence=result["ocr_confidence"],
+            image_type=result["image_type"],
+            message="Image uploaded and processed successfully",
         )
 
     finally:
@@ -178,7 +184,7 @@ async def upload_images_batch(
     analyze_vision: bool = Form(True),
     current_user: User = Depends(get_current_user),
     processor: ImageProcessor = Depends(get_image_processor),
-    repo: ImageRepository = Depends(get_image_repository)
+    repo: ImageRepository = Depends(get_image_repository),
 ):
     """
     Upload and process multiple images
@@ -196,7 +202,7 @@ async def upload_images_batch(
     if len(files) > 10:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Maximum 10 files per batch upload"
+            detail="Maximum 10 files per batch upload",
         )
 
     results = []
@@ -209,24 +215,26 @@ async def upload_images_batch(
                 analyze_vision=analyze_vision,
                 current_user=current_user,
                 processor=processor,
-                repo=repo
+                repo=repo,
             )
             results.append(result)
 
         except HTTPException as e:
             # Continue processing other files on error
             logger.warning(f"Failed to process {file.filename}: {e.detail}")
-            results.append(ImageUploadResponse(
-                id="error",
-                filename=file.filename,
-                file_size=0,
-                mime_type="",
-                extracted_text="",
-                vision_summary=None,
-                ocr_confidence=0.0,
-                image_type="error",
-                message=f"Error: {e.detail}"
-            ))
+            results.append(
+                ImageUploadResponse(
+                    id="error",
+                    filename=file.filename,
+                    file_size=0,
+                    mime_type="",
+                    extracted_text="",
+                    vision_summary=None,
+                    ocr_confidence=0.0,
+                    image_type="error",
+                    message=f"Error: {e.detail}",
+                )
+            )
 
     return results
 
@@ -236,7 +244,7 @@ async def list_images(
     limit: int = 50,
     offset: int = 0,
     current_user: User = Depends(get_current_user),
-    repo: ImageRepository = Depends(get_image_repository)
+    repo: ImageRepository = Depends(get_image_repository),
 ):
     """
     List user's images
@@ -253,16 +261,11 @@ async def list_images(
     images = repo.get_user_images(
         user_id=current_user.id,
         limit=min(limit, 100),  # Cap at 100
-        offset=offset
+        offset=offset,
     )
 
     return [
-        ImageResponse(
-            **{
-                **image.__dict__,
-                'url': f"/api/images/{image.id}/data"
-            }
-        )
+        ImageResponse(**{**image.__dict__, "url": f"/api/images/{image.id}/data"})
         for image in images
     ]
 
@@ -272,7 +275,7 @@ async def search_images(
     q: str,
     limit: int = 20,
     current_user: User = Depends(get_current_user),
-    repo: ImageRepository = Depends(get_image_repository)
+    repo: ImageRepository = Depends(get_image_repository),
 ):
     """
     Search images by text content
@@ -286,19 +289,10 @@ async def search_images(
     Returns:
         Matching images
     """
-    images = repo.search_images(
-        user_id=current_user.id,
-        query=q,
-        limit=min(limit, 50)
-    )
+    images = repo.search_images(user_id=current_user.id, query=q, limit=min(limit, 50))
 
     return [
-        ImageResponse(
-            **{
-                **image.__dict__,
-                'url': f"/api/images/{image.id}/data"
-            }
-        )
+        ImageResponse(**{**image.__dict__, "url": f"/api/images/{image.id}/data"})
         for image in images
     ]
 
@@ -307,7 +301,7 @@ async def search_images(
 async def get_image(
     image_id: str,
     current_user: User = Depends(get_current_user),
-    repo: ImageRepository = Depends(get_image_repository)
+    repo: ImageRepository = Depends(get_image_repository),
 ):
     """
     Get image metadata
@@ -327,19 +321,13 @@ async def get_image(
 
     if not image or image.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
         )
 
     # Update last accessed
     repo.update_last_accessed(image_id)
 
-    return ImageResponse(
-        **{
-            **image.__dict__,
-            'url': f"/api/images/{image_id}/data"
-        }
-    )
+    return ImageResponse(**{**image.__dict__, "url": f"/api/images/{image_id}/data"})
 
 
 @router.get("/{image_id}/data")
@@ -347,7 +335,7 @@ async def get_image_data(
     image_id: str,
     compressed: bool = True,
     current_user: User = Depends(get_current_user),
-    repo: ImageRepository = Depends(get_image_repository)
+    repo: ImageRepository = Depends(get_image_repository),
 ):
     """
     Get image file data
@@ -368,8 +356,7 @@ async def get_image_data(
 
     if not image or image.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
         )
 
     # Determine which file to serve
@@ -377,14 +364,15 @@ async def get_image_data(
 
     if compressed:
         # Look for compressed version
-        compressed_path = file_path.parent / file_path.name.replace('_original', '_compressed').replace(file_path.suffix, '.jpg')
+        compressed_path = file_path.parent / file_path.name.replace(
+            "_original", "_compressed"
+        ).replace(file_path.suffix, ".jpg")
         if compressed_path.exists():
             file_path = compressed_path
 
     if not file_path.exists():
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image file not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image file not found"
         )
 
     # Update last accessed
@@ -393,7 +381,7 @@ async def get_image_data(
     return FileResponse(
         path=str(file_path),
         media_type=image.mime_type if not compressed else "image/jpeg",
-        filename=image.filename
+        filename=image.filename,
     )
 
 
@@ -402,7 +390,7 @@ async def delete_image(
     image_id: str,
     current_user: User = Depends(get_current_user),
     repo: ImageRepository = Depends(get_image_repository),
-    processor: ImageProcessor = Depends(get_image_processor)
+    processor: ImageProcessor = Depends(get_image_processor),
 ):
     """
     Delete an image
@@ -423,8 +411,7 @@ async def delete_image(
 
     if not image or image.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Image not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Image not found"
         )
 
     # Delete from storage
@@ -442,7 +429,7 @@ async def delete_image(
 async def get_storage_info(
     current_user: User = Depends(get_current_user),
     processor: ImageProcessor = Depends(get_image_processor),
-    repo: ImageRepository = Depends(get_image_repository)
+    repo: ImageRepository = Depends(get_image_repository),
 ):
     """
     Get storage quota information
@@ -458,7 +445,4 @@ async def get_storage_info(
     quota_info = processor.get_storage_info()
     image_count = repo.get_image_count(current_user.id)
 
-    return StorageInfoResponse(
-        **quota_info,
-        image_count=image_count
-    )
+    return StorageInfoResponse(**quota_info, image_count=image_count)

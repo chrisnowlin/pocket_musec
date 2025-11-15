@@ -20,11 +20,18 @@ class SessionRepository:
         user_id: str,
         grade_level: Optional[str] = None,
         strand_code: Optional[str] = None,
-        standard_id: Optional[str] = None,
+        standard_id: Optional[
+            str
+        ] = None,  # Can be comma-separated for multiple standards
         additional_context: Optional[str] = None,
         lesson_duration: Optional[str] = None,
         class_size: Optional[int] = None,
-        selected_objective: Optional[str] = None,
+        selected_objectives: Optional[
+            str
+        ] = None,  # Can be comma-separated for multiple objectives
+        additional_standards: Optional[str] = None,
+        additional_objectives: Optional[str] = None,
+        selected_model: Optional[str] = None,
     ) -> Session:
         session_id = str(uuid.uuid4())
         now = datetime.utcnow().isoformat()
@@ -36,9 +43,10 @@ class SessionRepository:
                 INSERT INTO sessions (
                     id, user_id, grade_level, strand_code,
                     selected_standards, selected_objectives,
+                    additional_standards, additional_objectives,
                     additional_context, lesson_duration, class_size,
-                    created_at, updated_at
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    selected_model, created_at, updated_at
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                     session_id,
@@ -46,10 +54,13 @@ class SessionRepository:
                     grade_level,
                     strand_code,
                     standard_id,
-                    selected_objective,
+                    selected_objectives,
+                    additional_standards,
+                    additional_objectives,
                     additional_context,
                     lesson_duration,
                     class_size,
+                    selected_model,
                     now,
                     now,
                 ),
@@ -99,6 +110,9 @@ class SessionRepository:
         lesson_duration: Optional[str] = None,
         class_size: Optional[int] = None,
         selected_objective: Optional[str] = None,
+        additional_standards: Optional[str] = None,
+        additional_objectives: Optional[str] = None,
+        selected_model: Optional[str] = None,
     ) -> Optional[Session]:
         assignments = []
         params: List[Optional[object]] = []
@@ -123,6 +137,15 @@ class SessionRepository:
         if selected_objective is not None:
             assignments.append("selected_objectives = ?")
             params.append(selected_objective)
+        if additional_standards is not None:
+            assignments.append("additional_standards = ?")
+            params.append(additional_standards)
+        if additional_objectives is not None:
+            assignments.append("additional_objectives = ?")
+            params.append(additional_objectives)
+        if selected_model is not None:
+            assignments.append("selected_model = ?")
+            params.append(selected_model)
 
         if not assignments:
             return self.get_session(session_id)
@@ -221,6 +244,8 @@ class SessionRepository:
             strand_code=row["strand_code"],
             selected_standards=row["selected_standards"],
             selected_objectives=row["selected_objectives"],
+            additional_standards=safe_get(row, "additional_standards"),
+            additional_objectives=safe_get(row, "additional_objectives"),
             additional_context=row["additional_context"],
             lesson_duration=safe_get(row, "lesson_duration"),
             class_size=safe_get(row, "class_size"),

@@ -34,9 +34,11 @@ class LessonAgent(Agent):
         conversational_mode: bool = True,
         web_search_enabled: bool = False,
         web_search_service: Optional["WebSearchService"] = None,
+        selected_model: Optional[str] = None,
     ):
         super().__init__(flow, store, "LessonAgent")
         self.standards_repo = standards_repo or StandardsRepository()
+        self.selected_model = selected_model
         # Initialize LLM client with graceful fallback
         if llm_client:
             self.llm_client = llm_client
@@ -1190,6 +1192,8 @@ Just let me know what adjustments you'd like, and I'll update the plan for you! 
                 f"{obj.objective_id} - {obj.objective_text}" for obj in objectives
             ],
             additional_context=final_additional_context,
+            additional_standards=self.lesson_requirements.get("additional_standards"),
+            additional_objectives=self.lesson_requirements.get("additional_objectives"),
             lesson_duration=self.lesson_requirements.get("lesson_duration")
             or extracted.get("time_constraints", "45 minutes"),
             class_size=self.lesson_requirements.get("class_size")
@@ -2238,13 +2242,14 @@ Feel free to share any other details about your students or available resources!
 
         # Run the blocking LLM call in a separate thread
         logger.debug(
-            f"Starting async LLM chat completion (temp={temperature}, max_tokens={max_tokens})"
+            f"Starting async LLM chat completion (temp={temperature}, max_tokens={max_tokens}, model={self.selected_model or 'default'})"
         )
         result = await asyncio.to_thread(
             self.llm_client.chat_completion,
             messages=messages,
             temperature=temperature,
             max_tokens=max_tokens,
+            model=self.selected_model,
         )
         elapsed = time.time() - start_time
         logger.info(f"LLM chat completion took {elapsed:.2f}s")
@@ -2265,9 +2270,14 @@ Feel free to share any other details about your students or available resources!
             return "I'm unable to generate the lesson plan right now as no LLM service is configured."
 
         # Run the blocking LLM call in a separate thread
-        logger.debug(f"Starting async lesson plan generation (stream={stream})")
+        logger.debug(
+            f"Starting async lesson plan generation (stream={stream}, model={self.selected_model or 'default'})"
+        )
         result = await asyncio.to_thread(
-            self.llm_client.generate_lesson_plan, context=context, stream=stream
+            self.llm_client.generate_lesson_plan,
+            context=context,
+            stream=stream,
+            model=self.selected_model,
         )
         elapsed = time.time() - start_time
         logger.info(f"LLM lesson plan generation took {elapsed:.2f}s")

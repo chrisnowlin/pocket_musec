@@ -11,6 +11,7 @@ import {
   FILE_STATUS_LABELS,
   FILE_STATUS_COLORS
 } from '../../types/fileStorage';
+import { formatDateTime } from '../../lib/dateUtils';
 
 interface FileManagerProps {
   onViewIngestion?: () => void;
@@ -238,7 +239,7 @@ export default function FileManager({
                       </div>
                       <div>
                         <span className="block font-medium">Uploaded</span>
-                        {formatDate(file.created_at)}
+                        {formatDateTime(file.created_at)}
                       </div>
                       <div>
                         <span className="block font-medium">File ID</span>

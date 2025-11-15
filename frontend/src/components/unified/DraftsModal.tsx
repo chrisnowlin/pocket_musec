@@ -2,7 +2,11 @@ import { useState, useMemo, useCallback } from 'react';
 import LessonEditor from './LessonEditor';
 import DraftPreview from './DraftPreview';
 import ExportModal from './ExportModal';
+import VersionComparisonModal from './VersionComparisonModal';
+import BaseModal from './BaseModal';
 import ErrorBoundary from '../ErrorBoundary';
+import { formatDateTime } from '../../lib/dateUtils';
+
 import type { DraftsModalProps, ExportFormat, DraftItem } from '../../types/unified';
 
 export default function DraftsModal({
@@ -19,29 +23,22 @@ export default function DraftsModal({
   const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedStrand, setSelectedStrand] = useState('');
   const [selectedDraft, setSelectedDraft] = useState<DraftItem | null>(null);
-  
+
   // Editor state
   const [isEditing, setIsEditing] = useState(false);
   const [editingDraft, setEditingDraft] = useState<DraftItem | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  
+
   // Export state
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
   const [exportingDraft, setExportingDraft] = useState<DraftItem | null>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  // Helper functions - must be hooks (useCallback)
-  const formatDate = useCallback((dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  }, []);
+  // Version comparison state
+  const [isVersionModalOpen, setIsVersionModalOpen] = useState(false);
+  const [comparingDraft, setComparingDraft] = useState<DraftItem | null>(null);
 
+  // Helper functions - must be hooks (useCallback)
   const truncateContent = useCallback((content: string, maxLength: number = 100) => {
     if (content.length <= maxLength) return content;
     return content.substring(0, maxLength).trim() + '...';
@@ -51,12 +48,12 @@ export default function DraftsModal({
   const { uniqueGrades, uniqueStrands } = useMemo(() => {
     const grades = new Set<string>();
     const strands = new Set<string>();
-    
+
     drafts.forEach(draft => {
       if (draft.grade) grades.add(draft.grade);
       if (draft.strand) strands.add(draft.strand);
     });
-    
+
     return {
       uniqueGrades: Array.from(grades).sort(),
       uniqueStrands: Array.from(strands).sort(),
@@ -69,10 +66,10 @@ export default function DraftsModal({
       const matchesSearch = searchQuery === '' ||
         draft.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         draft.content.toLowerCase().includes(searchQuery.toLowerCase());
-      
+
       const matchesGrade = selectedGrade === '' || draft.grade === selectedGrade;
       const matchesStrand = selectedStrand === '' || draft.strand === selectedStrand;
-      
+
       return matchesSearch && matchesGrade && matchesStrand;
     });
   }, [drafts, searchQuery, selectedGrade, selectedStrand]);
@@ -93,14 +90,14 @@ export default function DraftsModal({
   // Handle save edited draft
   const handleSaveEditedDraft = useCallback(async (content: string) => {
     if (!editingDraft || !onUpdateDraft) return;
-    
+
     setIsSaving(true);
     try {
       const updatedDraft = await onUpdateDraft(editingDraft.id, {
         content,
         title: editingDraft.title,
       });
-      
+
       if (updatedDraft) {
         setIsEditing(false);
         setEditingDraft(null);
@@ -111,6 +108,9 @@ export default function DraftsModal({
       }
     } catch (error) {
       console.error('Failed to save draft:', error);
+      // Show user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert(`Failed to save draft: ${errorMessage}. Please try again.`);
     } finally {
       setIsSaving(false);
     }
@@ -125,17 +125,17 @@ export default function DraftsModal({
   // Handle export draft
   const handleExportDraft = useCallback(async (format: ExportFormat) => {
     if (!exportingDraft) return;
-    
+
     setIsExporting(true);
     try {
       const metadata = {
         title: exportingDraft.title || 'Untitled Draft',
         grade: exportingDraft.grade,
         strand: exportingDraft.strand,
-        createdAt: formatDate(exportingDraft.createdAt),
-        updatedAt: formatDate(exportingDraft.updatedAt),
+        createdAt: formatDateTime(exportingDraft.createdAt),
+        updatedAt: formatDateTime(exportingDraft.updatedAt),
       };
-      
+
       switch (format) {
         case 'markdown':
           // Create markdown content with metadata
@@ -149,7 +149,7 @@ ${metadata.strand ? `**Strand:** ${metadata.strand}` : ''}
 ---
 
 ${exportingDraft.content}`;
-          
+
           // Download as markdown file
           const blob = new Blob([markdownContent], { type: 'text/markdown' });
           const url = URL.createObjectURL(blob);
@@ -161,7 +161,7 @@ ${exportingDraft.content}`;
           document.body.removeChild(a);
           URL.revokeObjectURL(url);
           break;
-          
+
         case 'pdf':
           // Open print dialog for PDF export
           const printWindow = window.open('', '_blank');
@@ -194,7 +194,7 @@ ${exportingDraft.content}`;
             printWindow.print();
           }
           break;
-          
+
         case 'docx':
           // Plain text export (replacing invalid DOCX implementation)
           // Note: This exports as .txt to ensure compatibility and validity
@@ -206,7 +206,7 @@ Created: ${metadata.createdAt}
 Last Updated: ${metadata.updatedAt}
 
 ${exportingDraft.content}`;
-          
+
           const plainTextBlob = new Blob([plainTextContent], { type: 'text/plain' });
           const plainTextUrl = URL.createObjectURL(plainTextBlob);
           const plainTextA = document.createElement('a');
@@ -218,7 +218,7 @@ ${exportingDraft.content}`;
           URL.revokeObjectURL(plainTextUrl);
           break;
       }
-      
+
       setIsExportModalOpen(false);
       setExportingDraft(null);
     } catch (error) {
@@ -226,7 +226,13 @@ ${exportingDraft.content}`;
     } finally {
       setIsExporting(false);
     }
-  }, [exportingDraft, formatDate]);
+  }, [exportingDraft]);
+
+  // Handle view version comparison
+  const handleViewVersionComparison = useCallback((draft: DraftItem) => {
+    setComparingDraft(draft);
+    setIsVersionModalOpen(true);
+  }, []);
 
   // Early return AFTER all hooks
   if (!isOpen) return null;
@@ -257,18 +263,23 @@ ${exportingDraft.content}`;
 
   return (
     <>
-      <div
-        className="fixed inset-0 z-[70] flex items-center justify-center bg-black/60 p-4"
-        onClick={onClose}
-      >
+      <BaseModal isOpen={isOpen} onClose={onClose} size="lg" zIndexClassName="z-[70]">
         <div
-          className="workspace-card rounded-2xl max-w-6xl w-full max-h-[85vh] p-6 shadow-xl space-y-4 flex flex-col"
-          onClick={(event) => event.stopPropagation()}
+          className="max-w-6xl w-full max-h-[85vh] p-6 space-y-4 flex flex-col"
+          role="document"
         >
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-ink-800">Saved Drafts</h3>
-            <button onClick={onClose} className="text-ink-500 hover:text-ink-700">
-              ✕
+            <h3 id="drafts-modal-title" className="text-lg font-semibold text-ink-800">
+              Saved Drafts {drafts.length > 0 && `(${drafts.length})`}
+            </h3>
+            <button
+              onClick={onClose}
+              className="text-ink-500 hover:text-ink-700 p-1 rounded-md hover:bg-ink-100 transition-colors"
+              aria-label="Close drafts modal"
+            >
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
             </button>
           </div>
 
@@ -276,12 +287,17 @@ ${exportingDraft.content}`;
           <div className="space-y-3">
             <div className="flex items-center gap-3">
               <div className="flex-1 relative">
+                <label htmlFor="draft-search" className="sr-only">
+                  Search drafts by title or content
+                </label>
                 <input
+                  id="draft-search"
                   type="text"
                   placeholder="Search drafts by title or content..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pl-10 pr-4 py-2 border border-ink-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-transparent"
+                  aria-describedby="search-results-count"
                 />
                 <svg
                   className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-ink-400"
@@ -304,7 +320,7 @@ ${exportingDraft.content}`;
                 Clear Filters
               </button>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <select
                 value={selectedGrade}
@@ -316,7 +332,7 @@ ${exportingDraft.content}`;
                   <option key={grade} value={grade}>{grade}</option>
                 ))}
               </select>
-              
+
               <select
                 value={selectedStrand}
                 onChange={(e) => setSelectedStrand(e.target.value)}
@@ -327,9 +343,9 @@ ${exportingDraft.content}`;
                   <option key={strand} value={strand}>{strand}</option>
                 ))}
               </select>
-              
+
               <div className="flex-1 text-right">
-                <span className="text-sm text-ink-500">
+                <span id="search-results-count" className="text-sm text-ink-500">
                   {filteredDrafts.length} of {drafts.length} drafts
                 </span>
               </div>
@@ -339,10 +355,10 @@ ${exportingDraft.content}`;
           {/* Main Content - Draft List and Preview */}
           <div className="flex-1 flex gap-4 overflow-hidden">
             {/* Draft List */}
-            <div className="flex-1 overflow-y-auto min-w-0">
+            <div className="flex-1 overflow-y-auto min-w-0" role="region" aria-label="Draft list">
               {isLoading ? (
-                <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ink-600"></div>
+                <div className="flex items-center justify-center py-12" aria-live="polite">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-ink-600" aria-hidden="true"></div>
                   <span className="ml-3 text-ink-600">Loading drafts...</span>
                 </div>
               ) : filteredDrafts.length === 0 ? (
@@ -370,7 +386,7 @@ ${exportingDraft.content}`;
                   </p>
                 </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3" role="list" aria-label="Available drafts">
                   {filteredDrafts.map((draft) => (
                     <div
                       key={draft.id}
@@ -380,6 +396,16 @@ ${exportingDraft.content}`;
                           : 'border-ink-200 hover:bg-parchment-50'
                       }`}
                       onClick={() => setSelectedDraft(draft)}
+                      role="listitem"
+                      tabIndex={0}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelectedDraft(draft);
+                        }
+                      }}
+                      aria-selected={selectedDraft?.id === draft.id}
+                      aria-label={`Draft: ${draft.title || 'Untitled Draft'}, last updated ${formatDateTime(draft.updatedAt)}`}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1 min-w-0">
@@ -399,10 +425,23 @@ ${exportingDraft.content}`;
                             {truncateContent(draft.content)}
                           </p>
                           <p className="text-xs text-ink-500">
-                            Last updated {formatDate(draft.updatedAt)}
+                            Last updated {formatDateTime(draft.updatedAt)}
                           </p>
                         </div>
                         <div className="flex items-center gap-2 ml-4 flex-shrink-0">
+                          {draft.originalContent && draft.originalContent !== draft.content && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleViewVersionComparison(draft);
+                              }}
+                              className="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                              title="View changes made to this draft"
+                              aria-label={`View changes for draft: ${draft.title || 'Untitled Draft'}`}
+                            >
+                              Changes
+                            </button>
+                          )}
                           <button
                             onClick={(e) => {
                               e.stopPropagation();
@@ -410,6 +449,7 @@ ${exportingDraft.content}`;
                             }}
                             className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
                             title="Edit this draft"
+                            aria-label={`Edit draft: ${draft.title || 'Untitled Draft'}`}
                           >
                             Edit
                           </button>
@@ -421,6 +461,7 @@ ${exportingDraft.content}`;
                             }}
                             className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
                             title="Export this draft"
+                            aria-label={`Export draft: ${draft.title || 'Untitled Draft'}`}
                           >
                             Export
                           </button>
@@ -431,6 +472,7 @@ ${exportingDraft.content}`;
                             }}
                             className="px-3 py-1.5 text-sm bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700 transition-colors"
                             title="Continue editing this draft"
+                            aria-label={`Open draft: ${draft.title || 'Untitled Draft'}`}
                           >
                             Open
                           </button>
@@ -440,6 +482,7 @@ ${exportingDraft.content}`;
                               onDeleteDraft(draft.id);
                             }}
                             className="px-3 py-1.5 text-sm bg-parchment-200 text-ink-700 rounded-md hover:bg-parchment-300 transition-colors"
+                            aria-label={`Delete draft: ${draft.title || 'Untitled Draft'}`}
                             title="Delete this draft"
                           >
                             Delete
@@ -468,7 +511,7 @@ ${exportingDraft.content}`;
             </button>
           </div>
         </div>
-      </div>
+      </BaseModal>
 
       {/* Export Modal */}
       <ExportModal
@@ -477,6 +520,14 @@ ${exportingDraft.content}`;
         draft={exportingDraft}
         onExport={handleExportDraft}
         isLoading={isExporting}
+      />
+
+      {/* Version Comparison Modal */}
+      <VersionComparisonModal
+        isOpen={isVersionModalOpen}
+        onClose={() => setIsVersionModalOpen(false)}
+        draft={comparingDraft}
+        originalContent={comparingDraft?.originalContent}
       />
     </>
   );

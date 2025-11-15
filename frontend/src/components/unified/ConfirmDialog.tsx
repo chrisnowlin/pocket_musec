@@ -1,3 +1,5 @@
+import BaseModal from './BaseModal';
+
 interface ConfirmDialogProps {
   isOpen: boolean;
   title: string;
@@ -39,8 +41,8 @@ export default function ConfirmDialog({
   const styles = variantStyles[variant];
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/60 p-4">
-      <div className="bg-parchment-50 rounded-lg shadow-xl max-w-md w-full p-6">
+    <BaseModal isOpen={isOpen} onClose={onCancel} size="sm" zIndexClassName="z-[90]" cardClassName="bg-parchment-50">
+      <div className="shadow-xl">
         <div className="flex items-start gap-4">
           <div className={`flex-shrink-0 ${styles.icon}`}>
             {variant === 'danger' && (
@@ -109,7 +111,7 @@ export default function ConfirmDialog({
           </div>
         </div>
       </div>
-    </div>
+    </BaseModal>
   );
 }
 

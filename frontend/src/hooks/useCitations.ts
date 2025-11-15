@@ -210,17 +210,5 @@ export function useCitation(citationId?: string) {
   };
 }
 
-// Hook for handling legacy citation format (string arrays)
-export function useLegacyCitations(legacyCitations: string[] = []) {
-  const [enhancedCitations, setEnhancedCitations] = useState<EnhancedCitation[]>([]);
-
-  useEffect(() => {
-    const enhanced = citationService.handleLegacyEnhancedCitations(legacyCitations);
-    setEnhancedCitations(enhanced);
-  }, [legacyCitations]);
-
-  return {
-    enhancedCitations,
-    hasLegacyCitations: legacyCitations.length > 0,
-  };
-}
+// Legacy citation handling removed to prevent infinite re-render loops
+// Citations should now always be loaded via lessonId using useCitations hook

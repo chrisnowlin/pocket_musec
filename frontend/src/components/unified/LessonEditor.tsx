@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useRef, useMemo, useDeferredValue } from 'react';
 import MarkdownRenderer from '../MarkdownRenderer';
 import { lessonEditorStorage } from '../../utils/lessonEditorStorage';
 import { useAutoSave } from '../../hooks/useAutoSave';
@@ -17,17 +17,16 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved');
   const [lastSaveTime, setLastSaveTime] = useState<Date | null>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  
+  const deferredPreviewContent = useDeferredValue(editorContent);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  // Word and character count
-  const getWordCount = (text: string): number => {
-    return text.trim() ? text.trim().split(/\s+/).length : 0;
-  };
-
-  const getCharCount = (text: string): number => {
-    return text.length;
-  };
+  const { wordCount, charCount } = useMemo(() => {
+    const trimmed = editorContent.trim();
+    return {
+      wordCount: trimmed ? trimmed.split(/\s+/).length : 0,
+      charCount: editorContent.length,
+    };
+  }, [editorContent]);
 
 
   // Auto-save functionality
@@ -40,6 +39,13 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
   });
 
   const performSave = useCallback(async () => {
+    // Validate content before saving
+    if (!editorContent.trim()) {
+      setSaveStatus('error');
+      console.warn('Cannot save empty content. Please add some content to your lesson.');
+      return;
+    }
+    
     setSaveStatus('saving');
     
     try {
@@ -49,6 +55,9 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
     } catch (error) {
       setSaveStatus('error');
       console.error('Save failed:', error);
+      // Show user-friendly error message
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      console.warn(`Failed to save lesson: ${errorMessage}. Please try again or check your connection.`);
     }
   }, [saveImmediately, editorContent]);
 
@@ -96,6 +105,8 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
         }
       } catch (error) {
         console.error('Failed to load saved content:', error);
+        // Don't block the editor if recovery fails, just log it
+        console.warn('Unable to recover unsaved content. Starting with fresh content.');
       }
     };
 
@@ -149,14 +160,19 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
   };
 
   return (
-    <div className={`flex flex-col h-full bg-parchment-50 ${isFullscreen ? 'fixed inset-0 z-50' : 'rounded-lg border border-ink-200'}`}>
+    <div 
+      className={`flex flex-col h-full bg-parchment-50 ${isFullscreen ? 'fixed inset-0 z-50' : 'rounded-lg border border-ink-200'}`}
+      role="dialog"
+      aria-modal={isFullscreen}
+      aria-label="Lesson Editor"
+    >
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-ink-200 bg-white">
         <div className="flex items-center gap-3">
           <h3 className="font-semibold text-ink-800">Lesson Editor</h3>
           
           {/* Mode Toggle */}
-          <div className="flex items-center gap-1 bg-ink-100 rounded-lg p-1">
+          <div className="flex items-center gap-1 bg-ink-100 rounded-lg p-1" role="tablist" aria-label="View mode">
             <button
               onClick={() => setMode('edit')}
               className={`px-3 py-1.5 text-sm rounded-md transition-colors ${
@@ -164,6 +180,10 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
                   ? 'bg-white text-ink-800 shadow-sm' 
                   : 'text-ink-600 hover:text-ink-800'
               }`}
+              role="tab"
+              aria-selected={mode === 'edit'}
+              aria-controls="editor-panel"
+              tabIndex={mode === 'edit' ? 0 : -1}
             >
               Edit
             </button>
@@ -174,6 +194,10 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
                   ? 'bg-white text-ink-800 shadow-sm' 
                   : 'text-ink-600 hover:text-ink-800'
               }`}
+              role="tab"
+              aria-selected={mode === 'split'}
+              aria-controls="editor-panel preview-panel"
+              tabIndex={mode === 'split' ? 0 : -1}
             >
               Split
             </button>
@@ -184,6 +208,10 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
                   ? 'bg-white text-ink-800 shadow-sm' 
                   : 'text-ink-600 hover:text-ink-800'
               }`}
+              role="tab"
+              aria-selected={mode === 'preview'}
+              aria-controls="preview-panel"
+              tabIndex={mode === 'preview' ? 0 : -1}
             >
               Preview
             </button>
@@ -198,7 +226,7 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
 
           {/* Word/Char Count */}
           <div className="text-sm text-ink-600">
-            {getWordCount(editorContent)} words • {getCharCount(editorContent)} chars
+            {wordCount} words • {charCount} chars
           </div>
 
           {/* Action Buttons */}
@@ -259,7 +287,7 @@ const LessonEditor: React.FC<LessonEditorProps> = ({
           <div className={`${mode === 'split' ? 'w-1/2' : 'w-full'} flex flex-col overflow-hidden`}>
             <div className="flex-1 p-4 bg-white overflow-y-auto">
               <MarkdownRenderer 
-                content={editorContent} 
+                content={deferredPreviewContent} 
                 className="prose prose-sm max-w-none"
               />
             </div>

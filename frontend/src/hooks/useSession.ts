@@ -12,10 +12,20 @@ const transformStandard = (standard: any): StandardRecord => {
   };
 };
 
-// Helper function to transform session's selected_standard if present
+// Helper function to transform session's selected_standards if present
 const transformSession = (session: any): SessionResponsePayload => {
-  if (session.selected_standard) {
-    session.selected_standard = transformStandard(session.selected_standard);
+  if (session.selected_standards && Array.isArray(session.selected_standards)) {
+    session.selected_standards = session.selected_standards.map(transformStandard);
+  }
+  // Handle backward compatibility for old single standard format
+  else if (session.selected_standard) {
+    session.selected_standards = [transformStandard(session.selected_standard)];
+    delete session.selected_standard;
+  }
+  // Handle backward compatibility for old single objectives format
+  if (session.selected_objectives && typeof session.selected_objectives === 'string') {
+    // Convert comma-separated string to array
+    session.selected_objectives = session.selected_objectives.split(',').filter((obj: string) => obj.trim());
   }
   return session;
 };
@@ -33,7 +43,7 @@ export function useSession() {
   const loadStandards = useCallback(async (grade: string, strand: string) => {
     try {
       // Handle "All Grades" and "All Strands" - don't filter by these
-      const params: { grade_level?: string; strand_code?: string } = {};
+      const params: { grade_level?: string; strand_code?: string; limit?: number } = {};
       
       if (grade && grade !== 'All Grades') {
         params.grade_level = frontendToBackendGrade(grade);
@@ -42,6 +52,9 @@ export function useSession() {
       if (strand && strand !== 'All Strands') {
         params.strand_code = frontendToBackendStrand(strand);
       }
+      
+      // Always request enough standards to include all grades (default limit is 50, but we have 112+ standards)
+      params.limit = 200;
       
       const result = await api.listStandards(params);
 
@@ -63,7 +76,9 @@ export function useSession() {
       additionalContext?: string | null,
       lessonDuration?: number | null,
       classSize?: number | null,
-      selectedObjective?: string | null
+      selectedObjectives?: string[] | null,
+      additionalStandards?: StandardRecord[] | null,
+      selectedModel?: string | null
     ) => {
       try {
         const payload: any = {
@@ -71,7 +86,10 @@ export function useSession() {
           strand_code: defaultStrand,
         };
         
+        // Combine primary standard and additional standards into a single array
+        const allStandards = additionalStandards || [];
         if (standardId) {
+          // For backward compatibility, send as standard_id if single, otherwise as array
           payload.standard_id = standardId;
         }
         
@@ -79,8 +97,16 @@ export function useSession() {
           payload.additional_context = additionalContext;
         }
         
-        if (selectedObjective) {
-          payload.selected_objectives = selectedObjective;
+        if (selectedObjectives && selectedObjectives.length > 0) {
+          payload.selected_objectives = selectedObjectives.join(',');
+        }
+        
+        if (additionalStandards && additionalStandards.length > 0) {
+          payload.additional_standards = additionalStandards.map(s => s.id).join(',');
+        }
+        
+        if (selectedModel) {
+          payload.selected_model = selectedModel;
         }
         
         const result = await api.createSession(payload);
@@ -249,8 +275,8 @@ export function useSession() {
       }
       
       // Add standard info if available
-      if (sessionItem.selected_standard?.code) {
-        title += ` · ${sessionItem.selected_standard.code}`;
+      if (sessionItem.selected_standards && sessionItem.selected_standards.length > 0) {
+        title += ` · ${sessionItem.selected_standards[0].code}`;
       }
       
       // Add context indicator if there's additional context
@@ -265,7 +291,7 @@ export function useSession() {
         active: session?.id === sessionItem.id,
         grade: sessionItem.grade_level || undefined,
         strand: sessionItem.strand_code || undefined,
-        standard: sessionItem.selected_standard?.code,
+        standard: sessionItem.selected_standards?.[0]?.code,
         createdAt: sessionItem.created_at || undefined,
         updatedAt: sessionItem.updated_at || undefined,
       };
@@ -340,6 +366,29 @@ export function useSession() {
     }
   };
 
+  const updateSelectedModel = useCallback(
+    async (sessionId: string, selectedModel: string | null) => {
+      try {
+        const result = await api.updateSession(sessionId, {
+          selected_model: selectedModel || undefined,
+        });
+
+        if (result.ok) {
+          const transformedSession = transformSession(result.data);
+          setSession(transformedSession);
+          return transformedSession;
+        } else {
+          console.error('Failed to update model:', result.message);
+          return null;
+        }
+      } catch (err: any) {
+        console.error('Failed to update selected model', err);
+        return null;
+      }
+    },
+    []
+  );
+
   useEffect(() => {
     initSession();
     loadSessions();
@@ -363,5 +412,6 @@ export function useSession() {
     loadSessions,
     loadConversation,
     formatSessionsAsConversations,
+    updateSelectedModel,
   };
 }

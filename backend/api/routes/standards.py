@@ -15,11 +15,13 @@ router = APIRouter(prefix="/api/standards", tags=["standards"])
 def _standard_to_response(standard, repo: StandardsRepository) -> StandardResponse:
     objectives = repo.get_objectives_for_standard(standard.standard_id)
     # Include objective codes in the format "code - text" to match standards display
-    learning_objectives = [f"{obj.objective_id} - {obj.objective_text}" for obj in objectives]
+    learning_objectives = [
+        f"{obj.objective_id} - {obj.objective_text}" for obj in objectives
+    ]
     # Convert database grade format to frontend display format
     # Database stores: "0", "1", "2", "3", etc.
     # Frontend expects: "Kindergarten", "Grade 1", "Grade 2", "Grade 3", etc.
-    grade_display = format_grade_display(standard.grade_level)
+    grade_display = format_grade_display(standard.grade_level) or "Unknown Grade"
     return StandardResponse(
         id=standard.standard_id,
         code=standard.standard_id,
@@ -27,10 +29,33 @@ def _standard_to_response(standard, repo: StandardsRepository) -> StandardRespon
         strand_code=standard.strand_code,
         strand_name=standard.strand_name,
         title=standard.standard_text,
-        description=standard.strand_description,
+        description=standard.standard_text,  # Use standard-specific text instead of strand description
         objectives=len(objectives),
         learning_objectives=learning_objectives,
     )
+
+
+@router.get("/grades", response_model=List[str])
+async def get_grade_levels(current_user: User = Depends(get_current_user)) -> List[str]:
+    """Get all available grade levels"""
+    repo = StandardsRepository()
+    grades = repo.get_grade_levels()
+    # Convert to display format and filter None values
+    display_grades = []
+    for grade in grades:
+        if grade is not None:
+            formatted = format_grade_display(grade)
+            if formatted is not None:
+                display_grades.append(formatted)
+    return display_grades
+
+
+@router.get("/strands", response_model=List[dict])
+async def get_strands(current_user: User = Depends(get_current_user)) -> List[dict]:
+    """Get all available strands"""
+    repo = StandardsRepository()
+    strand_info = repo.get_strand_info()
+    return [{"code": code, "name": info["name"]} for code, info in strand_info.items()]
 
 
 @router.get("", response_model=List[StandardResponse])

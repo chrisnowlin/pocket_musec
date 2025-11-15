@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import BaseModal from './BaseModal';
+import { formatDateTime } from '../../lib/dateUtils';
+
 import type { ExportModalProps, ExportFormat } from '../../types/unified';
 
 export default function ExportModal({
@@ -34,30 +37,12 @@ export default function ExportModal({
     },
   ];
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
-  };
-
   return (
-    <div
-      className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4"
-      onClick={onClose}
-    >
-      <div
-        className="workspace-card rounded-2xl max-w-md w-full p-6 shadow-xl space-y-4"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="flex items-center justify-between">
+    <BaseModal isOpen={isOpen} onClose={onClose} size="sm">
+      <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold text-ink-800">Export Draft</h3>
-          <button 
-            onClick={onClose} 
+          <button
+            onClick={onClose}
             className="text-ink-500 hover:text-ink-700 transition-colors"
             disabled={isLoading}
           >
@@ -79,7 +64,7 @@ export default function ExportModal({
               </>
             )}
             <span>•</span>
-            <span>Created {formatDate(draft.createdAt)}</span>
+            <span>Created {formatDateTime(draft.createdAt)}</span>
           </div>
         </div>
 
@@ -113,7 +98,7 @@ export default function ExportModal({
         </div>
 
         {/* Actions */}
-        <div className="flex justify-end gap-3 pt-4 border-t border-ink-200">
+      <div className="flex justify-end gap-3 pt-4 border-t border-ink-200">
           <button
             onClick={onClose}
             className="px-4 py-2 bg-parchment-200 text-ink-700 rounded-md hover:bg-parchment-300 transition-colors"
@@ -132,7 +117,6 @@ export default function ExportModal({
             {isLoading ? 'Exporting...' : `Export as ${formatOptions.find(f => f.value === selectedFormat)?.label}`}
           </button>
         </div>
-      </div>
-    </div>
+      </BaseModal>
   );
 }
