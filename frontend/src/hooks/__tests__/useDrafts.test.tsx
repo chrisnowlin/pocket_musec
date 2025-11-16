@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useDrafts } from '../useDrafts'
 import type { DraftItem } from '../../types/unified'
+import type { LessonDocumentM2 } from '../../lib/types'
 
 // Mock the API client with factory function to avoid hoisting issues
 vi.mock('../../lib/api', () => {
@@ -72,7 +73,7 @@ describe('useDrafts', () => {
     const { result } = renderHook(() => useDrafts())
 
     expect(result.current.drafts).toEqual([])
-    expect(result.current.isLoading).toBe(false)
+    expect(result.current.isLoading).toBe(true)
     expect(result.current.error).toBe(null)
     expect(result.current.draftCount).toBe(0)
   })
@@ -411,4 +412,101 @@ describe('useDrafts', () => {
     })
     expect(nonExistentDraft).toBe(null)
   })
-})
+
+  it('updates m2.0 lesson_document notes when saving edited lesson', async () => {
+    const lessonDocument: LessonDocumentM2 = {
+      id: 'doc-1',
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-01T00:00:00Z',
+      version: 'm2.0',
+      title: 'Original Title',
+      grade: 'Grade 3',
+      strands: ['Rhythm'],
+      standards: [],
+      objectives: [],
+      content: {
+        materials: [],
+        warmup: '',
+        activities: [],
+        assessment: '',
+        differentiation: '',
+        exit_ticket: '',
+        notes: 'Original content',
+        prerequisites: '',
+        accommodations: '',
+        homework: '',
+        reflection: '',
+        timing: { total_minutes: 45 },
+      },
+      citations: [],
+      revision: 1,
+    };
+
+    const originalDraft = {
+      id: '1',
+      title: 'Original Title',
+      content: 'Original content',
+      metadata: {
+        lesson_document: lessonDocument,
+      },
+      createdAt: '2024-01-01',
+      updatedAt: '2024-01-01',
+    } as DraftItem;
+
+    const updatedDraft = {
+      ...originalDraft,
+      content: 'Updated content',
+      metadata: {
+        lesson_document: {
+          ...lessonDocument,
+          content: {
+            ...lessonDocument.content,
+            notes: 'Updated content',
+          },
+          revision: 2,
+        },
+      },
+      originalContent: 'Original content',
+      updatedAt: expect.any(String),
+    } as DraftItem;
+
+    mockGetDrafts.mockResolvedValue({
+      ok: true,
+      data: [originalDraft],
+      message: null,
+    });
+
+    mockUpdateDraft.mockResolvedValue({
+      ok: true,
+      data: updatedDraft,
+      message: null,
+    });
+
+    const { result } = renderHook(() => useDrafts());
+
+    // Wait for initial load
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0));
+    });
+
+    await act(async () => {
+      const saved = await result.current.saveEditedLesson('1', 'Updated content');
+      expect(saved).toEqual(updatedDraft);
+    });
+
+    expect(mockUpdateDraft).toHaveBeenCalledWith('1', expect.objectContaining({
+      content: 'Updated content',
+      originalContent: 'Original content',
+      updatedAt: expect.any(String),
+      metadata: {
+        lesson_document: expect.objectContaining({
+          content: expect.objectContaining({
+            notes: 'Updated content',
+          }),
+        }),
+      },
+    }));
+
+    expect(result.current.drafts[0]).toEqual(updatedDraft);
+  });
+});

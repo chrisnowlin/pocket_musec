@@ -51,6 +51,13 @@ export default function DraftPreview({ draft, isLoading = false }: DraftPreviewP
     );
   }
 
+
+  const lessonDocument = draft.metadata && 'lesson_document' in draft.metadata
+    ? draft.metadata.lesson_document
+    : undefined;
+
+  const previewContent = lessonDocument?.content?.notes ?? draft.content;
+
   return (
     <div className="h-full flex flex-col bg-parchment-50 rounded-lg border border-ink-200">
       {/* Header */}
@@ -78,9 +85,9 @@ export default function DraftPreview({ draft, isLoading = false }: DraftPreviewP
       {/* Content */}
       <div className="flex-1 overflow-y-auto">
         <div className="p-4 bg-white">
-          {draft.content ? (
-            <MarkdownRenderer 
-              content={draft.content} 
+          {previewContent ? (
+            <MarkdownRenderer
+              content={previewContent}
               className="prose prose-sm max-w-none"
             />
           ) : (
@@ -111,7 +118,7 @@ export default function DraftPreview({ draft, isLoading = false }: DraftPreviewP
             Last updated {formatDateTime(draft.updatedAt)}
           </div>
           <div>
-            {draft.content.length} characters
+            {previewContent.length} characters
           </div>
         </div>
       </div>

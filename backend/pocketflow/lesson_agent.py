@@ -31,7 +31,7 @@ class LessonAgent(Agent):
         store: Store,
         standards_repo: Optional[StandardsRepository] = None,
         llm_client: Optional[ChutesClient] = None,
-        conversational_mode: bool = True,
+        conversational_mode: bool = False,
         web_search_enabled: bool = False,
         web_search_service: Optional["WebSearchService"] = None,
         selected_model: Optional[str] = None,

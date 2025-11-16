@@ -1,5 +1,6 @@
 import { useRef, useEffect, MouseEvent as ReactMouseEvent, RefObject } from 'react';
 import type { ChatMessage as ChatMessageType } from '../../types/unified';
+import type { SessionResponsePayload } from '../../lib/types';
 import ChatMessage from './ChatMessage';
 import ChatInput from './ChatInput';
 
@@ -21,7 +22,7 @@ interface ChatPanelProps {
   onUpdateMessage?: (id: string, newText: string) => void;
   sessionId?: string;
   selectedModel?: string | null;
-  onModelChange?: (model: string | null) => void;
+  onModelChange?: (model: string | null, updatedSession?: SessionResponsePayload) => void;
   processingMode?: string;
 }
 

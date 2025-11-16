@@ -1,4 +1,4 @@
-import type { StandardRecord } from '../lib/types';
+import type { StandardRecord, LessonDocumentM2 } from '../lib/types';
 
 export type PanelSide = 'sidebar' | 'right';
 export type ChatSender = 'user' | 'ai';
@@ -65,7 +65,10 @@ export interface DraftItem {
   title: string;
   content: string;
   originalContent?: string;
-  metadata?: Record<string, unknown>;
+  metadata?: {
+    lesson_document?: LessonDocumentM2;
+    [key: string]: unknown;
+  };
   grade?: string;
   strand?: string;
   standard?: string;

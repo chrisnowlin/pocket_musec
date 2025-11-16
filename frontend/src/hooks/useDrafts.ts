@@ -7,7 +7,7 @@ export function useDrafts() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [draftCount, setDraftCount] = useState<number>(0);
-  
+
   // Edit mode state management
   const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
@@ -15,7 +15,7 @@ export function useDrafts() {
   const loadDrafts = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const result = await api.getDrafts();
       if (result.ok) {
@@ -64,7 +64,7 @@ export function useDrafts() {
         content,
         metadata,
       });
-      
+
       if (result.ok) {
         setDrafts(prev => [result.data, ...prev]);
         setDraftCount(prev => prev + 1);
@@ -86,10 +86,10 @@ export function useDrafts() {
   ): Promise<DraftItem | null> => {
     try {
       const result = await api.updateDraft(draftId, updates);
-      
+
       if (result.ok) {
-        setDrafts(prev => 
-          prev.map(draft => 
+        setDrafts(prev =>
+          prev.map(draft =>
             draft.id === draftId ? result.data : draft
           )
         );
@@ -108,7 +108,7 @@ export function useDrafts() {
   const deleteDraft = useCallback(async (draftId: string): Promise<boolean> => {
     try {
       const result = await api.deleteDraft(draftId);
-      
+
       if (result.ok) {
         setDrafts(prev => prev.filter(draft => draft.id !== draftId));
         setDraftCount(prev => prev - 1);
@@ -158,7 +158,7 @@ export function useDrafts() {
   ): Promise<DraftItem | null> => {
     setIsSaving(true);
     setError(null);
-    
+
     try {
       // Optimistic update - update local state immediately
       const currentDraft = drafts.find(d => d.id === draftId);
@@ -175,15 +175,33 @@ export function useDrafts() {
         content,
         updatedAt: new Date().toISOString()
       };
-      
+
       // Only set originalContent if it doesn't exist yet (first edit)
       if (!currentDraft.originalContent) {
         optimisticUpdates.originalContent = currentDraft.content;
       }
-      
+
       if (title !== undefined) {
         optimisticUpdates.title = title;
       }
+
+	      // If an m2.0 lesson document exists, keep its notes in sync with content
+	      if (currentDraft.metadata && 'lesson_document' in currentDraft.metadata) {
+	        const lessonDocument: any = (currentDraft.metadata as any).lesson_document;
+	        if (lessonDocument && lessonDocument.content) {
+	          optimisticUpdates.metadata = {
+	            ...currentDraft.metadata,
+	            lesson_document: {
+	              ...lessonDocument,
+	              content: {
+	                ...lessonDocument.content,
+	                notes: content,
+	              },
+	            },
+	          } as any;
+	        }
+	      }
+
 
       // Apply optimistic updates
       setDrafts(prev =>
@@ -196,7 +214,7 @@ export function useDrafts() {
 
       // Make API call
       const result = await api.updateDraft(draftId, optimisticUpdates);
-      
+
       if (result.ok) {
         // Update with server response
         setDrafts(prev =>
@@ -256,7 +274,7 @@ export function useDrafts() {
     updateDraft,
     deleteDraft,
     clearError,
-    
+
     // Edit mode state and functions
     editingDraftId,
     isSaving,

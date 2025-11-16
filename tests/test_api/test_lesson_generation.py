@@ -1,11 +1,12 @@
 """Tests for lesson generation with LLM integration"""
 
+import json
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from backend.pocketflow.lesson_agent import LessonAgent
 from backend.pocketflow.flow import Flow
 from backend.pocketflow.store import Store
-from backend.api.routes.sessions import _compose_lesson_from_agent
+from backend.api.routes.sessions import _compose_lesson_from_agent, _generate_draft_payload
 from backend.auth.models import User, ProcessingMode
 from backend.repositories.models import Standard, Objective
 
@@ -182,8 +183,6 @@ Students will present their musical story with cultural explanation
         assert "duration" in plan["metadata"]
         assert "class_size" in plan["metadata"]
         assert "generated_by" in plan["metadata"]
-
-
 class TestLessonContent:
     """Test suite for lesson content generation"""
 

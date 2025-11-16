@@ -512,7 +512,6 @@ export default function UnifiedPage() {
           width={sidebarWidth}
           mode={uiState.mode}
           onModeChange={(newMode) => updateUIState({ mode: newMode })}
-          onNewConversation={handleNewConversation}
           onUploadDocuments={() => updateUIState({ mode: 'ingestion' })}
           onUploadImages={() => updateUIState({ imageModalOpen: true })}
           onOpenSettings={() => updateUIState({ mode: 'settings' })}
@@ -551,7 +550,7 @@ export default function UnifiedPage() {
                 onUpdateMessage={handleUpdateMessage}
                 sessionId={session?.id}
                 selectedModel={session?.selected_model ?? null}
-                onModelChange={(model) => session?.id && updateSelectedModel(session.id, model)}
+                onModelChange={(model, updatedSession) => session?.id && updateSelectedModel(session.id, model, updatedSession)}
                 processingMode={settingsState.processingMode}
               />
             )}
@@ -663,6 +662,7 @@ export default function UnifiedPage() {
           onLessonContextChange={(context) => updateLessonSettings({ lessonContext: context })}
           onLessonDurationChange={(duration) => updateLessonSettings({ lessonDuration: duration })}
           onClassSizeChange={(size) => updateLessonSettings({ classSize: size })}
+          onNewConversation={handleNewConversation}
           onBrowseStandards={() => updateUIState({ mode: 'browse' })}
           onViewConversations={() => {
             updateUIState({ mode: 'chat' });

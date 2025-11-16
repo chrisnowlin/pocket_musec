@@ -367,8 +367,16 @@ export function useSession() {
   };
 
   const updateSelectedModel = useCallback(
-    async (sessionId: string, selectedModel: string | null) => {
+    async (sessionId: string, selectedModel: string | null, updatedSession?: SessionResponsePayload) => {
       try {
+        // If we already have the updated session from the API response, use it directly
+        if (updatedSession) {
+          const transformedSession = transformSession(updatedSession);
+          setSession(transformedSession);
+          return transformedSession;
+        }
+
+        // Otherwise, make an API call to update and get the session
         const result = await api.updateSession(sessionId, {
           selected_model: selectedModel || undefined,
         });

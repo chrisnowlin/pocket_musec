@@ -1,5 +1,6 @@
 import { useRef, FormEvent } from 'react';
 import ModelSelector from './ModelSelector';
+import type { SessionResponsePayload } from '../../lib/types';
 
 interface ChatInputProps {
   value: string;
@@ -11,7 +12,7 @@ interface ChatInputProps {
   // Model selector props
   sessionId?: string;
   selectedModel?: string | null;
-  onModelChange?: (model: string | null) => void;
+  onModelChange?: (model: string | null, updatedSession?: SessionResponsePayload) => void;
   processingMode?: string;
 }
 

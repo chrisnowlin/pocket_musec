@@ -93,10 +93,32 @@ export default function DraftsModal({
 
     setIsSaving(true);
     try {
-      const updatedDraft = await onUpdateDraft(editingDraft.id, {
+      let updates: { title?: string; content?: string; metadata?: Record<string, unknown> } = {
         content,
         title: editingDraft.title,
-      });
+      };
+
+      // If an m2.0 lesson document exists, keep its notes in sync with content
+      if (editingDraft.metadata && 'lesson_document' in editingDraft.metadata) {
+        const lessonDocument: any = (editingDraft.metadata as any).lesson_document;
+        if (lessonDocument && lessonDocument.content) {
+          updates = {
+            ...updates,
+            metadata: {
+              ...editingDraft.metadata,
+              lesson_document: {
+                ...lessonDocument,
+                content: {
+                  ...lessonDocument.content,
+                  notes: content,
+                },
+              },
+            },
+          };
+        }
+      }
+
+      const updatedDraft = await onUpdateDraft(editingDraft.id, updates);
 
       if (updatedDraft) {
         setIsEditing(false);

@@ -48,6 +48,9 @@ class TestSessionHelpers:
         session.grade_level = "Grade 3"
         session.strand_code = "CN"
         session.selected_standards = None
+        session.selected_objectives = None
+        session.selected_model = None
+        session.conversation_history = None
         session.additional_context = "Test context"
         session.created_at = "2025-11-11T08:00:00Z"
         session.updated_at = "2025-11-11T08:00:00Z"
@@ -60,7 +63,7 @@ class TestSessionHelpers:
         assert response.id == "session-123"
         assert response.grade_level == "Grade 3"
         assert response.strand_code == "CN"
-        assert response.selected_standard is None
+        assert response.selected_standards == []
 
     def test_create_lesson_agent(self):
         """Test creation of lesson agent from session"""
