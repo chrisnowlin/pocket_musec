@@ -2,8 +2,8 @@
 
 import sqlite3
 from typing import List, Optional, Dict, Any, Tuple
-from .database import DatabaseManager
-from .models import Standard, Objective, StandardWithObjectives
+from backend.repositories.database import DatabaseManager
+from backend.repositories.models import Standard, Objective, StandardWithObjectives
 from backend.llm.embeddings import StandardsEmbeddings
 
 

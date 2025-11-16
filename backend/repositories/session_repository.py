@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from typing import Optional, List
 
-from .database import DatabaseManager
+from backend.repositories.database import DatabaseManager
 from backend.auth import Session
 
 

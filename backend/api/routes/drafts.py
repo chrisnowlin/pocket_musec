@@ -82,9 +82,9 @@ def _trigger_presentation_generation(lesson_id: str, user_id: str) -> None:
 
     This is a fire-and-forget operation that doesn't block the response.
     """
-        try:
-            from backend.services.presentation_jobs import create_presentation_job
-            import asyncio
+    try:
+        from backend.services.presentation_jobs import create_presentation_job
+        import asyncio
 
         # Create the job asynchronously
         async def trigger_job():
@@ -97,7 +97,7 @@ def _trigger_presentation_generation(lesson_id: str, user_id: str) -> None:
                     timeout_seconds=30,
                 )
                 # Execute the job in background
-                    from backend.services.presentation_jobs import get_job_manager
+                from backend.services.presentation_jobs import get_job_manager
 
                 job_manager = get_job_manager()
                 await asyncio.get_event_loop().run_in_executor(

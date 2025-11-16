@@ -28,7 +28,7 @@ from ..models import (
     ModelAvailabilityResponse,
 )
 from ..dependencies import get_current_user
-from ...auth import User
+from backend.auth import User
 
 logger = logging.getLogger(__name__)
 
@@ -273,8 +273,8 @@ def _create_lesson_agent(session: Any, use_conversational: bool = True) -> Lesso
     standard_repo = StandardsRepository()
 
     # Import web search service and config
-    from ...services.web_search_service import WebSearchService
-    from ...config import get_config
+    from backend.services.web_search_service import WebSearchService
+    from backend.config import get_config
 
     # Get web search configuration
     config = get_config()
