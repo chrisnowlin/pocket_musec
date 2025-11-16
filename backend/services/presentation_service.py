@@ -16,7 +16,6 @@ from backend.lessons.presentation_schema import (
     PresentationDocument,
     PresentationStatus,
     PresentationSlide,
-    SourceSection,
     PresentationExport,
 )
 from backend.lessons.presentation_builder import build_presentation_scaffold
@@ -26,7 +25,6 @@ from backend.services.presentation_errors import (
     PresentationError,
     PresentationErrorCode,
     PresentationErrorLogger,
-    ErrorRecoveryStrategy,
     create_error_from_exception,
 )
 from backend.services.export_status_service import (
@@ -34,11 +32,19 @@ from backend.services.export_status_service import (
     ExportFormat,
     ExportStep,
 )
-from backend.services.preview_service import PreviewService
-from backend.services.style_service import StyleService, StyleValidationError, StyleNotFoundError, StyleAccessDeniedError
+from backend.services.style_service import (
+    StyleService,
+    StyleValidationError,
+    StyleNotFoundError,
+    StyleAccessDeniedError,
+)
 from backend.models.style_schema import StyleConfig
 from backend.models.preview_schema import PresentationPreview
 from pydantic import ValidationError
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from backend.services.preview_service import PreviewService
 
 logger = logging.getLogger(__name__)
 
@@ -52,13 +58,14 @@ class PresentationService:
         lesson_repo: Optional[LessonRepository] = None,
         chutes_client: Optional[ChutesClient] = None,
         style_service: Optional[StyleService] = None,
-        preview_service: Optional[PreviewService] = None,
+        preview_service: Optional["PreviewService"] = None,
     ):
         self.presentation_repo = presentation_repo or PresentationRepository()
         self.lesson_repo = lesson_repo or LessonRepository()
         self.chutes_client = chutes_client or ChutesClient(require_api_key=False)
         self.style_service = style_service or StyleService()
-        self.preview_service = preview_service or PreviewService()
+        # Don't instantiate PreviewService by default to avoid circular dependency
+        self.preview_service = preview_service
 
     def generate_presentation(
         self,
@@ -99,7 +106,9 @@ class PresentationService:
             try:
                 scaffold_slides = build_presentation_scaffold(lesson)
             except Exception as e:
-                error = PresentationError.internal_error(f"Scaffold generation failed: {str(e)}")
+                error = PresentationError.internal_error(
+                    f"Scaffold generation failed: {str(e)}"
+                )
                 PresentationErrorLogger.log_error(error, {"lesson_id": lesson_id})
                 raise error
 
@@ -126,17 +135,20 @@ class PresentationService:
 
         except PresentationError as e:
             # Log and re-raise structured errors
-            PresentationErrorLogger.log_error(e, {
-                "lesson_id": lesson_id,
-                "user_id": user_id,
-                "style": style,
-                "use_llm_polish": use_llm_polish,
-                "timeout_seconds": timeout_seconds,
-            })
+            PresentationErrorLogger.log_error(
+                e,
+                {
+                    "lesson_id": lesson_id,
+                    "user_id": user_id,
+                    "style": style,
+                    "use_llm_polish": use_llm_polish,
+                    "timeout_seconds": timeout_seconds,
+                },
+            )
 
             # Mark presentation as error if it exists
             try:
-                if 'presentation' in locals():
+                if "presentation" in locals():
                     self.presentation_repo.update_presentation_status(
                         presentation_id=presentation.id,
                         status=PresentationStatus.ERROR,
@@ -150,17 +162,20 @@ class PresentationService:
 
         except Exception as e:
             # Convert unstructured exceptions to structured errors
-            structured_error = create_error_from_exception(e, {
-                "lesson_id": lesson_id,
-                "user_id": user_id,
-                "operation": "generate_presentation",
-            })
+            structured_error = create_error_from_exception(
+                e,
+                {
+                    "lesson_id": lesson_id,
+                    "user_id": user_id,
+                    "operation": "generate_presentation",
+                },
+            )
 
             PresentationErrorLogger.log_error(structured_error)
 
             # Mark presentation as error if it exists
             try:
-                if 'presentation' in locals():
+                if "presentation" in locals():
                     self.presentation_repo.update_presentation_status(
                         presentation_id=presentation.id,
                         status=PresentationStatus.ERROR,
@@ -187,6 +202,9 @@ class PresentationService:
         """
         logger.info(f"Regenerating presentation for lesson {lesson_id}")
 
+        # Validate inputs
+        self._validate_generation_params(lesson_id, user_id, style, timeout_seconds)
+
         # Mark all existing presentations as stale
         self._mark_all_stale(lesson_id)
 
@@ -197,9 +215,14 @@ class PresentationService:
 
     def get_presentation_status(self, lesson_id: str) -> Optional[Dict[str, Any]]:
         """Return the latest presentation for a lesson as a status dict."""
+        if not lesson_id or not isinstance(lesson_id, str):
+            raise PresentationError.validation_failed("lesson_id", lesson_id)
+
         presentation = self.presentation_repo.latest_by_lesson(lesson_id)
         if not presentation:
             return None
+
+        metadata = self._build_presentation_metadata(presentation)
 
         status_payload = {
             "id": presentation.id,
@@ -215,6 +238,7 @@ class PresentationService:
             "has_exports": len(presentation.export_assets) > 0,
             "error_code": presentation.error_code,
             "error_message": presentation.error_message,
+            **metadata,
         }
         return status_payload
 
@@ -222,6 +246,13 @@ class PresentationService:
         self, presentation_id: str, user_id: str
     ) -> Optional[PresentationDocument]:
         """Get a presentation by ID with user access check."""
+        if not presentation_id or not isinstance(presentation_id, str):
+            raise PresentationError.validation_failed(
+                "presentation_id", presentation_id
+            )
+        if not user_id or not isinstance(user_id, str):
+            raise PresentationError.validation_failed("user_id", user_id)
+
         presentation = self.presentation_repo.get_presentation(presentation_id)
         if not presentation:
             return None
@@ -242,13 +273,12 @@ class PresentationService:
         Returns:
             Number of presentations marked as stale
         """
-        return self.presentation_repo.mark_stale_for_lesson(lesson_id, new_revision)
+        if not lesson_id or not isinstance(lesson_id, str):
+            raise PresentationError.validation_failed("lesson_id", lesson_id)
+        if not isinstance(new_revision, int) or new_revision < 0:
+            raise PresentationError.validation_failed("new_revision", new_revision)
 
-    def get_style_config(
-        self,
-        style_id_or_name: str,
-        user_id: Optional[str] = None
-    ) -> StyleConfig:
+        return self.presentation_repo.mark_stale_for_lesson(lesson_id, new_revision)
 
     def generate_preview(
         self,
@@ -283,10 +313,13 @@ class PresentationService:
             raise
         except Exception as e:
             # Convert unexpected errors to structured presentation errors
-            structured_error = create_error_from_exception(e, {
-                "presentation_id": presentation_id,
-                "operation": "generate_preview",
-            })
+            structured_error = create_error_from_exception(
+                e,
+                {
+                    "presentation_id": presentation_id,
+                    "operation": "generate_preview",
+                },
+            )
             raise structured_error
 
         """Get and validate a style configuration.
@@ -302,7 +335,9 @@ class PresentationService:
             PresentationError: If style validation fails
         """
         try:
-            return self.style_service.validate_and_apply_style(style_id_or_name, user_id)
+            return self.style_service.validate_and_apply_style(
+                style_id_or_name, user_id
+            )
         except (StyleValidationError, StyleNotFoundError, StyleAccessDeniedError) as e:
             if isinstance(e, StyleValidationError):
                 raise PresentationError.invalid_style(str(e))
@@ -312,6 +347,34 @@ class PresentationService:
                 raise PresentationError.style_access_denied(style_id_or_name)
         except Exception as e:
             raise PresentationError.internal_error(f"Error getting style: {str(e)}")
+
+    def _build_presentation_metadata(
+        self, presentation: PresentationDocument
+    ) -> Dict[str, Any]:
+        """Compute derived presentation metadata for API responses."""
+        title = None
+        description = None
+
+        if presentation.slides:
+            first_slide = presentation.slides[0]
+            title = first_slide.title
+
+            if first_slide.teacher_script:
+                description = first_slide.teacher_script[:280]
+            elif first_slide.key_points:
+                description = "; ".join(first_slide.key_points)[:280]
+
+        total_duration = sum(
+            slide.duration_minutes or 0 for slide in presentation.slides
+        )
+
+        return {
+            "title": title,
+            "description": description,
+            "total_slides": len(presentation.slides),
+            "total_duration_minutes": total_duration or None,
+            "is_stale": presentation.status == PresentationStatus.STALE,
+        }
 
     def _validate_generation_params(
         self, lesson_id: str, user_id: str, style: str, timeout_seconds: int
@@ -325,7 +388,11 @@ class PresentationService:
 
         # Validate style using style service
         try:
-            self.style_service.validate_and_apply_style(style, user_id)
+            # Handle both string IDs and StyleConfig objects
+            if isinstance(style, str):
+                self.style_service.validate_and_apply_style(style, user_id)
+            else:
+                self.style_service.validate_and_apply_style(style, user_id)
         except StyleNotFoundError:
             # Check if it's a valid preset ID
             try:
@@ -333,12 +400,20 @@ class PresentationService:
             except StyleNotFoundError:
                 raise PresentationError.validation_failed("style", style)
         except StyleValidationError as e:
-            raise PresentationError.validation_failed("style", f"Invalid style: {str(e)}")
+            raise PresentationError.validation_failed(
+                "style", f"Invalid style: {str(e)}"
+            )
         except StyleAccessDeniedError as e:
             raise PresentationError.permission_denied(f"No access to style: {str(e)}")
 
-        if not isinstance(timeout_seconds, int) or timeout_seconds < 1 or timeout_seconds > 300:
-            raise PresentationError.validation_failed("timeout_seconds", timeout_seconds)
+        if (
+            not isinstance(timeout_seconds, int)
+            or timeout_seconds < 1
+            or timeout_seconds > 300
+        ):
+            raise PresentationError.validation_failed(
+                "timeout_seconds", timeout_seconds
+            )
 
     def _fetch_lesson_document_with_error_handling(
         self, lesson_id: str, user_id: str
@@ -369,11 +444,14 @@ class PresentationService:
         except PresentationError:
             raise
         except Exception as e:
-            error = create_error_from_exception(e, {
-                "lesson_id": lesson_id,
-                "user_id": user_id,
-                "operation": "fetch_lesson_document",
-            })
+            error = create_error_from_exception(
+                e,
+                {
+                    "lesson_id": lesson_id,
+                    "user_id": user_id,
+                    "operation": "fetch_lesson_document",
+                },
+            )
             raise error
 
     def _create_or_update_presentation(
@@ -388,8 +466,10 @@ class PresentationService:
         try:
             existing_presentation = self.presentation_repo.latest_by_lesson(lesson_id)
 
-            if (existing_presentation and
-                existing_presentation.lesson_revision == lesson_revision):
+            if (
+                existing_presentation
+                and existing_presentation.lesson_revision == lesson_revision
+            ):
                 # Update existing presentation
                 presentation = self.presentation_repo.update_presentation_slides(
                     presentation_id=existing_presentation.id,
@@ -416,11 +496,14 @@ class PresentationService:
         except PresentationError:
             raise
         except Exception as e:
-            error = create_error_from_exception(e, {
-                "lesson_id": lesson_id,
-                "user_id": user_id,
-                "operation": "create_or_update_presentation",
-            })
+            error = create_error_from_exception(
+                e,
+                {
+                    "lesson_id": lesson_id,
+                    "user_id": user_id,
+                    "operation": "create_or_update_presentation",
+                },
+            )
             raise error
 
     def _generate_slides_with_error_handling(
@@ -445,20 +528,26 @@ class PresentationService:
 
         except TimeoutError as e:
             error = PresentationError.llm_timeout(timeout_seconds)
-            PresentationErrorLogger.log_error(error, {
-                "lesson_id": lesson.id,
-                "timeout_seconds": timeout_seconds,
-            })
+            PresentationErrorLogger.log_error(
+                error,
+                {
+                    "lesson_id": lesson.id,
+                    "timeout_seconds": timeout_seconds,
+                },
+            )
             # Return scaffold slides as fallback
             PresentationErrorLogger.log_recovery_attempt(error, "using scaffold slides")
             return scaffold_slides
 
         except ConnectionError as e:
             error = PresentationError.llm_unavailable()
-            PresentationErrorLogger.log_error(error, {
-                "lesson_id": lesson.id,
-                "error_details": str(e),
-            })
+            PresentationErrorLogger.log_error(
+                error,
+                {
+                    "lesson_id": lesson.id,
+                    "error_details": str(e),
+                },
+            )
             # Return scaffold slides as fallback
             PresentationErrorLogger.log_recovery_attempt(error, "using scaffold slides")
             return scaffold_slides
@@ -467,14 +556,18 @@ class PresentationService:
             # Check for rate limiting
             if "rate" in str(e).lower() or "limit" in str(e).lower():
                 error = PresentationError.llm_rate_limited()
-                PresentationErrorLogger.log_error(error, {
-                    "lesson_id": lesson.id,
-                    "error_details": str(e),
-                })
+                PresentationErrorLogger.log_error(
+                    error,
+                    {
+                        "lesson_id": lesson.id,
+                        "error_details": str(e),
+                    },
+                )
                 # Retry once after a delay if available
                 PresentationErrorLogger.log_recovery_attempt(error, "retrying once")
                 try:
                     import time
+
                     time.sleep(2)  # Brief delay
                     return polish_presentation_slides(
                         lesson=lesson,
@@ -489,11 +582,16 @@ class PresentationService:
                 # Log and return scaffold as fallback
                 error = PresentationError.llm_invalid_response()
                 error.technical_message = str(e)
-                PresentationErrorLogger.log_error(error, {
-                    "lesson_id": lesson.id,
-                    "error_details": str(e),
-                })
-                PresentationErrorLogger.log_recovery_attempt(error, "using scaffold slides")
+                PresentationErrorLogger.log_error(
+                    error,
+                    {
+                        "lesson_id": lesson.id,
+                        "error_details": str(e),
+                    },
+                )
+                PresentationErrorLogger.log_recovery_attempt(
+                    error, "using scaffold slides"
+                )
                 return scaffold_slides
 
     def _update_presentation_with_error_handling(
@@ -509,10 +607,13 @@ class PresentationService:
         except PresentationError:
             raise
         except Exception as e:
-            error = create_error_from_exception(e, {
-                "presentation_id": presentation_id,
-                "operation": "update_presentation_slides",
-            })
+            error = create_error_from_exception(
+                e,
+                {
+                    "presentation_id": presentation_id,
+                    "operation": "update_presentation_slides",
+                },
+            )
             raise error
 
     def _generate_export_assets_with_error_handling(
@@ -523,18 +624,25 @@ class PresentationService:
             self._generate_export_assets_with_progress(presentation)
         except Exception as e:
             # Don't fail the whole presentation generation for export issues
-            error = create_error_from_exception(e, {
-                "presentation_id": presentation.id,
-                "operation": "generate_export_assets",
-            })
+            error = create_error_from_exception(
+                e,
+                {
+                    "presentation_id": presentation.id,
+                    "operation": "generate_export_assets",
+                },
+            )
             PresentationErrorLogger.log_error(error)
             PresentationErrorLogger.log_recovery_attempt(
                 error, "skipping export generation"
             )
 
-    def _generate_export_assets_with_progress(self, presentation: PresentationDocument) -> None:
+    def _generate_export_assets_with_progress(
+        self, presentation: PresentationDocument
+    ) -> None:
         """Generate export assets with progress tracking."""
-        logger.info(f"Starting export generation with progress tracking for presentation {presentation.id}")
+        logger.info(
+            f"Starting export generation with progress tracking for presentation {presentation.id}"
+        )
 
         # Generate each export format with individual job tracking
         export_formats = [
@@ -553,7 +661,7 @@ class PresentationService:
                     presentation_id=presentation.id,
                     export_format=format_enum,
                     executor_callback=lambda f=creator_func, p=presentation: f(p),
-                    priority=1
+                    priority=1,
                 )
 
                 logger.info(f"Queued {format_name} export with job_id: {job_id}")
@@ -569,7 +677,9 @@ class PresentationService:
         """Generate a single export format and return the job ID for status tracking."""
         presentation = self.presentation_repo.get_presentation(presentation_id)
         if not presentation:
-            raise PresentationError.validation_failed("presentation_id", presentation_id)
+            raise PresentationError.validation_failed(
+                "presentation_id", presentation_id
+            )
 
         # Parse export format
         try:
@@ -594,13 +704,15 @@ class PresentationService:
             presentation_id=presentation_id,
             export_format=format_enum,
             executor_callback=lambda: callback(presentation),
-            priority=5  # High priority for on-demand exports
+            priority=5,  # High priority for on-demand exports
         )
 
         logger.info(f"Started on-demand export job {job_id} for format {export_format}")
         return job_id
 
-    def get_export_status(self, presentation_id: str, export_format: Optional[str] = None) -> Dict[str, Any]:
+    def get_export_status(
+        self, presentation_id: str, export_format: Optional[str] = None
+    ) -> Dict[str, Any]:
         """Get export status information for a presentation."""
         jobs = export_status_service.get_jobs_for_presentation(presentation_id)
 
@@ -620,7 +732,9 @@ class PresentationService:
             "total_jobs": len(jobs),
             "completed_jobs": len([j for j in jobs if j.status == "completed"]),
             "failed_jobs": len([j for j in jobs if j.status == "failed"]),
-            "active_jobs": len([j for j in jobs if j.status in ["pending", "processing"]]),
+            "active_jobs": len(
+                [j for j in jobs if j.status in ["pending", "processing"]]
+            ),
         }
 
         for job in jobs:
@@ -635,19 +749,28 @@ class PresentationService:
                 },
                 "created_at": job.created_at.isoformat(),
                 "started_at": job.started_at.isoformat() if job.started_at else None,
-                "completed_at": job.completed_at.isoformat() if job.completed_at else None,
+                "completed_at": job.completed_at.isoformat()
+                if job.completed_at
+                else None,
                 "error_message": job.error_message,
                 "retry_count": job.retry_count,
                 "export_asset": {
                     "url_or_path": job.export_asset.url_or_path,
                     "file_size_bytes": job.export_asset.file_size_bytes,
-                    "generated_at": job.export_asset.generated_at.isoformat() if job.export_asset else None,
-                } if job.export_asset else None,
+                    "generated_at": job.export_asset.generated_at.isoformat()
+                    if job.export_asset
+                    else None,
+                }
+                if job.export_asset
+                else None,
             }
             result["exports"].append(export_info)
 
         # Determine overall status
-        if result["completed_jobs"] == result["total_jobs"] and result["total_jobs"] > 0:
+        if (
+            result["completed_jobs"] == result["total_jobs"]
+            and result["total_jobs"] > 0
+        ):
             result["overall_status"] = "completed"
         elif result["failed_jobs"] == result["total_jobs"] and result["total_jobs"] > 0:
             result["overall_status"] = "failed"
@@ -660,14 +783,17 @@ class PresentationService:
 
         return result
 
-    def retry_failed_export(self, presentation_id: str, export_format: str) -> Optional[str]:
+    def retry_failed_export(
+        self, presentation_id: str, export_format: str
+    ) -> Optional[str]:
         """Retry a failed export and return the new job ID."""
         format_enum = ExportFormat(export_format.lower())
         jobs = export_status_service.get_jobs_for_presentation(presentation_id)
 
         # Find the most recent failed job for this format
         failed_jobs = [
-            job for job in jobs
+            job
+            for job in jobs
             if job.export_format == format_enum and job.status == "failed"
         ]
 
@@ -747,21 +873,21 @@ class PresentationService:
 
         # Extract objectives from markdown content
         objectives = []
-        content_lines = lesson.content.split('\n')
+        content_lines = lesson.content.split("\n")
 
         # Look for learning objectives section
         in_objectives = False
         for line in content_lines:
             line = line.strip()
-            if 'learning objective' in line.lower() or 'objective' in line.lower():
+            if "learning objective" in line.lower() or "objective" in line.lower():
                 in_objectives = True
                 continue
-            elif line.startswith('##') and in_objectives:
+            elif line.startswith("##") and in_objectives:
                 # Hit next section, stop collecting objectives
                 break
-            elif in_objectives and line and not line.startswith('#'):
+            elif in_objectives and line and not line.startswith("#"):
                 # Clean up objective text
-                obj = re.sub(r'^[\-\*\d\.\s]+', '', line).strip()
+                obj = re.sub(r"^[\-\*\d\.\s]+", "", line).strip()
                 if obj and len(obj) > 10:
                     objectives.append(obj)
 
@@ -774,13 +900,13 @@ class PresentationService:
         in_materials = False
         for line in content_lines:
             line = line.strip()
-            if 'material' in line.lower() or 'resource' in line.lower():
+            if "material" in line.lower() or "resource" in line.lower():
                 in_materials = True
                 continue
-            elif line.startswith('##') and in_materials:
+            elif line.startswith("##") and in_materials:
                 break
-            elif in_materials and line and not line.startswith('#'):
-                material = re.sub(r'^[\-\*\d\.\s]+', '', line).strip()
+            elif in_materials and line and not line.startswith("#"):
+                material = re.sub(r"^[\-\*\d\.\s]+", "", line).strip()
                 if material and len(material) > 5:
                     materials.append(material)
 
@@ -796,15 +922,20 @@ class PresentationService:
                     "id": "main_activity",
                     "title": "Main Learning Activity",
                     "duration_minutes": 30,
-                    "steps": ["Introduction", "Guided Practice", "Independent Work", "Reflection"],
+                    "steps": [
+                        "Introduction",
+                        "Guided Practice",
+                        "Independent Work",
+                        "Reflection",
+                    ],
                     "aligned_standards": [],
-                    "citations": []
+                    "citations": [],
                 }
             ],
             "assessment": "Formative assessment through observation and questioning",
             "differentiation": "Differentiated instruction as needed for diverse learners",
             "exit_ticket": "Lesson reflection and key takeaways",
-            "timing": timing
+            "timing": timing,
         }
 
         # Create minimal lesson document
@@ -841,7 +972,7 @@ class PresentationService:
             "objectives": objectives[:5],  # Limit to 5 objectives
             "content": content,
             "citations": [],
-            "revision": 1
+            "revision": 1,
         }
 
         return LessonDocumentM2(**lesson_doc)
@@ -955,7 +1086,7 @@ class PresentationService:
                 "format": "p1.0",
             },
             indent=2,
-            cls=DateTimeEncoder
+            cls=DateTimeEncoder,
         )
 
         # Create export asset with proper datetime handling
@@ -1061,7 +1192,9 @@ class PresentationService:
             import tempfile
             import os
         except ModuleNotFoundError as e:
-            error = PresentationError.export_failed("pptx", f"Missing dependency: {e.name}")
+            error = PresentationError.export_failed(
+                "pptx", f"Missing dependency: {e.name}"
+            )
             raise error
         except ImportError as e:
             error = PresentationError.export_failed("pptx", f"Import error: {str(e)}")
@@ -1162,7 +1295,9 @@ class PresentationService:
             import tempfile
             import os
         except ModuleNotFoundError as e:
-            error = PresentationError.export_failed("pdf", f"Missing dependency: {e.name}")
+            error = PresentationError.export_failed(
+                "pdf", f"Missing dependency: {e.name}"
+            )
             raise error
         except ImportError as e:
             error = PresentationError.export_failed("pdf", f"Import error: {str(e)}")
@@ -1181,7 +1316,9 @@ class PresentationService:
             # Add title
             title_style = styles["Title"]
             title_style.textColor = blue
-            title = presentation.slides[0].title if presentation.slides else "Presentation"
+            title = (
+                presentation.slides[0].title if presentation.slides else "Presentation"
+            )
             story.append(Paragraph(title, title_style))
             story.append(Spacer(1, 12))
 
@@ -1194,7 +1331,9 @@ class PresentationService:
                 )
             )
             story.append(
-                Paragraph(f"<b>Total Slides:</b> {len(presentation.slides)}", normal_style)
+                Paragraph(
+                    f"<b>Total Slides:</b> {len(presentation.slides)}", normal_style
+                )
             )
             story.append(Spacer(1, 20))
 
@@ -1203,7 +1342,9 @@ class PresentationService:
                 # Slide title
                 if slide.title:
                     heading_style = styles["Heading1"]
-                    story.append(Paragraph(f"Slide {i + 1}: {slide.title}", heading_style))
+                    story.append(
+                        Paragraph(f"Slide {i + 1}: {slide.title}", heading_style)
+                    )
                     story.append(Spacer(1, 12))
 
                 # Key points

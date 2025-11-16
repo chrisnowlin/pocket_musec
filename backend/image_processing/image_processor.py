@@ -31,7 +31,18 @@ class ImageProcessor:
             api_key: Chutes API key for vision analysis (defaults to config)
         """
         # Use centralized config if no overrides provided
-        from config import config
+        try:
+            from config import config
+        except ImportError:
+            # Fallback to defaults if config module not available
+            class Config:
+                def __init__(self):
+                    self.chutes = type("Config", (), {"api_key": None})()
+                    self.image_processing = type(
+                        "ImageProcessingConfig", (), {"storage_path": "./uploads"}
+                    )()
+
+            config = Config()
 
         self.ocr_engine = OCREngine()
         self.vision_analyzer = VisionAnalyzer(api_key=api_key or config.chutes.api_key)
