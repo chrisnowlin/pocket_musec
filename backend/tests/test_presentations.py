@@ -11,10 +11,10 @@ from backend.lessons.presentation_schema import (
     PresentationStatus,
     PresentationSlide,
     SourceSection,
+    build_presentation_document,
 )
 from backend.lessons.presentation_builder import (
     build_presentation_scaffold,
-    build_presentation_document,
     PresentationScaffoldBuilder,
 )
 from backend.lessons.schema_m2 import (
@@ -24,7 +24,7 @@ from backend.lessons.schema_m2 import (
     LessonStandard,
     LessonTiming,
 )
-from auth.models import Lesson
+from backend.auth.models import Lesson
 from backend.repositories.presentation_repository import PresentationRepository
 from backend.services.presentation_service import PresentationService
 from backend.services.presentation_jobs import create_presentation_job, get_job_manager
@@ -198,13 +198,13 @@ class TestPresentationRepository:
             db_path = f.name
 
         # Initialize database
-        from repositories.database import DatabaseManager
+        from backend.repositories.database import DatabaseManager
 
         db_manager = DatabaseManager(db_path)
         db_manager.initialize_database()
 
         # Run migrations
-        from repositories.migrations import MigrationManager
+        from backend.repositories.migrations import MigrationManager
 
         migration_manager = MigrationManager(db_path)
         migration_manager.migrate()
@@ -338,12 +338,12 @@ class TestPresentationService:
         with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as f:
             db_path = f.name
 
-        from repositories.database import DatabaseManager
+        from backend.repositories.database import DatabaseManager
 
         db_manager = DatabaseManager(db_path)
         db_manager.initialize_database()
 
-        from repositories.migrations import MigrationManager
+        from backend.repositories.migrations import MigrationManager
 
         migration_manager = MigrationManager(db_path)
         migration_manager.migrate()

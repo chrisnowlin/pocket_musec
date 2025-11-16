@@ -1,4 +1,4 @@
-import { renderHook, act } from '@testing-library/react'
+import { renderHook, act, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useDrafts } from '../useDrafts'
 import type { DraftItem } from '../../types/unified'
@@ -22,24 +22,17 @@ vi.mock('../../lib/api', () => {
       updateDraft: mockUpdateDraft,
       deleteDraft: mockDeleteDraft,
     },
-    // Export the mocks so we can access them in tests
-    __mocks: {
-      mockGetDrafts,
-      mockGetDraft,
-      mockCreateDraft,
-      mockUpdateDraft,
-      mockDeleteDraft,
-    },
   }
 })
 
 // Get the mocked functions
-const { __mocks } = vi.mocked(await import('../../lib/api'))
-const mockGetDrafts = __mocks.mockGetDrafts
-const mockGetDraft = __mocks.mockGetDraft
-const mockCreateDraft = __mocks.mockCreateDraft
-const mockUpdateDraft = __mocks.mockUpdateDraft
-const mockDeleteDraft = __mocks.mockDeleteDraft
+const apiModule = await import('../../lib/api')
+const mockedApi = vi.mocked(apiModule.default, { shallow: false })
+const mockGetDrafts = mockedApi.getDrafts
+const mockGetDraft = mockedApi.getDraft
+const mockCreateDraft = mockedApi.createDraft
+const mockUpdateDraft = mockedApi.updateDraft
+const mockDeleteDraft = mockedApi.deleteDraft
 
 const createWrapper = () => {
   const queryClient = new QueryClient()
@@ -363,8 +356,10 @@ describe('useDrafts', () => {
       await new Promise(resolve => setTimeout(resolve, 0))
     })
 
-    expect(result.current.error).toBe('API Error')
-    expect(result.current.isLoading).toBe(false)
+    await waitFor(() => {
+      expect(result.current.error).toBe('API Error')
+      expect(result.current.isLoading).toBe(false)
+    })
   })
 
   it('clears error state', async () => {
@@ -381,7 +376,9 @@ describe('useDrafts', () => {
       await new Promise(resolve => setTimeout(resolve, 0))
     })
 
-    expect(result.current.error).toBe('API Error')
+    await waitFor(() => {
+      expect(result.current.error).toBe('API Error')
+    })
 
     act(() => {
       result.current.clearError()

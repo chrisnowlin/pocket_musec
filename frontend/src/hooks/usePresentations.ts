@@ -1,242 +1,219 @@
 import { useState, useCallback } from 'react';
 import { apiClient } from '../lib/api';
-import type { 
-  PresentationDocument, 
-  PresentationSummary, 
-  PresentationExport,
-  PresentationGenerationRequest,
-  PresentationStatus 
+import type {
+  PresentationDetail,
+  PresentationSummary,
+  PresentationGenerateResponse,
+  PresentationJobInfo,
+  PresentationStatus,
 } from '../types/presentations';
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+export interface GenerateOptions {
+  style?: string;
+  use_llm_polish?: boolean;
+  timeout_seconds?: number;
+}
 
 export function usePresentations() {
   const [error, setError] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
 
-  const loadPresentations = useCallback(async (lessonId?: string): Promise<PresentationSummary[]> => {
-    setError(null);
-    
-    try {
-      const url = lessonId ? `/presentations?lesson_id=${lessonId}` : '/presentations';
-      const result = await apiClient.get<PresentationSummary[]>(url);
-      
-      if (result.ok) {
-        return result.data;
-      } else {
-        setError((result as any).message || 'Failed to load presentations');
+  const getLessonPresentationStatus = useCallback(
+    async (lessonId: string): Promise<PresentationSummary | null> => {
+      setError(null);
+      const result = await apiClient.get<PresentationSummary>(
+        `/presentations/lessons/${lessonId}/latest`
+      );
+      if (!result.ok) {
+        if (result.status && result.status !== 404) {
+          setError(result.message || 'Failed to fetch presentation status');
+        }
+        return null;
+      }
+      return result.data;
+    },
+    []
+  );
+
+  const listLessonPresentations = useCallback(
+    async (lessonId: string, includeStale = false): Promise<PresentationSummary[]> => {
+      setError(null);
+      const result = await apiClient.get<PresentationSummary[]>(
+        `/presentations/lessons/${lessonId}/presentations`,
+        { params: { include_stale: includeStale } }
+      );
+      if (!result.ok) {
+        setError(result.message || 'Failed to list presentations');
         return [];
       }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to load presentations';
-      setError(errorMessage);
-      return [];
-    }
-  }, []);
+      return result.data;
+    },
+    []
+  );
 
-  const getPresentation = useCallback(async (presentationId: string): Promise<PresentationDocument | null> => {
-    setError(null);
-    
-    try {
-      const result = await apiClient.get<PresentationDocument>(`/presentations/${presentationId}`);
-      
-      if (result.ok) {
+  const getPresentation = useCallback(
+    async (presentationId: string): Promise<PresentationDetail | null> => {
+      setError(null);
+      const result = await apiClient.get<PresentationDetail>(
+        `/presentations/${presentationId}`
+      );
+      if (!result.ok) {
+        setError(result.message || 'Failed to load presentation');
+        return null;
+      }
+      return result.data;
+    },
+    []
+  );
+
+  const generatePresentation = useCallback(
+    async (lessonId: string, options?: GenerateOptions): Promise<PresentationGenerateResponse | null> => {
+      setIsGenerating(true);
+      setError(null);
+      try {
+        const payload = {
+          lesson_id: lessonId,
+          style: options?.style ?? 'default',
+          use_llm_polish: options?.use_llm_polish ?? true,
+          timeout_seconds: options?.timeout_seconds ?? 30,
+        };
+        const result = await apiClient.post<PresentationGenerateResponse>(
+          '/presentations/generate',
+          payload
+        );
+        if (!result.ok) {
+          setError(result.message || 'Failed to start presentation generation');
+          return null;
+        }
         return result.data;
-      } else {
-        setError((result as any).message || 'Failed to load presentation');
+      } catch (err: any) {
+        setError(err?.message || 'Failed to start presentation generation');
+        return null;
+      } finally {
+        setIsGenerating(false);
+      }
+    },
+    []
+  );
+
+  const getJobStatus = useCallback(
+    async (jobId: string): Promise<PresentationJobInfo | null> => {
+      setError(null);
+      const result = await apiClient.get<PresentationJobInfo>(
+        `/presentations/jobs/${jobId}`
+      );
+      if (!result.ok) {
+        setError(result.message || 'Failed to fetch job status');
         return null;
       }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to load presentation';
-      setError(errorMessage);
+      return result.data;
+    },
+    []
+  );
+
+  const waitForJobCompletion = useCallback(
+    async (
+      jobId: string,
+      lessonId: string,
+      {
+        pollIntervalMs = 2000,
+        maxAttempts = 30,
+      }: { pollIntervalMs?: number; maxAttempts?: number } = {}
+    ): Promise<PresentationSummary | null> => {
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const job = await getJobStatus(jobId);
+        if (!job) {
+          return null;
+        }
+
+        if (job.status === 'completed') {
+          return await getLessonPresentationStatus(lessonId);
+        }
+
+        if (job.status === 'failed') {
+          setError(job.error || 'Presentation generation failed');
+          return null;
+        }
+
+        await sleep(pollIntervalMs);
+      }
+
+      setError('Timed out while waiting for presentation generation');
       return null;
-    }
-  }, []);
+    },
+    [getJobStatus, getLessonPresentationStatus]
+  );
 
-  const generatePresentation = useCallback(async (
-    lessonId: string, 
-    options?: PresentationGenerationRequest['options']
-  ): Promise<PresentationSummary | null> => {
-    setIsGenerating(true);
-    setError(null);
-    
-    try {
-      const payload: PresentationGenerationRequest = {
-        lesson_id: lessonId,
-        options
-      };
-      
-      const result = await apiClient.post<PresentationSummary>('/presentations/generate', payload);
-      
-      if (result.ok) {
-        return result.data;
-      } else {
-        setError((result as any).message || 'Failed to generate presentation');
-        return null;
+  const exportPresentation = useCallback(
+    async (presentationId: string, format: 'json' | 'markdown' | 'pptx' | 'pdf'): Promise<void> => {
+      setIsExporting(true);
+      setError(null);
+      try {
+        const response = await fetch(
+          `/api/presentations/${presentationId}/export?format=${format}`
+        );
+        if (!response.ok) {
+          throw new Error('Failed to export presentation');
+        }
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const extension = format === 'markdown' ? 'md' : format;
+        const filename = `presentation_${presentationId}.${extension}`;
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = filename;
+        document.body.appendChild(anchor);
+        anchor.click();
+        document.body.removeChild(anchor);
+        window.URL.revokeObjectURL(url);
+      } catch (err: any) {
+        setError(err?.message || 'Failed to export presentation');
+      } finally {
+        setIsExporting(false);
       }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to generate presentation';
-      setError(errorMessage);
-      return null;
-    } finally {
-      setIsGenerating(false);
-    }
-  }, []);
+    },
+    []
+  );
 
-  const getPresentationStatus = useCallback(async (presentationId: string): Promise<PresentationStatus | null> => {
-    setError(null);
-    
-    try {
-      const result = await apiClient.get<{ status: PresentationStatus }>(`/presentations/${presentationId}/status`);
-      
-      if (result.ok) {
-        return result.data.status;
-      } else {
-        setError((result as any).message || 'Failed to get presentation status');
-        return null;
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to get presentation status';
-      setError(errorMessage);
-      return null;
-    }
-  }, []);
+  const clearError = useCallback(() => setError(null), []);
 
-  const deletePresentation = useCallback(async (presentationId: string): Promise<boolean> => {
-    setError(null);
-    
-    try {
-      const result = await apiClient.delete(`/presentations/${presentationId}`);
-      
-      if (result.ok) {
-        return true;
-      } else {
-        setError((result as any).message || 'Failed to delete presentation');
-        return false;
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to delete presentation';
-      setError(errorMessage);
-      return false;
-    }
-  }, []);
-
-  const exportPresentation = useCallback(async (
-    presentationId: string, 
-    format: 'json' | 'markdown'
-  ): Promise<PresentationExport | null> => {
-    setIsExporting(true);
-    setError(null);
-    
-    try {
-      const result = await apiClient.post<PresentationExport>(`/presentations/${presentationId}/export`, { format });
-      
-      if (result.ok) {
-        return result.data;
-      } else {
-        setError((result as any).message || 'Failed to export presentation');
-        return null;
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to export presentation';
-      setError(errorMessage);
-      return null;
-    } finally {
-      setIsExporting(false);
-    }
-  }, []);
-
-  const downloadExport = useCallback(async (exportUrl: string, filename: string): Promise<void> => {
-    try {
-      const response = await fetch(exportUrl);
-      if (!response.ok) {
-        throw new Error('Failed to download export');
-      }
-      
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to download export';
-      setError(errorMessage);
-    }
-  }, []);
-
-  const refreshPresentation = useCallback(async (presentationId: string): Promise<PresentationDocument | null> => {
-    setError(null);
-    
-    try {
-      const result = await apiClient.post<PresentationDocument>(`/presentations/${presentationId}/refresh`);
-      
-      if (result.ok) {
-        return result.data;
-      } else {
-        setError((result as any).message || 'Failed to refresh presentation');
-        return null;
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to refresh presentation';
-      setError(errorMessage);
-      return null;
-    }
-  }, []);
-
-  const clearError = useCallback(() => {
-    setError(null);
-  }, []);
-
-  // Helper function to get status display text
   const getStatusDisplay = useCallback((status: PresentationStatus): string => {
     switch (status) {
+      case 'complete':
+        return 'Ready';
       case 'pending':
         return 'Pending';
-      case 'generating':
-        return 'Generating...';
-      case 'completed':
-        return 'Completed';
-      case 'failed':
-        return 'Failed';
+      case 'error':
+        return 'Error';
+      case 'stale':
+        return 'Stale';
       default:
         return 'Unknown';
     }
   }, []);
 
-  // Helper function to check if status allows viewing
-  const canViewPresentation = useCallback((status: PresentationStatus): boolean => {
-    return status === 'completed';
-  }, []);
-
-  // Helper function to check if status allows generation
-  const canGeneratePresentation = useCallback((status?: PresentationStatus): boolean => {
-    return !status || status === 'failed' || status === 'completed';
-  }, []);
+  const canViewPresentation = useCallback(
+    (status?: PresentationStatus): boolean => status === 'complete',
+    []
+  );
 
   return {
-    // State
     error,
     isGenerating,
     isExporting,
-    
-    // API methods
-    loadPresentations,
-    getPresentation,
     generatePresentation,
-    getPresentationStatus,
-    deletePresentation,
+    waitForJobCompletion,
+    getLessonPresentationStatus,
+    listLessonPresentations,
+    getPresentation,
+    getJobStatus,
     exportPresentation,
-    downloadExport,
-    refreshPresentation,
     clearError,
-    
-    // Helper methods
     getStatusDisplay,
     canViewPresentation,
-    canGeneratePresentation,
   };
 }
 

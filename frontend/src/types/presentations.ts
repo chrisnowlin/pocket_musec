@@ -1,87 +1,110 @@
-// Presentation types based on backend schema
+// Presentation types aligned with backend schema
 
-export enum PresentationStatus {
-  PENDING = 'pending',
-  GENERATING = 'generating', 
-  COMPLETED = 'completed',
-  FAILED = 'failed'
-}
+export const PresentationStatus = {
+  PENDING: 'pending',
+  GENERATING: 'pending',
+  COMPLETED: 'complete',
+  FAILED: 'error',
+  STALE: 'stale',
+} as const;
+export type PresentationStatus =
+  (typeof PresentationStatus)[keyof typeof PresentationStatus];
 
-export enum SlideType {
-  TITLE = 'title',
-  CONTENT = 'content',
-  ACTIVITY = 'activity',
-  ASSESSMENT = 'assessment',
-  CLOSURE = 'closure'
-}
+export type PresentationJobStatus = 'pending' | 'running' | 'completed' | 'failed';
+
+export type SourceSection =
+  | 'overview'
+  | 'objectives'
+  | 'materials'
+  | 'warmup'
+  | 'activity'
+  | 'assessment'
+  | 'differentiation'
+  | 'closure';
+
+export type SlideType = 'title' | 'content' | 'activity' | 'assessment' | 'closure';
 
 export interface PresentationSlide {
   id: string;
-  slide_number: number;
-  slide_type: SlideType;
+  order?: number;
+  slide_number?: number;
+  slide_type?: SlideType;
   title: string;
-  content: string;
+  subtitle?: string | null;
+  content?: string;
+  key_points?: string[];
   teacher_script: string;
-  duration_minutes: number;
-  materials_needed: string[];
-  created_at: string;
-  updated_at: string;
-}
-
-export interface PresentationDocument {
-  id: string;
-  lesson_id: string;
-  title: string;
-  description: string;
-  total_slides: number;
-  total_duration_minutes: number;
-  status: PresentationStatus;
-  slides: PresentationSlide[];
-  created_at: string;
-  updated_at: string;
-  generation_started_at?: string;
-  generation_completed_at?: string;
-  error_message?: string;
-  is_stale: boolean;
+  visual_prompt?: string | null;
+  duration_minutes?: number | null;
+  materials_needed?: string[];
+  source_section?: SourceSection;
+  activity_id?: string | null;
+  standard_codes?: string[];
 }
 
 export interface PresentationExport {
-  id: string;
-  presentation_id: string;
-  export_format: 'json' | 'markdown';
-  file_url: string;
-  file_size_bytes: number;
-  created_at: string;
-  expires_at: string;
-}
-
-export interface PresentationGenerationRequest {
-  lesson_id: string;
-  options?: {
-    include_teacher_scripts?: boolean;
-    include_materials?: boolean;
-    slide_duration_minutes?: number;
-  };
+  format: 'json' | 'markdown' | 'pptx' | 'pdf';
+  url_or_path: string;
+  generated_at: string;
+  file_size_bytes?: number | null;
 }
 
 export interface PresentationSummary {
   id: string;
+  presentation_id?: string; // alias for convenience
   lesson_id: string;
-  title: string;
+  lesson_revision: number;
+  version: string;
   status: PresentationStatus;
-  total_slides: number;
-  total_duration_minutes: number;
+  style: string;
+  slide_count: number;
   created_at: string;
   updated_at: string;
-  is_stale: boolean;
+  has_exports: boolean;
+  error_code?: string | null;
+  error_message?: string | null;
+  title?: string;
+  description?: string;
+  total_slides?: number;
+  total_duration_minutes?: number;
+  is_stale?: boolean;
 }
 
-// UI-specific types
+export interface PresentationDetail extends PresentationSummary {
+  title?: string;
+  description?: string;
+  slides: PresentationSlide[];
+  export_assets: PresentationExport[];
+  total_slides?: number;
+  total_duration_minutes?: number;
+  is_stale?: boolean;
+}
+
+export type PresentationDocument = PresentationDetail;
+
+export interface PresentationGenerateResponse {
+  job_id: string;
+  status: string;
+  message: string;
+}
+
+export interface PresentationJobInfo {
+  job_id: string;
+  status: PresentationJobStatus;
+  lesson_id: string;
+  created_at: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+  presentation_id?: string | null;
+  error?: string | null;
+}
+
+// UI-specific props
 export interface PresentationViewerProps {
-  presentation: PresentationDocument;
+  presentation: PresentationDetail;
   isOpen: boolean;
   onClose: () => void;
-  onExport?: (format: 'json' | 'markdown') => void;
+  onExport?: (format: 'json' | 'markdown' | 'pptx' | 'pdf') => void;
   isExporting?: boolean;
 }
 

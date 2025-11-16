@@ -1,12 +1,12 @@
-import { useState } from 'react';
-import type { PresentationDocument, SlideType } from '../../types/presentations';
+import { useMemo, useState } from 'react';
+import type { PresentationDetail, SourceSection } from '../../types/presentations';
 import { PresentationStatusIndicator } from './PresentationStatusIndicator';
 
 interface PresentationViewerProps {
-  presentation: PresentationDocument;
+  presentation: PresentationDetail;
   isOpen: boolean;
   onClose: () => void;
-  onExport?: (format: 'json' | 'markdown') => void;
+  onExport?: (format: 'json' | 'markdown' | 'pptx' | 'pdf') => void;
   isExporting?: boolean;
 }
 
@@ -34,16 +34,30 @@ export function PresentationViewer({
   const nextSlide = () => goToSlide(currentSlideIndex + 1);
   const prevSlide = () => goToSlide(currentSlideIndex - 1);
 
-  const getSlideTypeColor = (type: SlideType): string => {
-    switch (type) {
-      case 'title':
+  const slideTitle = useMemo(() => {
+    return (
+      presentation.title ||
+      presentation.slides[0]?.title ||
+      'Lesson Presentation'
+    );
+  }, [presentation.title, presentation.slides]);
+
+  const getSectionStyle = (section?: SourceSection): string => {
+    switch (section) {
+      case 'overview':
         return 'bg-purple-100 text-purple-800';
-      case 'content':
+      case 'objectives':
         return 'bg-blue-100 text-blue-800';
-      case 'activity':
+      case 'materials':
+        return 'bg-amber-100 text-amber-800';
+      case 'warmup':
         return 'bg-green-100 text-green-800';
+      case 'activity':
+        return 'bg-emerald-100 text-emerald-800';
       case 'assessment':
         return 'bg-orange-100 text-orange-800';
+      case 'differentiation':
+        return 'bg-pink-100 text-pink-800';
       case 'closure':
         return 'bg-red-100 text-red-800';
       default:
@@ -51,20 +65,26 @@ export function PresentationViewer({
     }
   };
 
-  const getSlideTypeIcon = (type: SlideType): string => {
-    switch (type) {
-      case 'title':
-        return '📋';
-      case 'content':
-        return '📝';
+  const getSectionLabel = (section?: SourceSection): string => {
+    switch (section) {
+      case 'overview':
+        return 'Overview';
+      case 'objectives':
+        return 'Objectives';
+      case 'materials':
+        return 'Materials';
+      case 'warmup':
+        return 'Warmup';
       case 'activity':
-        return '🎯';
+        return 'Activity';
       case 'assessment':
-        return '📊';
+        return 'Assessment';
+      case 'differentiation':
+        return 'Differentiation';
       case 'closure':
-        return '🎯';
+        return 'Closure';
       default:
-        return '📄';
+        return 'Section';
     }
   };
 
@@ -74,7 +94,10 @@ export function PresentationViewer({
         {/* Header */}
         <div className="border-b border-gray-200 p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <h2 className="text-xl font-semibold text-gray-900">{presentation.title}</h2>
+            <div>
+              <h2 className="text-xl font-semibold text-gray-900">{slideTitle}</h2>
+              <p className="text-sm text-gray-500">Lesson #{presentation.lesson_id}</p>
+            </div>
             <PresentationStatusIndicator status={presentation.status} />
           </div>
           <div className="flex items-center gap-2">
@@ -93,6 +116,20 @@ export function PresentationViewer({
                   className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white rounded-md transition-colors"
                 >
                   {isExporting ? 'Exporting...' : 'Export Markdown'}
+                </button>
+                <button
+                  onClick={() => onExport('pptx')}
+                  disabled={isExporting}
+                  className="px-3 py-1 text-sm bg-orange-600 hover:bg-orange-700 disabled:bg-orange-300 text-white rounded-md transition-colors"
+                >
+                  {isExporting ? 'Exporting...' : 'Export PPTX'}
+                </button>
+                <button
+                  onClick={() => onExport('pdf')}
+                  disabled={isExporting}
+                  className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white rounded-md transition-colors"
+                >
+                  {isExporting ? 'Exporting...' : 'Export PDF'}
                 </button>
               </>
             )}
@@ -115,13 +152,13 @@ export function PresentationViewer({
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium text-gray-500">
-                      Slide {currentSlide.slide_number} of {totalSlides}
+                      Slide {currentSlideIndex + 1} of {totalSlides}
                     </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSlideTypeColor(currentSlide.slide_type)}`}>
-                      {getSlideTypeIcon(currentSlide.slide_type)} {currentSlide.slide_type}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSectionStyle(currentSlide.source_section)}`}>
+                      {getSectionLabel(currentSlide.source_section)}
                     </span>
                     <span className="text-sm text-gray-500">
-                      {currentSlide.duration_minutes} min
+                      {currentSlide.duration_minutes ? `${currentSlide.duration_minutes} min` : 'Flexible'}
                     </span>
                   </div>
                 </div>
@@ -130,21 +167,31 @@ export function PresentationViewer({
                 <h3 className="text-2xl font-bold text-gray-900">{currentSlide.title}</h3>
 
                 {/* Slide Content */}
-                <div className="prose prose-lg max-w-none">
-                  <div className="whitespace-pre-wrap text-gray-700">{currentSlide.content}</div>
-                </div>
+                {currentSlide.subtitle && (
+                  <p className="text-lg text-gray-600">{currentSlide.subtitle}</p>
+                )}
 
-                {/* Materials */}
-                {currentSlide.materials_needed.length > 0 && (
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Materials Needed:</h4>
-                    <ul className="list-disc list-inside text-sm text-gray-700 space-y-1">
-                      {currentSlide.materials_needed.map((material, index) => (
-                        <li key={index}>{material}</li>
+                <div className="space-y-3">
+                  {((currentSlide.key_points && currentSlide.key_points.length > 0) ||
+                    currentSlide.content) && (
+                    <ul className="list-disc list-inside text-gray-800 space-y-1">
+                      {(currentSlide.key_points && currentSlide.key_points.length > 0
+                        ? currentSlide.key_points
+                        : currentSlide.content
+                        ? [currentSlide.content]
+                        : []
+                      ).map((point, idx) => (
+                        <li key={idx}>{point}</li>
                       ))}
                     </ul>
-                  </div>
-                )}
+                  )}
+                  {currentSlide.standard_codes &&
+                    currentSlide.standard_codes.length > 0 && (
+                      <div className="text-sm text-gray-500">
+                        Standards: {currentSlide.standard_codes.join(', ')}
+                      </div>
+                    )}
+                </div>
               </div>
             )}
           </div>
@@ -164,7 +211,7 @@ export function PresentationViewer({
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="bg-yellow-50 rounded-lg p-4">
                   <div className="whitespace-pre-wrap text-sm text-gray-700">
-                    {currentSlide.teacher_script}
+                    {currentSlide.teacher_script || 'No teacher script provided.'}
                   </div>
                 </div>
               </div>

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import LessonEditor from './LessonEditor';
 import DraftPreview from './DraftPreview';
 import ExportModal from './ExportModal';
@@ -11,7 +11,7 @@ import { PresentationViewer } from './PresentationViewer';
 import usePresentations from '../../hooks/usePresentations';
 
 import type { DraftsModalProps, ExportFormat, DraftItem } from '../../types/unified';
-import type { PresentationDocument, PresentationStatus } from '../../types/presentations';
+import type { PresentationDetail, PresentationStatus } from '../../types/presentations';
 
 export default function DraftsModal({
   isOpen,
@@ -25,14 +25,12 @@ export default function DraftsModal({
   // Presentation hooks
   const {
     generatePresentation,
+    waitForJobCompletion,
+    getLessonPresentationStatus,
     getPresentation,
     exportPresentation,
-    downloadExport,
     isGenerating,
     isExporting: isPresentationExporting,
-    getStatusDisplay,
-    canViewPresentation,
-    canGeneratePresentation,
   } = usePresentations();
 
   // Search and filter state
@@ -44,7 +42,7 @@ export default function DraftsModal({
   // Presentation state
   const [presentationStatuses, setPresentationStatuses] = useState<Record<string, PresentationStatus>>({});
   const [presentationIds, setPresentationIds] = useState<Record<string, string>>({});
-  const [viewingPresentation, setViewingPresentation] = useState<PresentationDocument | null>(null);
+  const [viewingPresentation, setViewingPresentation] = useState<PresentationDetail | null>(null);
   const [isPresentationViewerOpen, setIsPresentationViewerOpen] = useState(false);
 
   // Editor state
@@ -279,14 +277,50 @@ ${exportingDraft.content}`;
     setIsVersionModalOpen(true);
   }, []);
 
+  useEffect(() => {
+    const nextStatuses: Record<string, PresentationStatus> = {};
+    const nextIds: Record<string, string> = {};
+    drafts.forEach((draft) => {
+      if (draft.presentation_status?.status) {
+        nextStatuses[draft.id] = draft.presentation_status.status;
+      }
+      const existingId =
+        draft.presentation_status?.presentation_id ||
+        draft.presentation_status?.id;
+      if (existingId) {
+        nextIds[draft.id] = existingId;
+      }
+    });
+    setPresentationStatuses(nextStatuses);
+    setPresentationIds(nextIds);
+  }, [drafts]);
+
+  const refreshPresentationStatus = useCallback(async (lessonId: string) => {
+    const latest = await getLessonPresentationStatus(lessonId);
+    if (latest) {
+      setPresentationStatuses((prev) => ({ ...prev, [lessonId]: latest.status }));
+      setPresentationIds((prev) => ({ ...prev, [lessonId]: latest.id }));
+    }
+    return latest;
+  }, [getLessonPresentationStatus]);
+
   // Handle presentation generation
   const handleGeneratePresentation = useCallback(async (draft: DraftItem) => {
-    const result = await generatePresentation(draft.id);
-    if (result) {
-      setPresentationStatuses(prev => ({ ...prev, [draft.id]: result.status }));
-      setPresentationIds(prev => ({ ...prev, [draft.id]: result.id }));
+    const job = await generatePresentation(draft.id);
+    if (!job) return;
+
+    setPresentationStatuses((prev) => ({ ...prev, [draft.id]: 'pending' }));
+    const latest = await waitForJobCompletion(job.job_id, draft.id);
+    if (latest) {
+      setPresentationStatuses((prev) => ({ ...prev, [draft.id]: latest.status }));
+      setPresentationIds((prev) => ({ ...prev, [draft.id]: latest.id }));
+    } else {
+      const refreshed = await refreshPresentationStatus(draft.id);
+      if (!refreshed) {
+        setPresentationStatuses((prev) => ({ ...prev, [draft.id]: 'error' }));
+      }
     }
-  }, [generatePresentation]);
+  }, [generatePresentation, waitForJobCompletion, refreshPresentationStatus]);
 
   // Handle view presentation
   const handleViewPresentation = useCallback(async (draft: DraftItem) => {
@@ -302,15 +336,10 @@ ${exportingDraft.content}`;
   }, [getPresentation, presentationIds]);
 
   // Handle presentation export
-  const handlePresentationExport = useCallback(async (format: 'json' | 'markdown') => {
+  const handlePresentationExport = useCallback(async (format: 'json' | 'markdown' | 'pptx' | 'pdf') => {
     if (!viewingPresentation) return;
-    
-    const exportResult = await exportPresentation(viewingPresentation.id, format);
-    if (exportResult) {
-      const filename = `${viewingPresentation.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${format}`;
-      await downloadExport(exportResult.file_url, filename);
-    }
-  }, [viewingPresentation, exportPresentation, downloadExport]);
+    await exportPresentation(viewingPresentation.id, format);
+  }, [viewingPresentation, exportPresentation]);
 
   // Early return AFTER all hooks
   if (!isOpen) return null;

@@ -15,6 +15,21 @@ export interface ChatMessage {
   lessonId?: string;
 }
 
+export interface ImageClassification {
+  category: string;
+  confidence: number;
+  education_level?: string;
+  difficulty_level?: string;
+  tags?: string[];
+  musical_metadata?: {
+    key_signature?: string;
+    time_signature?: string;
+    tempo?: string;
+    instruments?: string[];
+    elements?: string[];
+  };
+}
+
 export interface ImageData {
   id: string;
   filename: string;
@@ -23,6 +38,7 @@ export interface ImageData {
   vision_analysis?: string | null;
   file_size: number;
   mime_type: string;
+  classification?: ImageClassification | null;
 }
 
 export interface StorageInfo {
@@ -77,8 +93,11 @@ export interface DraftItem {
   createdAt: string;
   updatedAt: string;
   presentation_status?: {
-    status: PresentationStatus;
+    id?: string;
     presentation_id?: string;
+    status: PresentationStatus;
+    lesson_revision?: number;
+    updated_at?: string;
   };
 }
 

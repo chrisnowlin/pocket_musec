@@ -56,38 +56,8 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     return messageId;
   }, [appendStoreMessage, generateMessageId]);
 
-  const updateMessageText = useCallback((id: string, updater: (current: string) => string) => {
-    setMessages((prev) =>
-      prev.map((message) =>
-        message.id === id ? { ...message, text: updater(message.text) } : message
-      )
-    );
-  }, []);
-
-  const updateMessageWithMetadata = useCallback((id: string, newText: string) => {
-    setMessages((prev) =>
-      prev.map((message) => {
-        if (message.id === id) {
-          // If this is the first modification, store the original text
-          if (!message.isModified && !message.originalText) {
-            return {
-              ...message,
-              text: newText,
-              originalText: message.text,
-              isModified: true
-            };
-          }
-          // If already modified, just update the text
-          return {
-            ...message,
-            text: newText,
-            isModified: true
-          };
-        }
-        return message;
-      })
-    );
-  }, []);
+  const updateMessageText = useConversationStore((state) => state.updateMessageText);
+  const updateMessageWithMetadata = useConversationStore((state) => state.updateMessageWithMetadata);
 
   const processChatMessage = useCallback(
     async (messageText: string, onComplete?: (session: SessionResponsePayload) => void) => {
@@ -174,7 +144,7 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
         setIsTyping(false);
       }
     },
-    [session?.id, lessonDuration, classSize, appendMessage, updateMessageText, updateMessageStatus]
+    [session?.id, lessonDuration, classSize, appendMessage, updateMessageText, updateMessageWithMetadata]
   );
 
   const resetMessages = useCallback(() => {

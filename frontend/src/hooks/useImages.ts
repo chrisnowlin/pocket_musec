@@ -2,7 +2,11 @@ import { useState, useCallback, useEffect, ChangeEvent, DragEvent } from 'react'
 import api from '../lib/api';
 import type { ImageData, StorageInfo } from '../types/unified';
 
-export function useImages() {
+export function useImages(initialFilters?: {
+    category?: string;
+    education_level?: string;
+    difficulty_level?: string;
+  }) {
   const [images, setImages] = useState<ImageData[]>([]);
   const [storageInfo, setStorageInfo] = useState<StorageInfo | null>(null);
   const [selectedImage, setSelectedImage] = useState<ImageData | null>(null);
@@ -10,10 +14,15 @@ export function useImages() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [imageDragActive, setImageDragActive] = useState(false);
+  const [filters, setFilters] = useState(initialFilters || {});
 
-  const loadImages = useCallback(async () => {
+  const loadImages = useCallback(async (filters?: {
+    category?: string;
+    education_level?: string;
+    difficulty_level?: string;
+  }) => {
     try {
-      const result = await api.getImages();
+      const result = await api.getImages(filters);
       if (result.ok) {
         setImages(result.data as ImageData[]);
       } else {
@@ -56,7 +65,7 @@ export function useImages() {
         });
 
         if (result.ok) {
-          await loadImages();
+          await loadImages(filters);
           await loadStorageInfo();
         } else {
           setUploadError(result.message || 'Upload failed');
@@ -69,7 +78,7 @@ export function useImages() {
         setUploadProgress(0);
       }
     },
-    [loadImages, loadStorageInfo]
+    [loadImages, loadStorageInfo, filters]
   );
 
   const handleFileSelect = useCallback(
@@ -101,7 +110,7 @@ export function useImages() {
       try {
         const result = await api.deleteImage(imageId);
         if (result.ok) {
-          await loadImages();
+          await loadImages(filters);
           await loadStorageInfo();
           if (selectedImage?.id === imageId) {
             setSelectedImage(null);
@@ -114,13 +123,13 @@ export function useImages() {
         setUploadError(err.message || 'Failed to delete image');
       }
     },
-    [loadImages, loadStorageInfo, selectedImage?.id]
+    [loadImages, loadStorageInfo, filters, selectedImage?.id]
   );
 
   useEffect(() => {
-    loadImages();
+    loadImages(filters);
     loadStorageInfo();
-  }, [loadImages, loadStorageInfo]);
+  }, [filters]);
 
   return {
     images,
@@ -130,6 +139,8 @@ export function useImages() {
     uploadProgress,
     uploadError,
     imageDragActive,
+    filters,
+    setFilters,
     setSelectedImage,
     setImageDragActive,
     handleFileSelect,

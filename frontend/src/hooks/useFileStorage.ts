@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FileMetadata, FileStats } from '../types/fileStorage';
 import { ingestionService } from '../services/ingestionService';
 import { FILE_STORAGE_CONSTANTS, FILE_STORAGE_MESSAGES } from '../constants/unified';
@@ -55,7 +55,12 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
 
   const queryClient = useQueryClient();
 
-  const fetchFiles = useCallback(async (statusValue: string, pageValue: number) => {
+  interface FilesResponse {
+    files: FileMetadata[];
+    total: number;
+  }
+
+  const fetchFiles = useCallback(async (statusValue: string, pageValue: number): Promise<FilesResponse> => {
     const statusFilter = statusValue === 'all' ? undefined : statusValue;
     const response = await ingestionService.getUploadedFiles(
       statusFilter,
@@ -73,7 +78,7 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
     throw new Error(response.error || FILE_STORAGE_MESSAGES.UPLOAD_FAILED);
   }, [pageSize]);
 
-  const fetchStats = useCallback(async () => {
+  const fetchStats = useCallback(async (): Promise<FileStats> => {
     const response = await ingestionService.getFileStatistics();
     if (response.success && response.database_stats) {
       return response.database_stats;
@@ -81,36 +86,50 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
     throw new Error(FILE_STORAGE_MESSAGES.UPLOAD_FAILED);
   }, []);
 
-  const filesQuery = useQuery({
+  const filesQuery = useQuery<FilesResponse, Error>({
     queryKey: ['files', selectedStatus, currentPage, pageSize],
     queryFn: () => fetchFiles(selectedStatus, currentPage),
-    keepPreviousData: true,
+    placeholderData: keepPreviousData,
     enabled: autoLoad,
-    onSuccess: ({ files, total }) => {
-      setFiles(files, total);
-      setError('');
-    },
-    onError: (err: any) => {
-      setError(err?.message || FILE_STORAGE_MESSAGES.UPLOAD_FAILED);
-    },
   });
 
-  useQuery({
+  const statsQuery = useQuery<FileStats, Error>({
     queryKey: ['fileStats'],
     queryFn: fetchStats,
     enabled: autoLoad,
-    onSuccess: (stats) => setFileStats(stats),
-    onError: (err: any) => {
-      console.error('Failed to load file stats:', err);
-    },
   });
+
+  useEffect(() => {
+    if (filesQuery.data) {
+      setFiles(filesQuery.data.files, filesQuery.data.total);
+      setError('');
+    }
+  }, [filesQuery.data, setFiles, setError]);
+
+  useEffect(() => {
+    if (filesQuery.error) {
+      setError(filesQuery.error.message || FILE_STORAGE_MESSAGES.UPLOAD_FAILED);
+    }
+  }, [filesQuery.error, setError]);
+
+  useEffect(() => {
+    if (statsQuery.data) {
+      setFileStats(statsQuery.data);
+    }
+  }, [statsQuery.data, setFileStats]);
+
+  useEffect(() => {
+    if (statsQuery.error) {
+      console.error('Failed to load file stats:', statsQuery.error);
+    }
+  }, [statsQuery.error]);
 
   const loadFiles = useCallback(async (status?: string, page?: number) => {
     const statusValue = status ?? selectedStatus;
     const pageValue = page ?? currentPage;
     setSelectedStatus(statusValue);
     setCurrentPage(pageValue);
-    const data = await queryClient.fetchQuery({
+    const data = await queryClient.fetchQuery<FilesResponse>({
       queryKey: ['files', statusValue, pageValue, pageSize],
       queryFn: () => fetchFiles(statusValue, pageValue),
     });
@@ -118,7 +137,7 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
   }, [selectedStatus, currentPage, setSelectedStatus, setCurrentPage, queryClient, pageSize, fetchFiles, setFiles]);
 
   const loadFileStats = useCallback(async () => {
-    const stats = await queryClient.fetchQuery({
+    const stats = await queryClient.fetchQuery<FileStats>({
       queryKey: ['fileStats'],
       queryFn: fetchStats,
     });

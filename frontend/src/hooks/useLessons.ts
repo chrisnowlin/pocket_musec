@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import { useLessonStore, type LessonItem } from '../stores/lessonStore';
@@ -17,9 +17,11 @@ export function useLessons() {
   const selectedLesson = lessons.find((lesson) => lesson.id === selectedLessonId) || null;
 
   const {
+    data: lessonsData,
+    error: lessonsError,
     isFetching: isLoading,
     refetch: refetchLessons,
-  } = useQuery({
+  } = useQuery<LessonItem[], Error>({
     queryKey: ['lessons'],
     queryFn: async () => {
       const result = await api.getLessons();
@@ -28,14 +30,20 @@ export function useLessons() {
       }
       return result.data as LessonItem[];
     },
-    onSuccess: (data) => {
-      setLessons(data);
-      setError(null);
-    },
-    onError: (err: any) => {
-      setError(err?.message || 'Failed to load lessons');
-    },
   });
+
+  useEffect(() => {
+    if (lessonsData) {
+      setLessons(lessonsData);
+      setError(null);
+    }
+  }, [lessonsData, setLessons, setError]);
+
+  useEffect(() => {
+    if (lessonsError) {
+      setError(lessonsError.message || 'Failed to load lessons');
+    }
+  }, [lessonsError, setError]);
 
   const loadLessons = useCallback(async () => {
     setError(null);
@@ -56,7 +64,7 @@ export function useLessons() {
     try {
       const result = await api.getPermanentLesson(lessonId);
       if (result.ok) {
-    upsertLesson(result.data);
+        upsertLesson(result.data);
         return result.data;
       } else {
         setError(result.message || 'Failed to load lesson');

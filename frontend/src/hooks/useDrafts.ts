@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { DraftItem } from '../types/unified';
@@ -12,9 +12,10 @@ export function useDrafts() {
   const queryClient = useQueryClient();
 
   const {
-    data: draftsData,
+    data: draftsData = [],
     isFetching: isLoading,
     refetch: refetchDrafts,
+    error: queryError,
   } = useQuery({
     queryKey: DRAFTS_QUERY_KEY,
     queryFn: async () => {
@@ -24,10 +25,14 @@ export function useDrafts() {
       }
       return result.data;
     },
-    onError: (err: any) => {
-      setError(err?.message || 'Failed to load drafts');
-    },
   });
+
+  // Update error state when query error changes
+  useEffect(() => {
+    if (queryError) {
+      setError(queryError.message || 'Failed to load drafts');
+    }
+  }, [queryError]);
 
   const drafts = draftsData ?? [];
   const draftCount = drafts.length;
@@ -222,9 +227,10 @@ export function useDrafts() {
         return result.data;
       } else {
         if (capturedDraft) {
+          const fallbackDraft = capturedDraft;
           updateDraftsCache(prev =>
             prev.map(draft =>
-              draft.id === draftId ? capturedDraft : draft
+              draft.id === draftId ? fallbackDraft : draft
             )
           );
         }

@@ -1,6 +1,10 @@
 """Presentation generation and management endpoints"""
 
-from typing import List, Dict, Any, Optional
+import io
+import json
+import logging
+from typing import Any, Dict, List, Optional
+
 from fastapi import (
     APIRouter,
     Depends,
@@ -12,8 +16,6 @@ from fastapi import (
 )
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-import json
-import io
 
 from ..dependencies import get_current_user
 from backend.auth import User
@@ -24,9 +26,59 @@ from backend.services.presentation_jobs import (
     create_presentation_job,
     get_presentation_job_status,
 )
-from backend.lessons.presentation_schema import PresentationDocument, PresentationStatus
+from backend.lessons.presentation_schema import (
+    PresentationDocument,
+    PresentationExport,
+    PresentationStatus,
+)
 
 router = APIRouter(prefix="/api/presentations", tags=["presentations"])
+logger = logging.getLogger(__name__)
+
+
+def _generate_export_asset_on_demand(
+    service: PresentationService,
+    presentation: PresentationDocument,
+    export_format: str,
+) -> PresentationExport:
+    """Ensure a requested export asset exists, generating it if necessary."""
+    format_map = {
+        "json": service._create_json_export,
+        "markdown": service._create_markdown_export,
+        "pptx": service._create_pptx_export,
+        "pdf": service._create_pdf_export,
+    }
+
+    if export_format not in format_map:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Unsupported export format: {export_format}",
+        )
+
+    try:
+        export_asset = format_map[export_format](presentation)
+    except ModuleNotFoundError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Export format '{export_format}' requires optional dependency: {exc.name}",
+        ) from exc
+    except Exception as exc:
+        logger.error(
+            "Failed to generate %s export for presentation %s: %s",
+            export_format,
+            presentation.id,
+            exc,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to generate {export_format} export",
+        ) from exc
+
+    service.presentation_repo.add_export_asset(
+        presentation_id=presentation.id,
+        export_asset=export_asset,
+    )
+    return export_asset
 
 
 # Request/Response models
@@ -68,6 +120,7 @@ class PresentationResponse(BaseModel):
     """Response containing presentation details."""
 
     id: str
+    presentation_id: str
     lesson_id: str
     lesson_revision: int
     version: str
@@ -276,6 +329,7 @@ async def list_lesson_presentations(
     return [
         PresentationResponse(
             id=p.id,
+            presentation_id=p.id,
             lesson_id=p.lesson_id,
             lesson_revision=p.lesson_revision,
             version=p.version,
@@ -311,6 +365,7 @@ async def get_presentation(
 
     return PresentationDetailResponse(
         id=presentation.id,
+        presentation_id=presentation.id,
         lesson_id=presentation.lesson_id,
         lesson_revision=presentation.lesson_revision,
         version=presentation.version,
@@ -377,7 +432,7 @@ async def regenerate_presentation(
 @router.get("/{presentation_id}/export")
 async def export_presentation(
     presentation_id: str,
-    format: str = Query(..., regex="^(json|markdown)$"),
+    format: str = Query(..., regex="^(json|markdown|pptx|pdf)$"),
     current_user: User = Depends(get_current_user),
 ) -> StreamingResponse:
     """Export a presentation in the specified format."""
@@ -406,16 +461,9 @@ async def export_presentation(
             break
 
     if not export_asset:
-        # Generate export on-demand if not found
-        if format == "json":
-            export_asset = presentation_service._create_json_export(presentation)
-        elif format == "markdown":
-            export_asset = presentation_service._create_markdown_export(presentation)
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Unsupported export format: {format}",
-            )
+        export_asset = _generate_export_asset_on_demand(
+            presentation_service, presentation, format
+        )
 
     # Generate content
     if format == "json":
@@ -468,13 +516,57 @@ async def export_presentation(
         content = "\n".join(lines)
         media_type = "text/markdown"
         filename = f"presentation_{presentation_id}.md"
+    elif format == "pptx":
+        # Read the PPTX file
+        import os
+
+        if not os.path.exists(export_asset.url_or_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="PPTX export file not found",
+            )
+
+        with open(export_asset.url_or_path, "rb") as f:
+            content = f.read()
+
+        media_type = (
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation"
+        )
+        filename = f"presentation_{presentation_id}.pptx"
+
+        return StreamingResponse(
+            io.BytesIO(content),
+            media_type=media_type,
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
+    elif format == "pdf":
+        # Read the PDF file
+        import os
+
+        if not os.path.exists(export_asset.url_or_path):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="PDF export file not found",
+            )
+
+        with open(export_asset.url_or_path, "rb") as f:
+            content = f.read()
+
+        media_type = "application/pdf"
+        filename = f"presentation_{presentation_id}.pdf"
+
+        return StreamingResponse(
+            io.BytesIO(content),
+            media_type=media_type,
+            headers={"Content-Disposition": f"attachment; filename={filename}"},
+        )
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Unsupported export format: {format}",
         )
 
-    # Return as streaming response
+    # Return as streaming response for text formats
     return StreamingResponse(
         io.StringIO(content),
         media_type=media_type,

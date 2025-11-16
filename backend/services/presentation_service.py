@@ -4,9 +4,10 @@ This service coordinates the end-to-end presentation generation process,
 including scaffold building, optional LLM polishing, and persistence.
 """
 
+import json
 import logging
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 from backend.repositories.presentation_repository import PresentationRepository
 from backend.repositories.lesson_repository import LessonRepository
@@ -21,6 +22,7 @@ from backend.lessons.presentation_schema import (
 from backend.lessons.presentation_builder import build_presentation_scaffold
 from backend.lessons.presentation_polish import polish_presentation_slides
 from backend.lessons.schema_m2 import LessonDocumentM2
+from pydantic import ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -131,19 +133,19 @@ class PresentationService:
         )
 
     def get_presentation_status(self, lesson_id: str) -> Optional[Dict[str, Any]]:
-        """Get the current presentation status for a lesson.
-
-        Returns:
-            Dict with status information or None if no presentation exists
-        """
+        """Return the latest presentation for a lesson as a status dict."""
         presentation = self.presentation_repo.latest_by_lesson(lesson_id)
         if not presentation:
             return None
 
-        return {
-            "presentation_id": presentation.id,
-            "status": presentation.status.value,
+        status_payload = {
+            "id": presentation.id,
+            "presentation_id": presentation.id,  # backwards compatibility for UI
+            "lesson_id": presentation.lesson_id,
             "lesson_revision": presentation.lesson_revision,
+            "version": presentation.version,
+            "status": presentation.status.value,
+            "style": presentation.style,
             "slide_count": len(presentation.slides),
             "created_at": presentation.created_at.isoformat(),
             "updated_at": presentation.updated_at.isoformat(),
@@ -151,6 +153,7 @@ class PresentationService:
             "error_code": presentation.error_code,
             "error_message": presentation.error_message,
         }
+        return status_payload
 
     def get_presentation(
         self, presentation_id: str, user_id: str
@@ -160,9 +163,8 @@ class PresentationService:
         if not presentation:
             return None
 
-        # Verify user has access to the lesson
-        lesson = self._fetch_lesson_document(presentation.lesson_id, user_id)
-        if not lesson:
+        lesson = self.lesson_repo.get_lesson(presentation.lesson_id)
+        if not lesson or lesson.user_id != user_id:
             return None
 
         return presentation
@@ -183,19 +185,36 @@ class PresentationService:
         self, lesson_id: str, user_id: str
     ) -> Optional[LessonDocumentM2]:
         """Fetch and validate lesson document for the user."""
-        # First check if user has access to the lesson
         lesson = self.lesson_repo.get_lesson(lesson_id)
         if not lesson or lesson.user_id != user_id:
             return None
 
-        # Try to parse lesson content as m2.0 document
-        try:
-            import json
+        metadata_doc: Optional[LessonDocumentM2] = None
+        if lesson.metadata:
+            try:
+                metadata = json.loads(lesson.metadata)
+                raw_doc = metadata.get("lesson_document")
+                if raw_doc:
+                    validate_fn = getattr(LessonDocumentM2, "model_validate", None)
+                    metadata_doc = (
+                        validate_fn(raw_doc)
+                        if callable(validate_fn)
+                        else LessonDocumentM2(**raw_doc)
+                    )
+            except (json.JSONDecodeError, ValidationError) as exc:
+                logger.warning(
+                    "Failed to parse lesson %s metadata as m2.0: %s", lesson_id, exc
+                )
 
+        if metadata_doc:
+            return metadata_doc
+
+        # Fallback: attempt to treat lesson.content as JSON for edge cases
+        try:
             lesson_data = json.loads(lesson.content)
             return LessonDocumentM2(**lesson_data)
-        except Exception as e:
-            logger.warning(f"Failed to parse lesson {lesson_id} as m2.0: {e}")
+        except Exception as exc:
+            logger.warning("Lesson %s lacks structured document: %s", lesson_id, exc)
             return None
 
     def _mark_existing_stale(self, lesson_id: str, current_revision: int) -> None:
@@ -261,6 +280,26 @@ class PresentationService:
                 export_asset=markdown_export,
             )
 
+            # Generate PPTX export
+            try:
+                pptx_export = self._create_pptx_export(presentation)
+                self.presentation_repo.add_export_asset(
+                    presentation_id=presentation.id,
+                    export_asset=pptx_export,
+                )
+            except Exception as pptx_error:
+                logger.warning(f"PPTX export failed: {pptx_error}")
+
+            # Generate PDF export
+            try:
+                pdf_export = self._create_pdf_export(presentation)
+                self.presentation_repo.add_export_asset(
+                    presentation_id=presentation.id,
+                    export_asset=pdf_export,
+                )
+            except Exception as pdf_error:
+                logger.warning(f"PDF export failed: {pdf_error}")
+
             logger.info(f"Generated export assets for presentation {presentation.id}")
 
         except Exception as e:
@@ -275,7 +314,7 @@ class PresentationService:
 
         json_content = json.dumps(
             {
-                "presentation": presentation.model_dump(),
+                "presentation": presentation.model_dump(mode="json"),
                 "generated_at": datetime.utcnow().isoformat(),
                 "format": "p1.0",
             },
@@ -367,4 +406,185 @@ class PresentationService:
             url_or_path=f"presentation_{presentation.id}.md",
             generated_at=datetime.utcnow(),
             file_size_bytes=len(markdown_content.encode("utf-8")),
+        )
+
+    def _create_pptx_export(
+        self, presentation: PresentationDocument
+    ) -> PresentationExport:
+        """Create PowerPoint PPTX export asset."""
+        from pptx import Presentation
+        from pptx.util import Inches, Pt
+        from pptx.enum.text import PP_ALIGN
+        from pptx.dml.color import RGBColor
+        import tempfile
+        import os
+
+        # Create presentation
+        prs = Presentation()
+
+        # Add title slide
+        title_slide_layout = prs.slide_layouts[0]  # Title slide layout
+        slide = prs.slides.add_slide(title_slide_layout)
+        title = slide.shapes.title
+        subtitle = slide.placeholders[1]
+
+        title.text = (
+            presentation.slides[0].title if presentation.slides else "Presentation"
+        )
+        subtitle.text = (
+            f"Generated: {presentation.created_at.strftime('%Y-%m-%d %H:%M')}"
+        )
+
+        # Add content slides
+        for content_slide in presentation.slides[
+            1:
+        ]:  # Skip title slide if it's the first one
+            # Choose layout based on content
+            if content_slide.title and content_slide.key_points:
+                slide_layout = prs.slide_layouts[1]  # Title and content
+            else:
+                slide_layout = prs.slide_layouts[5]  # Blank
+
+            slide = prs.slides.add_slide(slide_layout)
+
+            # Add title
+            if content_slide.title and slide.shapes.title:
+                slide.shapes.title.text = content_slide.title
+
+            # Add content
+            content_parts = []
+
+            if content_slide.key_points:
+                content_parts.extend(
+                    [f"• {point}" for point in content_slide.key_points]
+                )
+
+            if content_slide.teacher_script:
+                content_parts.append(f"Teacher: {content_slide.teacher_script}")
+
+            # Add content to slide if we have a content placeholder
+            if content_parts and len(slide.placeholders) > 1:
+                content_placeholder = slide.placeholders[1]
+                content_placeholder.text = "\n".join(content_parts)
+
+        # Save to temporary file
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pptx")
+        prs.save(temp_file.name)
+        temp_file.close()
+
+        # Get file size
+        file_size = os.path.getsize(temp_file.name)
+
+        # Move to permanent location
+        final_path = f"presentation_{presentation.id}.pptx"
+        os.rename(temp_file.name, final_path)
+
+        return PresentationExport(
+            format="pptx",
+            url_or_path=final_path,
+            generated_at=datetime.utcnow(),
+            file_size_bytes=file_size,
+        )
+
+    def _create_pdf_export(
+        self, presentation: PresentationDocument
+    ) -> PresentationExport:
+        """Create PDF export asset."""
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.lib.units import inch
+        from reportlab.lib.styles import getSampleStyleSheet
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.lib.colors import black, blue
+        import tempfile
+        import os
+
+        # Create temporary PDF file
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=".pdf")
+        temp_file.close()
+
+        # Create PDF document
+        doc = SimpleDocTemplate(temp_file.name, pagesize=A4)
+        styles = getSampleStyleSheet()
+        story = []
+
+        # Add title
+        title_style = styles["Title"]
+        title_style.textColor = blue
+        title = presentation.slides[0].title if presentation.slides else "Presentation"
+        story.append(Paragraph(title, title_style))
+        story.append(Spacer(1, 12))
+
+        # Add metadata
+        normal_style = styles["Normal"]
+        story.append(
+            Paragraph(
+                f"<b>Generated:</b> {presentation.created_at.strftime('%Y-%m-%d %H:%M')}",
+                normal_style,
+            )
+        )
+        story.append(
+            Paragraph(f"<b>Total Slides:</b> {len(presentation.slides)}", normal_style)
+        )
+        story.append(Spacer(1, 20))
+
+        # Add slides content
+        for i, slide in enumerate(presentation.slides):
+            # Slide title
+            if slide.title:
+                heading_style = styles["Heading1"]
+                story.append(Paragraph(f"Slide {i + 1}: {slide.title}", heading_style))
+                story.append(Spacer(1, 12))
+
+            # Key points
+            if slide.key_points:
+                story.append(Paragraph("<b>Key Points:</b>", normal_style))
+                for point in slide.key_points:
+                    story.append(Paragraph(f"• {point}", normal_style))
+                story.append(Spacer(1, 6))
+
+            # Teacher script
+            if slide.teacher_script:
+                story.append(Paragraph("<b>Teacher Script:</b>", normal_style))
+                story.append(Paragraph(slide.teacher_script, normal_style))
+                story.append(Spacer(1, 6))
+
+            # Duration
+            if slide.duration_minutes:
+                story.append(
+                    Paragraph(
+                        f"<b>Duration:</b> {slide.duration_minutes} minutes",
+                        normal_style,
+                    )
+                )
+                story.append(Spacer(1, 6))
+
+            # Standards
+            if slide.standard_codes:
+                story.append(
+                    Paragraph(
+                        f"<b>Standards:</b> {', '.join(slide.standard_codes)}",
+                        normal_style,
+                    )
+                )
+                story.append(Spacer(1, 6))
+
+            # Add separator between slides
+            story.append(Spacer(1, 20))
+
+        # Build PDF
+        doc.build(story)
+
+        # Get file size
+        file_size = os.path.getsize(temp_file.name)
+
+        # Move to permanent location
+        final_path = f"presentation_{presentation.id}.pdf"
+        os.rename(temp_file.name, final_path)
+
+        return PresentationExport(
+            format="pdf",
+            url_or_path=final_path,
+            generated_at=datetime.utcnow(),
+            file_size_bytes=file_size,
         )

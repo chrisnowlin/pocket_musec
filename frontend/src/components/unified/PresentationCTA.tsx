@@ -32,14 +32,18 @@ export function PresentationCTA({
     }
   };
 
-  const canGenerate = !presentationStatus || presentationStatus === 'failed' || presentationStatus === 'completed';
-  const canView = presentationStatus === 'completed' && presentationId;
+  const canGenerate =
+    !presentationStatus ||
+    presentationStatus === 'error' ||
+    presentationStatus === 'stale' ||
+    presentationStatus === 'complete';
+  const canView = presentationStatus === 'complete' && presentationId;
 
   if (presentationStatus) {
     return (
       <div className="flex items-center gap-2">
         <PresentationStatusIndicator status={presentationStatus} />
-        {presentationStatus === 'completed' && canView && onView && (
+        {presentationStatus === 'complete' && canView && onView && (
           <button
             onClick={() => onView(presentationId!)}
             disabled={disabled}
@@ -48,7 +52,7 @@ export function PresentationCTA({
             View Presentation
           </button>
         )}
-        {presentationStatus === 'completed' && canGenerate && onGenerate && (
+        {presentationStatus === 'complete' && canGenerate && onGenerate && (
           <button
             onClick={onGenerate}
             disabled={disabled}
@@ -57,7 +61,7 @@ export function PresentationCTA({
             Regenerate
           </button>
         )}
-        {presentationStatus === 'failed' && onGenerate && (
+        {presentationStatus !== 'complete' && presentationStatus !== 'pending' && onGenerate && (
           <button
             onClick={onGenerate}
             disabled={disabled}

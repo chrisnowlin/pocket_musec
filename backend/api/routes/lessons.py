@@ -332,7 +332,7 @@ async def promote_lesson(
                     )
 
                 # Trigger new presentation generation
-                from services.presentation_jobs import create_presentation_job
+                from backend.services.presentation_jobs import create_presentation_job
                 import asyncio
 
                 async def trigger_job():
@@ -345,7 +345,7 @@ async def promote_lesson(
                             timeout_seconds=30,
                         )
                         # Execute the job in background
-                        from services.presentation_jobs import get_job_manager
+                        from backend.services.presentation_jobs import get_job_manager
 
                         job_manager = get_job_manager()
                         await asyncio.get_event_loop().run_in_executor(
