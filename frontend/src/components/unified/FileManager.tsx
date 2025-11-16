@@ -11,11 +11,14 @@ import {
 } from '../../types/fileStorage';
 import { formatDateTime } from '../../lib/dateUtils';
 import { useFileStorageStore } from '../../stores/fileStorageStore';
+import { ingestionService } from '../../services/ingestionService';
 
 interface FileManagerProps {
   onViewIngestion?: () => void;
   onFileDownloaded?: (fileId: string, filename: string) => void;
 }
+
+const DEFAULT_PAGE_SIZE = 10;
 
 export default function FileManager({ 
   onViewIngestion,
@@ -32,7 +35,7 @@ export default function FileManager({
     setStatusFilter,
     setCurrentPage,
     downloadFile,
-  } = useFileStorage({ autoLoad: true, pageSize: 10 });
+  } = useFileStorage({ autoLoad: true, pageSize: DEFAULT_PAGE_SIZE });
   const setFileError = useFileStorageStore((state) => state.setError);
 
   const handleDownloadFile = async (fileId: string, filename: string) => {
@@ -253,7 +256,7 @@ export default function FileManager({
         {!loading && files.length > 0 && (
           <div className="flex items-center justify-between mt-6 pt-6 border-t border-ink-200">
             <div className="text-sm text-ink-600">
-              Showing {currentPage * pageSize + 1} to {Math.min((currentPage + 1) * pageSize, files.length)} of {files.length} files
+              Showing {currentPage * DEFAULT_PAGE_SIZE + 1} to {Math.min((currentPage + 1) * DEFAULT_PAGE_SIZE, files.length)} of {files.length} files
             </div>
             <div className="flex gap-2">
               <button
@@ -265,7 +268,7 @@ export default function FileManager({
               </button>
               <button
                 onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={files.length < pageSize}
+                disabled={files.length < DEFAULT_PAGE_SIZE}
                 className="px-3 py-1 text-xs border border-ink-300 rounded hover:bg-parchment-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next

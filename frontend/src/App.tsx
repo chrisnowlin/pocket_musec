@@ -13,7 +13,7 @@ function App() {
         // Log application-level errors
         console.error('Application error:', error, errorInfo);
         // In production, you could send this to an error tracking service
-        if (process.env.NODE_ENV === 'production') {
+        if (import.meta.env.PROD) {
           // Example: window.Sentry?.captureException(error, { contexts: { react: { componentStack: errorInfo.componentStack } } });
         }
       }}

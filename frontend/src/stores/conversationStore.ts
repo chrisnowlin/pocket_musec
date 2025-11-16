@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { SessionResponsePayload } from '../lib/types';
 import type { ChatMessage, ChatState, LessonSettings } from '../types/unified';
 import { backendToFrontendGrade, backendToFrontendStrand } from '../lib/gradeUtils';
+import type { BaseStoreState, LoadingState } from './types';
 
 const WELCOME_MESSAGE_TEXT = "👋 Welcome! I'm your PocketMusec AI assistant. I'll help you craft engaging, standards-aligned music lessons.";
 
@@ -26,7 +27,7 @@ const defaultChatState: ChatState = {
   input: '',
 };
 
-export interface ConversationStoreState {
+export interface ConversationStoreState extends BaseStoreState {
   session: SessionResponsePayload | null;
   lessonSettings: LessonSettings;
   chatState: ChatState;
@@ -34,6 +35,7 @@ export interface ConversationStoreState {
   isTyping: boolean;
   chatError: string | null;
   isLoadingConversation: boolean;
+  lastFetched: number | null;
 
   setSession: (session: SessionResponsePayload | null) => void;
   syncLessonSettingsFromSession: (session: SessionResponsePayload | null) => void;
@@ -43,9 +45,11 @@ export interface ConversationStoreState {
   setChatInput: (value: string) => void;
   resetChatInput: () => void;
 
-  setMessages: (messages: ChatMessage[]) => void;
+  setMessages: (messages: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => void;
   appendMessage: (message: ChatMessage) => void;
   resetMessages: () => void;
+  updateMessageText: (id: string, updater: (current: string) => string) => void;
+  updateMessageWithMetadata: (id: string, newText: string) => void;
 
   setIsTyping: (value: boolean) => void;
   setChatError: (value: string | null) => void;
@@ -60,6 +64,8 @@ export const useConversationStore = create<ConversationStoreState>((set, get) =>
   isTyping: false,
   chatError: null,
   isLoadingConversation: false,
+  lastFetched: null,
+  error: null,
 
   setSession: (session) => {
     set({ session });
@@ -120,7 +126,11 @@ export const useConversationStore = create<ConversationStoreState>((set, get) =>
     set({ chatState: defaultChatState });
   },
 
-  setMessages: (messages) => set({ messages }),
+  setMessages: (messages) => {
+    set((state) => ({
+      messages: typeof messages === 'function' ? messages(state.messages) : messages
+    }));
+  },
 
   appendMessage: (message) => {
     set((state) => ({ messages: [...state.messages, message] }));
@@ -130,9 +140,47 @@ export const useConversationStore = create<ConversationStoreState>((set, get) =>
     set({ messages: [buildWelcomeMessage()] });
   },
 
+  updateMessageText: (id, updater) => {
+    set((state) => ({
+      messages: state.messages.map((message) =>
+        message.id === id ? { ...message, text: updater(message.text) } : message
+      )
+    }));
+  },
+
+  updateMessageWithMetadata: (id, newText) => {
+    set((state) => ({
+      messages: state.messages.map((message) => {
+        if (message.id === id) {
+          // If this is the first modification, store the original text
+          if (!message.isModified && !message.originalText) {
+            return {
+              ...message,
+              text: newText,
+              originalText: message.text,
+              isModified: true
+            };
+          }
+          // If already modified, just update the text
+          return {
+            ...message,
+            text: newText,
+            isModified: true
+          };
+        }
+        return message;
+      })
+    }));
+  },
+
   setIsTyping: (value) => set({ isTyping: value }),
   setChatError: (value) => set({ chatError: value }),
   setIsLoadingConversation: (value) => set({ isLoadingConversation: value }),
+  
+  // Base store actions
+  setError: (error: string | null) => set({ error }),
+  resetErrors: () => set({ error: null, chatError: null }),
+  updateLastFetched: () => set({ lastFetched: Date.now() }),
 }));
 
 export const conversationSelectors = {

@@ -1,5 +1,6 @@
 import type { ImageData } from '../../types/unified';
 import BaseModal from './BaseModal';
+import ClassificationBadge from './ClassificationBadge';
 
 interface ImageDetailModalProps {
   image: ImageData | null;
@@ -39,6 +40,12 @@ export default function ImageDetailModal({ image, onClose, onDelete }: ImageDeta
               <div className="bg-parchment-200 rounded p-4 text-sm text-ink-700 whitespace-pre-wrap">
                 {image.vision_analysis}
               </div>
+            </div>
+          )}
+          {image.classification && (
+            <div>
+              <h4 className="font-semibold text-ink-800 mb-2">Classification</h4>
+              <ClassificationBadge classification={image.classification} />
             </div>
           )}
           <div className="flex justify-end gap-3">

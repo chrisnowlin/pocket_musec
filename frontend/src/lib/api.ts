@@ -127,7 +127,11 @@ const api = {
   getLesson: (sessionId: string) => apiClient.get(`/lessons/${sessionId}`),
   getLessonBySession: (sessionId: string) =>
     apiClient.get<DraftItem[]>('/drafts', { params: { session_id: sessionId } }),
-  getImages: () => apiClient.get('/images'),
+  getImages: (params?: {
+    category?: string;
+    education_level?: string;
+    difficulty_level?: string;
+  }) => apiClient.get('/images', { params }),
   getImageStorageInfo: () => apiClient.get('/images/storage/info'),
   uploadImages: (formData: FormData, onUploadProgress?: (progress: number) => void) =>
     apiClient.post('/images/upload/batch', formData, {

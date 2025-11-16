@@ -3,6 +3,7 @@ import type { ImageData, StorageInfo } from '../../types/unified';
 import FileDropzone from './FileDropzone';
 import PanelLayout from './PanelLayout';
 import PanelHeader from './PanelHeader';
+import ClassificationBadge from './ClassificationBadge';
 
 interface ImagePanelProps {
   images: ImageData[];
@@ -12,29 +13,79 @@ interface ImagePanelProps {
   uploadProgress: number;
   uploadError: string | null;
   imageDragActive: boolean;
+  filters: {
+    category?: string;
+    education_level?: string;
+    difficulty_level?: string;
+  };
   onImageSelect: (image: ImageData) => void;
   onFileSelect: (event: ChangeEvent<HTMLInputElement>) => void;
   onDrop: (event: DragEvent<HTMLDivElement>) => void;
   onDeleteImage: (id: string) => void;
   onDragOver: (active: boolean) => void;
+  onFiltersChange: (filters: {
+    category?: string;
+    education_level?: string;
+    difficulty_level?: string;
+  }) => void;
   fileInputRef: RefObject<HTMLInputElement>;
 }
 
 export default function ImagePanel({
   images,
   storageInfo,
+  selectedImage,
   isUploading,
   uploadProgress,
   uploadError,
   imageDragActive,
+  filters,
   onImageSelect,
   onFileSelect,
   onDrop,
   onDeleteImage,
   onDragOver,
+  onFiltersChange,
   fileInputRef,
 }: ImagePanelProps) {
+  // Get unique values for filter options
+  const categories = useMemo(() => {
+    const cats = [...new Set(images
+      .map(img => img.classification?.category)
+      .filter(Boolean)
+    )];
+    return cats.sort();
+  }, [images]);
+
+  const educationLevels = useMemo(() => {
+    const levels = [...new Set(images
+      .map(img => img.classification?.education_level)
+      .filter(Boolean)
+    )];
+    return levels.sort();
+  }, [images]);
+
+  const difficultyLevels = useMemo(() => {
+    const levels = [...new Set(images
+      .map(img => img.classification?.difficulty_level)
+      .filter(Boolean)
+    )];
+    return levels.sort();
+  }, [images]);
+
   const recentImages = useMemo(() => images.slice(0, 3), [images]);
+
+  const handleFilterChange = (filterType: 'category' | 'education_level' | 'difficulty_level', value: string) => {
+    const newFilters = { ...filters };
+    
+    if (value === 'all') {
+      delete newFilters[filterType];
+    } else {
+      newFilters[filterType] = value;
+    }
+    
+    onFiltersChange(newFilters);
+  };
 
   return (
     <div className="h-full overflow-y-auto px-6 py-4">
@@ -42,8 +93,59 @@ export default function ImagePanel({
         <PanelHeader
           title="Image Processing"
           subtitle="Upload sheet music, diagrams, and other images for OCR and AI analysis"
-          className="mb-6"
+          className="mb-4"
         />
+
+        {/* Classification Filters */}
+        {images.length > 0 && (
+          <PanelLayout className="p-4 mb-6">
+            <h3 className="text-sm font-semibold text-ink-800 mb-3">Filters</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-medium text-ink-700 mb-1">Category</label>
+                <select
+                  value={filters.category || 'all'}
+                  onChange={(e) => handleFilterChange('category', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-ink-300 rounded-md bg-parchment-50 text-ink-800"
+                >
+                  <option value="all">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-ink-700 mb-1">Education Level</label>
+                <select
+                  value={filters.education_level || 'all'}
+                  onChange={(e) => handleFilterChange('education_level', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-ink-300 rounded-md bg-parchment-50 text-ink-800"
+                >
+                  <option value="all">All Levels</option>
+                  {educationLevels.map(level => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-ink-700 mb-1">Difficulty Level</label>
+                <select
+                  value={filters.difficulty_level || 'all'}
+                  onChange={(e) => handleFilterChange('difficulty_level', e.target.value)}
+                  className="w-full px-2 py-1 text-sm border border-ink-300 rounded-md bg-parchment-50 text-ink-800"
+                >
+                  <option value="all">All Difficulties</option>
+                  {difficultyLevels.map(level => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="mt-2 text-xs text-ink-600">
+              Showing {images.length} images
+            </div>
+          </PanelLayout>
+        )}
 
         {/* Storage Info */}
         {storageInfo && (
@@ -174,6 +276,11 @@ export default function ImagePanel({
                     </p>
                     {image.ocr_text && (
                       <p className="text-sm text-ink-700 mt-2 line-clamp-2">{image.ocr_text}</p>
+                    )}
+                    {image.classification && (
+                      <div className="mt-3">
+                        <ClassificationBadge classification={image.classification} />
+                      </div>
                     )}
                   </div>
                 </PanelLayout>

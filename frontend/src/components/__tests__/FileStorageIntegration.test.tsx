@@ -1,5 +1,8 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { vi, type Mock } from 'vitest';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import type { ReactNode } from 'react';
 import { ingestionService } from '../../services/ingestionService';
 import { useFileStorage, useFileValidation } from '../../hooks/useFileStorage';
 import FileStoragePanel from '../unified/FileStoragePanel';
@@ -7,16 +10,23 @@ import FileManager from '../unified/FileManager';
 import DocumentIngestion from '../DocumentIngestion';
 
 // Mock the ingestion service
-jest.mock('../../services/ingestionService', () => ({
+vi.mock('../../services/ingestionService', () => ({
   ingestionService: {
-    getUploadedFiles: jest.fn(),
-    getFileMetadata: jest.fn(),
-    downloadFile: jest.fn(),
-    getFileStatistics: jest.fn(),
-    classifyDocument: jest.fn(),
-    ingestDocument: jest.fn(),
+    getUploadedFiles: vi.fn(),
+    getFileMetadata: vi.fn(),
+    downloadFile: vi.fn(),
+    getFileStatistics: vi.fn(),
+    classifyDocument: vi.fn(),
+    ingestDocument: vi.fn(),
   },
 }));
+
+const renderWithClient = (ui: ReactNode) => {
+  const queryClient = new QueryClient();
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>
+  );
+};
 
 // Mock file storage types
 const mockFileMetadata = {
@@ -51,7 +61,7 @@ const mockFileStats = {
 
 describe('FileStorage Integration Tests', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   describe('useFileValidation Hook', () => {
@@ -140,18 +150,18 @@ describe('FileStorage Integration Tests', () => {
 
   describe('FileManager Component', () => {
     it('should load and display files', async () => {
-      (ingestionService.getUploadedFiles as jest.Mock).mockResolvedValue({
+      (ingestionService.getUploadedFiles as Mock).mockResolvedValue({
         success: true,
         files: [mockFileMetadata],
         pagination: { total: 1, count: 1, limit: 10, offset: 0 },
       });
 
-      (ingestionService.getFileStatistics as jest.Mock).mockResolvedValue({
+      (ingestionService.getFileStatistics as Mock).mockResolvedValue({
         success: true,
         database_stats: mockFileStats,
       });
 
-      render(<FileManager />);
+      renderWithClient(<FileManager />);
 
       await waitFor(() => {
         expect(screen.getByText('File Manager')).toBeInTheDocument();
@@ -163,30 +173,30 @@ describe('FileStorage Integration Tests', () => {
 
     it('should handle file download', async () => {
       const mockBlob = new Blob(['test content'], { type: 'application/pdf' });
-      (ingestionService.downloadFile as jest.Mock).mockResolvedValue(mockBlob);
+      (ingestionService.downloadFile as Mock).mockResolvedValue(mockBlob);
 
       // Mock URL.createObjectURL and revokeObjectURL
-      global.URL.createObjectURL = jest.fn(() => 'mock-url');
-      global.URL.revokeObjectURL = jest.fn();
+      global.URL.createObjectURL = vi.fn(() => 'mock-url');
+      global.URL.revokeObjectURL = vi.fn();
       
       // Mock document.createElement for download
-      const mockAnchor = { click: jest.fn() };
+      const mockAnchor = { click: vi.fn() };
       jest.spyOn(document, 'createElement').mockReturnValue(mockAnchor as any);
       jest.spyOn(document.body, 'appendChild').mockImplementation();
       jest.spyOn(document.body, 'removeChild').mockImplementation();
 
-      (ingestionService.getUploadedFiles as jest.Mock).mockResolvedValue({
+      (ingestionService.getUploadedFiles as Mock).mockResolvedValue({
         success: true,
         files: [mockFileMetadata],
         pagination: { total: 1, count: 1, limit: 10, offset: 0 },
       });
 
-      (ingestionService.getFileStatistics as jest.Mock).mockResolvedValue({
+      (ingestionService.getFileStatistics as Mock).mockResolvedValue({
         success: true,
         database_stats: mockFileStats,
       });
 
-      render(<FileManager />);
+      renderWithClient(<FileManager />);
 
       await waitFor(() => {
         expect(screen.getByText('Download')).toBeInTheDocument();
@@ -201,11 +211,11 @@ describe('FileStorage Integration Tests', () => {
     });
 
     it('should handle errors gracefully', async () => {
-      (ingestionService.getUploadedFiles as jest.Mock).mockRejectedValue(
+      (ingestionService.getUploadedFiles as Mock).mockRejectedValue(
         new Error('Network error')
       );
 
-      render(<FileManager />);
+      renderWithClient(<FileManager />);
 
       await waitFor(() => {
         expect(screen.getByText(/Network error/)).toBeInTheDocument();
@@ -227,15 +237,15 @@ describe('FileStorage Integration Tests', () => {
         recommendedParser: 'pdf-parser',
       };
 
-      (ingestionService.classifyDocument as jest.Mock).mockResolvedValue(mockClassification);
-      (ingestionService.ingestDocument as jest.Mock).mockResolvedValue({
+      (ingestionService.classifyDocument as Mock).mockResolvedValue(mockClassification);
+      (ingestionService.ingestDocument as Mock).mockResolvedValue({
         success: true,
         results: { standards_count: 10 },
         file_metadata: mockFileMetadata,
       });
 
-      const onIngestionComplete = jest.fn();
-      render(<DocumentIngestion onIngestionComplete={onIngestionComplete} />);
+      const onIngestionComplete = vi.fn();
+      renderWithClient(<DocumentIngestion onIngestionComplete={onIngestionComplete} />);
 
       // Upload file
       const fileInput = screen.getByLabelText(/Select File/i);
@@ -274,8 +284,8 @@ describe('FileStorage Integration Tests', () => {
         recommendedParser: 'pdf-parser',
       };
 
-      (ingestionService.classifyDocument as jest.Mock).mockResolvedValue(mockClassification);
-      (ingestionService.ingestDocument as jest.Mock).mockResolvedValue({
+      (ingestionService.classifyDocument as Mock).mockResolvedValue(mockClassification);
+      (ingestionService.ingestDocument as Mock).mockResolvedValue({
         success: true,
         duplicate: true,
         message: 'File already exists',
@@ -287,7 +297,7 @@ describe('FileStorage Integration Tests', () => {
         },
       });
 
-      render(<DocumentIngestion />);
+      renderWithClient(<DocumentIngestion />);
 
       // Upload file
       const fileInput = screen.getByLabelText(/Select File/i);
@@ -327,7 +337,7 @@ describe('FileStorage Integration Tests', () => {
   describe('Integration End-to-End', () => {
     it('should complete full file upload and management flow', async () => {
       // Mock all service calls
-      (ingestionService.classifyDocument as jest.Mock).mockResolvedValue({
+      (ingestionService.classifyDocument as Mock).mockResolvedValue({
         fileName: 'test.pdf',
         documentType: {
           value: 'standards',
@@ -339,28 +349,30 @@ describe('FileStorage Integration Tests', () => {
         recommendedParser: 'pdf-parser',
       });
 
-      (ingestionService.ingestDocument as jest.Mock).mockResolvedValue({
+      (ingestionService.ingestDocument as Mock).mockResolvedValue({
         success: true,
         results: { standards_count: 10 },
         file_metadata: mockFileMetadata,
       });
 
-      (ingestionService.getUploadedFiles as jest.Mock).mockResolvedValue({
+      (ingestionService.getUploadedFiles as Mock).mockResolvedValue({
         success: true,
         files: [mockFileMetadata],
         pagination: { total: 1, count: 1, limit: 10, offset: 0 },
       });
 
-      (ingestionService.getFileStatistics as jest.Mock).mockResolvedValue({
+      (ingestionService.getFileStatistics as Mock).mockResolvedValue({
         success: true,
         database_stats: mockFileStats,
       });
 
-      (ingestionService.downloadFile as jest.Mock).mockResolvedValue(new Blob(['test']));
+      (ingestionService.downloadFile as Mock).mockResolvedValue(new Blob(['test']));
 
       // Test ingestion
-      const onIngestionComplete = jest.fn();
-      const { unmount } = render(<DocumentIngestion onIngestionComplete={onIngestionComplete} />);
+      const onIngestionComplete = vi.fn();
+      const { unmount } = renderWithClient(
+        <DocumentIngestion onIngestionComplete={onIngestionComplete} />
+      );
 
       const fileInput = screen.getByLabelText(/Select File/i);
       const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
@@ -380,16 +392,16 @@ describe('FileStorage Integration Tests', () => {
       unmount();
 
       // Test file management
-      render(<FileManager />);
+      renderWithClient(<FileManager />);
 
       await waitFor(() => {
         expect(screen.getByText('test-document.pdf')).toBeInTheDocument();
       });
 
       // Test download
-      global.URL.createObjectURL = jest.fn(() => 'mock-url');
-      global.URL.revokeObjectURL = jest.fn();
-      const mockAnchor = { click: jest.fn() };
+      global.URL.createObjectURL = vi.fn(() => 'mock-url');
+      global.URL.revokeObjectURL = vi.fn();
+      const mockAnchor = { click: vi.fn() };
       jest.spyOn(document, 'createElement').mockReturnValue(mockAnchor as any);
       jest.spyOn(document.body, 'appendChild').mockImplementation();
       jest.spyOn(document.body, 'removeChild').mockImplementation();

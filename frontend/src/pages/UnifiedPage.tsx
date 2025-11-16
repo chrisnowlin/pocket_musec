@@ -3,6 +3,7 @@ import { useChat } from '../hooks/useChat';
 import { useSession } from '../hooks/useSession';
 import { useImages } from '../hooks/useImages';
 import { useDrafts } from '../hooks/useDrafts';
+import { useBrowseStore, browseSelectors } from '../stores/browseStore';
 import { useResizing, useMessageContainerResizing } from '../hooks/useResizing';
 import Sidebar from '../components/unified/Sidebar';
 import ChatPanel from '../components/unified/ChatPanel';
@@ -22,10 +23,7 @@ import EmbeddingsManager from '../components/EmbeddingsManager';
 import { useToast } from '../hooks/useToast';
 import api from '../lib/api';
 import { frontendToBackendGrade } from '../lib/gradeUtils';
-import type {
-  BrowseState,
-  SettingsState
-} from '../types/unified';
+
 import type { StandardRecord } from '../lib/types';
 import { useConversationStore } from '../stores/conversationStore';
 import { useUIStore } from '../stores/uiStore';
@@ -59,21 +57,11 @@ export default function UnifiedPage() {
   // Toast notifications
   const { toasts, removeToast, success, error, info } = useToast();
 
-  const [browseState, setBrowseState] = useState<BrowseState>({
-    query: '',
-  });
-
-  const [settingsState, setSettingsState] = useState<SettingsState>({
-    processingMode: 'cloud',
-  });
-
-  const updateBrowseState = useCallback((updates: Partial<BrowseState>) => {
-    setBrowseState(prev => ({ ...prev, ...updates }));
-  }, []);
-
-  const updateSettingsState = useCallback((updates: Partial<SettingsState>) => {
-    setSettingsState(prev => ({ ...prev, ...updates }));
-  }, []);
+  // Store state for browse and settings
+  const browseState = useBrowseStore(browseSelectors.browseState);
+  const settingsState = useBrowseStore(browseSelectors.settingsState);
+  const updateBrowseState = useBrowseStore((state) => state.updateBrowseState);
+  const updateSettingsState = useBrowseStore((state) => state.updateSettingsState);
 
   // Custom hooks
   const {
@@ -490,6 +478,7 @@ export default function UnifiedPage() {
           onOpenDraftsModal={handleOpenDraftsModal}
           draftCount={draftCount}
           onDeleteConversation={handleDeleteConversation}
+          onBrowseStandards={() => setMode('browse')}
           onOpenConversationEditor={handleOpenConversationEditor}
         />
 
@@ -572,11 +561,13 @@ export default function UnifiedPage() {
                 uploadProgress={imageHooks.uploadProgress}
                 uploadError={imageHooks.uploadError}
                 imageDragActive={imageHooks.imageDragActive}
+                filters={imageHooks.filters}
                 onImageSelect={imageHooks.setSelectedImage}
                 onFileSelect={imageHooks.handleFileSelect}
                 onDrop={imageHooks.handleDrop}
                 onDeleteImage={imageHooks.handleDeleteImage}
                 onDragOver={imageHooks.setImageDragActive}
+                onFiltersChange={imageHooks.setFilters}
                 fileInputRef={imageFileInputRef}
               />
             )}
@@ -632,9 +623,8 @@ export default function UnifiedPage() {
           onLessonDurationChange={(duration) => updateLessonSettings({ lessonDuration: duration })}
           onClassSizeChange={(size) => updateLessonSettings({ classSize: size })}
           onNewConversation={handleNewConversation}
-          onBrowseStandards={() => updateUIState({ mode: 'browse' })}
           onViewConversations={() => {
-            updateUIState({ mode: 'chat' });
+            setMode('chat');
             // Scroll to sidebar conversations if needed
             const sidebar = document.getElementById('sidebar');
             if (sidebar) {
@@ -642,7 +632,7 @@ export default function UnifiedPage() {
             }
           }}
           onViewMessages={() => {
-            updateUIState({ mode: 'chat' });
+            setMode('chat');
             // Scroll to the bottom of the messages container to show latest messages
             setTimeout(() => {
               const messageContainer = document.getElementById('chatMessagesContainer');

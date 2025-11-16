@@ -105,31 +105,51 @@ class ImageRepository:
             conn.close()
 
     def get_user_images(
-        self, user_id: str, limit: int = 50, offset: int = 0
+        self,
+        user_id: str,
+        limit: int = 50,
+        offset: int = 0,
+        category: Optional[str] = None,
+        education_level: Optional[str] = None,
+        difficulty_level: Optional[str] = None,
     ) -> List[ImageModel]:
         """
-        Get images for a user
+        Get images for a user with optional classification filters
 
         Args:
             user_id: User ID
             limit: Maximum number of images
             offset: Offset for pagination
+            category: Filter by classification category
+            education_level: Filter by education level
+            difficulty_level: Filter by difficulty level
 
         Returns:
             List of ImageModel objects
         """
         conn = self.get_connection()
         try:
-            cursor = conn.execute(
-                """
-                SELECT * FROM images
-                WHERE user_id = ?
-                ORDER BY created_at DESC
-                LIMIT ? OFFSET ?
-            """,
-                (user_id, limit, offset),
-            )
+            # Build base query
+            sql = "SELECT * FROM images WHERE user_id = ?"
+            params = [user_id]
 
+            # Add classification filters
+            if category:
+                sql += " AND JSON_EXTRACT(metadata, '$.category') = ?"
+                params.append(category)
+
+            if education_level:
+                sql += " AND JSON_EXTRACT(metadata, '$.education_level') = ?"
+                params.append(education_level)
+
+            if difficulty_level:
+                sql += " AND JSON_EXTRACT(metadata, '$.difficulty_level') = ?"
+                params.append(difficulty_level)
+
+            sql += " ORDER BY created_at DESC LIMIT ? OFFSET ?"
+            params.extend([limit, offset])
+
+            cursor = conn.execute(sql, params)
             rows = cursor.fetchall()
             return [self._row_to_image(row) for row in rows]
 
@@ -137,23 +157,32 @@ class ImageRepository:
             conn.close()
 
     def search_images(
-        self, user_id: str, query: str, limit: int = 20
+        self,
+        user_id: str,
+        query: str,
+        limit: int = 20,
+        category: Optional[str] = None,
+        education_level: Optional[str] = None,
+        difficulty_level: Optional[str] = None,
     ) -> List[ImageModel]:
         """
-        Search images by text content
+        Search images by text content and classification filters
 
         Args:
             user_id: User ID
             query: Search query
             limit: Maximum results
+            category: Filter by classification category
+            education_level: Filter by education level
+            difficulty_level: Filter by difficulty level
 
         Returns:
             List of matching images
         """
         conn = self.get_connection()
         try:
-            cursor = conn.execute(
-                """
+            # Build base query
+            sql = """
                 SELECT * FROM images
                 WHERE user_id = ?
                 AND (
@@ -161,12 +190,26 @@ class ImageRepository:
                     OR vision_summary LIKE ?
                     OR filename LIKE ?
                 )
-                ORDER BY created_at DESC
-                LIMIT ?
-            """,
-                (user_id, f"%{query}%", f"%{query}%", f"%{query}%", limit),
-            )
+            """
+            params = [user_id, f"%{query}%", f"%{query}%", f"%{query}%"]
 
+            # Add classification filters
+            if category:
+                sql += " AND JSON_EXTRACT(metadata, '$.category') = ?"
+                params.append(category)
+
+            if education_level:
+                sql += " AND JSON_EXTRACT(metadata, '$.education_level') = ?"
+                params.append(education_level)
+
+            if difficulty_level:
+                sql += " AND JSON_EXTRACT(metadata, '$.difficulty_level') = ?"
+                params.append(difficulty_level)
+
+            sql += " ORDER BY created_at DESC LIMIT ?"
+            params.append(limit)
+
+            cursor = conn.execute(sql, params)
             rows = cursor.fetchall()
             return [self._row_to_image(row) for row in rows]
 

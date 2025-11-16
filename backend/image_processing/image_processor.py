@@ -8,6 +8,7 @@ import logging
 from .ocr_engine import OCREngine
 from .vision_analyzer import VisionAnalyzer
 from .image_storage import ImageStorage
+from .image_classifier import ImageClassifier
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,9 @@ class ImageProcessor:
 
         self.ocr_engine = OCREngine()
         self.vision_analyzer = VisionAnalyzer(api_key=api_key or config.chutes.api_key)
+        self.image_classifier = ImageClassifier(
+            vision_analyzer=self.vision_analyzer, ocr_engine=self.ocr_engine
+        )
         self.storage = ImageStorage(
             storage_path=storage_path or config.image_processing.storage_path
         )
@@ -70,6 +74,16 @@ class ImageProcessor:
             # Run OCR
             extracted_text, ocr_confidence = self.ocr_engine.extract_text(image_path)
 
+            # Run image classification
+            classification_result = None
+            try:
+                classification_result = self.image_classifier.classify_image(image_path)
+                logger.info(
+                    f"Image classified as: {classification_result.get('category', 'unknown')}"
+                )
+            except Exception as e:
+                logger.warning(f"Image classification failed: {e}")
+
             # Run vision analysis if enabled and available
             vision_summary = None
             if analyze_vision and self.vision_analyzer.is_available():
@@ -88,6 +102,7 @@ class ImageProcessor:
                 "mime_type": self._get_mime_type(original_filename),
                 "extracted_text": extracted_text,
                 "ocr_confidence": ocr_confidence,
+                "classification": classification_result,
                 "vision_summary": vision_summary,
                 "image_type": image_type,
                 "metadata": metadata,

@@ -40,7 +40,7 @@ interface RightPanelProps {
   onRetrySession?: () => Promise<SessionResponsePayload | null>;
 }
 
-export default function RightPanel({
+function RightPanel({
   width,
   selectedGrade,
   selectedStrand,
@@ -482,3 +482,5 @@ export default function RightPanel({
     </aside>
   );
 }
+
+export default React.memo(RightPanel);

@@ -65,6 +65,7 @@ class ImageUploadResponse(BaseModel):
     extracted_text: str
     vision_summary: Optional[str]
     ocr_confidence: float
+    classification: Optional[dict]
     image_type: str
     message: str
 
@@ -169,6 +170,7 @@ async def upload_image(
             extracted_text=result["extracted_text"],
             vision_summary=result["vision_summary"],
             ocr_confidence=result["ocr_confidence"],
+            classification=result.get("classification"),
             image_type=result["image_type"],
             message="Image uploaded and processed successfully",
         )
@@ -231,6 +233,7 @@ async def upload_images_batch(
                     extracted_text="",
                     vision_summary=None,
                     ocr_confidence=0.0,
+                    classification=None,
                     image_type="error",
                     message=f"Error: {e.detail}",
                 )
@@ -243,15 +246,21 @@ async def upload_images_batch(
 async def list_images(
     limit: int = 50,
     offset: int = 0,
+    category: Optional[str] = None,
+    education_level: Optional[str] = None,
+    difficulty_level: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     repo: ImageRepository = Depends(get_image_repository),
 ):
     """
-    List user's images
+    List user's images with optional classification filters
 
     Args:
         limit: Maximum number of images (default: 50)
         offset: Offset for pagination (default: 0)
+        category: Filter by classification category
+        education_level: Filter by education level
+        difficulty_level: Filter by difficulty level
         current_user: Current authenticated user
         repo: ImageRepository instance
 
@@ -262,6 +271,9 @@ async def list_images(
         user_id=current_user.id,
         limit=min(limit, 100),  # Cap at 100
         offset=offset,
+        category=category,
+        education_level=education_level,
+        difficulty_level=difficulty_level,
     )
 
     return [
@@ -274,22 +286,35 @@ async def list_images(
 async def search_images(
     q: str,
     limit: int = 20,
+    category: Optional[str] = None,
+    education_level: Optional[str] = None,
+    difficulty_level: Optional[str] = None,
     current_user: User = Depends(get_current_user),
     repo: ImageRepository = Depends(get_image_repository),
 ):
     """
-    Search images by text content
+    Search images by text content and classification filters
 
     Args:
         q: Search query
         limit: Maximum results (default: 20)
+        category: Filter by classification category
+        education_level: Filter by education level
+        difficulty_level: Filter by difficulty level
         current_user: Current authenticated user
         repo: ImageRepository instance
 
     Returns:
         Matching images
     """
-    images = repo.search_images(user_id=current_user.id, query=q, limit=min(limit, 50))
+    images = repo.search_images(
+        user_id=current_user.id,
+        query=q,
+        limit=min(limit, 50),
+        category=category,
+        education_level=education_level,
+        difficulty_level=difficulty_level,
+    )
 
     return [
         ImageResponse(**{**image.__dict__, "url": f"/api/images/{image.id}/data"})

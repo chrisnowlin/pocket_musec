@@ -1,6 +1,8 @@
 import '@testing-library/jest-dom'
 import { vi } from 'vitest'
 
+declare const global: typeof globalThis;
+
 // Mock IndexedDB for lessonEditorStorage
 const indexedDB = {
   open: vi.fn(),

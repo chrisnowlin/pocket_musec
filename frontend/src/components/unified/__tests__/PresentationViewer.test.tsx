@@ -300,9 +300,10 @@ it('displays correct slide information', () => {
     );
 
     const exportButtons = screen.getAllByText('Exporting...');
-    expect(exportButtons).toHaveLength(2);
-    expect(exportButtons[0]).toBeDisabled();
-    expect(exportButtons[1]).toBeDisabled();
+    expect(exportButtons).toHaveLength(4);
+    exportButtons.forEach(button => {
+      expect(button).toBeDisabled();
+    });
   });
 
   it('shows correct slide type colors and icons', () => {

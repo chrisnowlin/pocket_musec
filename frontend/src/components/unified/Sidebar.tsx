@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import type { ViewMode, ConversationGroup } from '../../types/unified';
 import { quickAccessLinks } from '../../constants/unified';
 import ConversationMenu from './ConversationMenu';
@@ -22,7 +23,7 @@ interface SidebarProps {
   onOpenConversationEditor: (sessionId: string) => void;
 }
 
-export default function Sidebar({
+function Sidebar({
   width,
   mode,
   onModeChange,
@@ -212,3 +213,5 @@ export default function Sidebar({
     </aside>
   );
 }
+
+export default React.memo(Sidebar);

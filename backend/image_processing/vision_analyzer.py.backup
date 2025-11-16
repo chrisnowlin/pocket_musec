@@ -41,6 +41,7 @@ class VisionAnalyzer:
         self,
         image_path: str,
         prompt: str = "Describe this image in detail, focusing on any musical notation, instruments, educational content, or instructional diagrams.",
+        structured_output: bool = False,
     ) -> Optional[str]:
         """
         Analyze image using vision model
@@ -48,6 +49,7 @@ class VisionAnalyzer:
         Args:
             image_path: Path to image file
             prompt: Analysis prompt for the vision model
+            structured_output: Whether to request structured JSON output
 
         Returns:
             Analysis text or None if failed
@@ -162,7 +164,7 @@ Format the response as a structured analysis."""
             return {"type": "instructional_diagram", "analysis": analysis}
         return None
 
-    def extract_elements(self, image_path: str) -> Optional[Dict]:
+    def extract_elements(self, image_path: str) -> Optional[Dict[str, any]]:
         """
         Extract specific elements from image
 
@@ -173,25 +175,27 @@ Format the response as a structured analysis."""
             Dictionary with categorized elements or None
         """
         prompt = """List all distinct elements in this image:
-- Musical instruments (if any)
-- Musical notation elements (notes, rests, clefs, etc.)
-- Text labels and annotations
-- Diagrams or charts
-- People or performers
-- Educational symbols
+        - Musical instruments (if any)
+        - Musical notation elements (notes, rests, clefs, etc.)
+        - Text labels and annotations
+        - Diagrams or charts
+        - People or performers
+        - Educational symbols
 
-Provide a structured list."""
+        Provide a structured list."""
 
         analysis = self.analyze_image(image_path, prompt)
 
         if analysis:
             # Parse elements from analysis
             # This is a simplified version; could be enhanced with structured output
+            elements_list = [
+                line.strip() for line in analysis.split("\n") if line.strip()
+            ]
             return {
-                "elements": [
-                    line.strip() for line in analysis.split("\n") if line.strip()
-                ],
+                "elements": elements_list,
                 "raw_analysis": analysis,
+                "element_count": len(elements_list),
             }
         return None
 
