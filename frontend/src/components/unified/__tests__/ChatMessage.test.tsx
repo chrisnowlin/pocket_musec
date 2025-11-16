@@ -19,7 +19,7 @@ vi.mock('../LessonEditor', () => ({
     onCancel: () => void;
   }) => (
     <div data-testid="lesson-editor">
-      <textarea data-testid="editor-textarea" defaultValue={content} />
+      <textarea data-testid="editor-textarea" value={content} readOnly />
       <button onClick={() => onSave(content)} data-testid="editor-save">Save</button>
       <button onClick={onCancel} data-testid="editor-cancel">Cancel</button>
     </div>
@@ -27,14 +27,14 @@ vi.mock('../LessonEditor', () => ({
 }))
 
 // Mock the MarkdownRenderer
-vi.mock('../../components/MarkdownRenderer', () => ({
+vi.mock('../../MarkdownRenderer', () => ({
   default: ({ content }: { content: string }) => (
     <div data-testid="markdown-renderer">{content}</div>
   ),
 }))
 
 // Mock the citation hooks
-vi.mock('../../hooks/useCitations', () => ({
+vi.mock('../../../hooks/useCitations', () => ({
   useCitations: (...args: unknown[]) => mockUseCitations(...args),
 }))
 
@@ -169,7 +169,7 @@ describe('ChatMessage', () => {
 
     // Should be in edit mode (LessonEditor loads lazily)
     expect(await screen.findByTestId('lesson-editor')).toBeInTheDocument()
-    expect(screen.getByDisplayValue('## Lesson Plan\n\n### Objectives\n\nStudents will learn music.')).toBeInTheDocument()
+    expect(screen.getByTestId('editor-textarea')).toHaveValue('## Lesson Plan\n\n### Objectives\n\nStudents will learn music.')
   })
 
   it('saves edited content and exits edit mode', async () => {

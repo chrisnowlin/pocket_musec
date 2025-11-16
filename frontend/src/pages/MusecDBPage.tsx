@@ -101,6 +101,8 @@ const { validateMultipleFiles } = useFileValidation();
     lessons,
     isLoading: isLoadingLessons,
     lessonCount,
+    selectedLesson,
+    setSelectedLessonId,
     deleteLesson,
     promoteFromDraft,
     demoteToLesson,
@@ -461,7 +463,6 @@ ${exportingDraft.content}`;
   const [searchQueryLessons, setSearchQueryLessons] = useState('');
   const [selectedGradeLessons, setSelectedGradeLessons] = useState('');
   const [selectedStrandLessons, setSelectedStrandLessons] = useState('');
-  const [selectedLesson, setSelectedLesson] = useState<any>(null);
   const [lessonPreviewWidth, setLessonPreviewWidth] = useState(384);
   const [isResizingLessonPreview, setIsResizingLessonPreview] = useState(false);
 
@@ -514,18 +515,12 @@ ${exportingDraft.content}`;
   const handleDemoteLesson = async (lessonId: string) => {
     const result = await demoteToLesson(lessonId);
     if (result) {
-      setSelectedLesson(null);
       console.log('Lesson demoted successfully');
     }
   };
 
   const handleDeleteLesson = async (lessonId: string) => {
-    const success = await deleteLesson(lessonId);
-    if (success) {
-      if (selectedLesson?.id === lessonId) {
-        setSelectedLesson(null);
-      }
-    }
+    await deleteLesson(lessonId);
   };
 
   // Preview panel resize handlers for lessons
@@ -1116,7 +1111,7 @@ ${exportingDraft.content}`;
                                   ? 'border-parchment-300 bg-ink-700'
                                   : 'border-ink-700 hover:bg-ink-750'
                               }`}
-                              onClick={() => setSelectedLesson(lesson)}
+                              onClick={() => setSelectedLessonId(lesson.id)}
                             >
                               <div className="flex items-start justify-between">
                                 <div className="flex-1 min-w-0">

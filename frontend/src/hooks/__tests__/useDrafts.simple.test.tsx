@@ -2,6 +2,8 @@ import { renderHook, act } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useDrafts } from '../useDrafts'
 import type { DraftItem } from '../../types/unified'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 
 // Simple mock approach
 vi.mock('../../lib/api', () => ({
@@ -14,13 +16,21 @@ vi.mock('../../lib/api', () => ({
   },
 }))
 
+const createWrapper = () => {
+  const queryClient = new QueryClient()
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
+
 describe('useDrafts Simple Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it('initializes with empty drafts', async () => {
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     // Initially loading because of useEffect
     expect(result.current.isLoading).toBe(true)
@@ -37,7 +47,8 @@ describe('useDrafts Simple Tests', () => {
   })
 
   it('manages edit mode state', () => {
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     expect(result.current.editingDraftId).toBe(null)
 
@@ -55,7 +66,8 @@ describe('useDrafts Simple Tests', () => {
   })
 
   it('checks if editing draft', () => {
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     expect(result.current.isEditingDraft('draft-1')).toBe(false)
 
@@ -68,13 +80,15 @@ describe('useDrafts Simple Tests', () => {
   })
 
   it('gets editing draft returns null when not editing', () => {
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     expect(result.current.getEditingDraft()).toBe(null)
   })
 
   it('clears error state', () => {
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     // Initially no error
     expect(result.current.error).toBe(null)
@@ -87,7 +101,8 @@ describe('useDrafts Simple Tests', () => {
   })
 
   it('gets draft with updates returns null for non-existent draft', () => {
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     const updatedDraft = result.current.getDraftWithUpdates('999', {
       title: 'New Title',

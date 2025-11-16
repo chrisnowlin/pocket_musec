@@ -1,39 +1,50 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { DraftItem } from '../types/unified';
 
-export function useDrafts() {
-  const [drafts, setDrafts] = useState<DraftItem[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [draftCount, setDraftCount] = useState<number>(0);
+const DRAFTS_QUERY_KEY = ['drafts'];
 
-  // Edit mode state management
-  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+export function useDrafts() {
+  const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState<boolean>(false);
+  const [editingDraftId, setEditingDraftId] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const {
+    data: draftsData,
+    isFetching: isLoading,
+    refetch: refetchDrafts,
+  } = useQuery({
+    queryKey: DRAFTS_QUERY_KEY,
+    queryFn: async () => {
+      const result = await api.getDrafts();
+      if (!result.ok) {
+        throw new Error(result.message || 'Failed to load drafts');
+      }
+      return result.data;
+    },
+    onError: (err: any) => {
+      setError(err?.message || 'Failed to load drafts');
+    },
+  });
+
+  const drafts = draftsData ?? [];
+  const draftCount = drafts.length;
+
+  const updateDraftsCache = useCallback((updater: (drafts: DraftItem[]) => DraftItem[]) => {
+    queryClient.setQueryData<DraftItem[]>(DRAFTS_QUERY_KEY, (prev = []) => updater(prev));
+  }, [queryClient]);
 
   const loadDrafts = useCallback(async () => {
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const result = await api.getDrafts();
-      if (result.ok) {
-        setDrafts(result.data);
-        setDraftCount(result.data.length);
-        return result.data;
-      } else {
-        setError(result.message || 'Failed to load drafts');
-        return [];
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to load drafts';
-      setError(errorMessage);
+    const result = await refetchDrafts();
+    if (result.error) {
+      setError((result.error as Error).message || 'Failed to load drafts');
       return [];
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+    return result.data ?? [];
+  }, [refetchDrafts]);
 
   const getDraft = useCallback(async (draftId: string): Promise<DraftItem | null> => {
     try {
@@ -66,8 +77,7 @@ export function useDrafts() {
       });
 
       if (result.ok) {
-        setDrafts(prev => [result.data, ...prev]);
-        setDraftCount(prev => prev + 1);
+        updateDraftsCache(prev => [result.data, ...prev]);
         return result.data;
       } else {
         setError(result.message || 'Failed to create draft');
@@ -78,7 +88,7 @@ export function useDrafts() {
       setError(errorMessage);
       return null;
     }
-  }, []);
+  }, [updateDraftsCache]);
 
   const updateDraft = useCallback(async (
     draftId: string,
@@ -88,7 +98,7 @@ export function useDrafts() {
       const result = await api.updateDraft(draftId, updates);
 
       if (result.ok) {
-        setDrafts(prev =>
+        updateDraftsCache(prev =>
           prev.map(draft =>
             draft.id === draftId ? result.data : draft
           )
@@ -103,15 +113,14 @@ export function useDrafts() {
       setError(errorMessage);
       return null;
     }
-  }, []);
+  }, [updateDraftsCache]);
 
   const deleteDraft = useCallback(async (draftId: string): Promise<boolean> => {
     try {
       const result = await api.deleteDraft(draftId);
 
       if (result.ok) {
-        setDrafts(prev => prev.filter(draft => draft.id !== draftId));
-        setDraftCount(prev => prev - 1);
+        updateDraftsCache(prev => prev.filter(draft => draft.id !== draftId));
         return true;
       } else {
         setError(result.message || 'Failed to delete draft');
@@ -122,9 +131,8 @@ export function useDrafts() {
       setError(errorMessage);
       return false;
     }
-  }, []);
+  }, [updateDraftsCache]);
 
-  // Edit mode management functions
   const setEditMode = useCallback((draftId: string | null) => {
     setEditingDraftId(draftId);
   }, []);
@@ -158,25 +166,21 @@ export function useDrafts() {
   ): Promise<DraftItem | null> => {
     setIsSaving(true);
     setError(null);
+    let capturedDraft: DraftItem | null = null;
 
     try {
-      // Optimistic update - update local state immediately
       const currentDraft = drafts.find(d => d.id === draftId);
       if (!currentDraft) {
         setError('Draft not found');
         return null;
       }
 
-      // Capture draft data outside to prevent stale closures
-      const capturedDraft = { ...currentDraft };
-
-      // Store original content if this is the first edit
+      capturedDraft = { ...currentDraft };
       const optimisticUpdates: Partial<DraftItem> = {
         content,
         updatedAt: new Date().toISOString()
       };
 
-      // Only set originalContent if it doesn't exist yet (first edit)
       if (!currentDraft.originalContent) {
         optimisticUpdates.originalContent = currentDraft.content;
       }
@@ -185,61 +189,52 @@ export function useDrafts() {
         optimisticUpdates.title = title;
       }
 
-	      // If an m2.0 lesson document exists, keep its notes in sync with content
-	      if (currentDraft.metadata && 'lesson_document' in currentDraft.metadata) {
-	        const lessonDocument: any = (currentDraft.metadata as any).lesson_document;
-	        if (lessonDocument && lessonDocument.content) {
-	          optimisticUpdates.metadata = {
-	            ...currentDraft.metadata,
-	            lesson_document: {
-	              ...lessonDocument,
-	              content: {
-	                ...lessonDocument.content,
-	                notes: content,
-	              },
-	            },
-	          } as any;
-	        }
-	      }
+      if (currentDraft.metadata && 'lesson_document' in currentDraft.metadata) {
+        const lessonDocument: any = (currentDraft.metadata as any).lesson_document;
+        if (lessonDocument && lessonDocument.content) {
+          optimisticUpdates.metadata = {
+            ...currentDraft.metadata,
+            lesson_document: {
+              ...lessonDocument,
+              content: {
+                ...lessonDocument.content,
+                notes: content,
+              },
+            },
+          } as any;
+        }
+      }
 
-
-      // Apply optimistic updates
-      setDrafts(prev =>
+      updateDraftsCache(prev =>
         prev.map(draft =>
-          draft.id === draftId
-            ? { ...draft, ...optimisticUpdates }
-            : draft
+          draft.id === draftId ? { ...draft, ...optimisticUpdates } : draft
         )
       );
 
-      // Make API call
       const result = await api.updateDraft(draftId, optimisticUpdates);
 
       if (result.ok) {
-        // Update with server response
-        setDrafts(prev =>
+        updateDraftsCache(prev =>
           prev.map(draft =>
             draft.id === draftId ? result.data : draft
           )
         );
         return result.data;
       } else {
-        // Revert optimistic update on error using captured draft
-        setDrafts(prev =>
-          prev.map(draft =>
-            draft.id === draftId ? capturedDraft : draft
-          )
-        );
+        if (capturedDraft) {
+          updateDraftsCache(prev =>
+            prev.map(draft =>
+              draft.id === draftId ? capturedDraft : draft
+            )
+          );
+        }
         setError(result.message || 'Failed to save lesson');
         return null;
       }
     } catch (err: any) {
-      // Revert optimistic update on error - use captured draft reference
-      // instead of re-fetching from drafts array to prevent race conditions
-      const capturedDraft = drafts.find(d => d.id === draftId);
       if (capturedDraft) {
         const stableDraft = { ...capturedDraft };
-        setDrafts(prev =>
+        updateDraftsCache(prev =>
           prev.map(draft =>
             draft.id === draftId ? stableDraft : draft
           )
@@ -251,19 +246,13 @@ export function useDrafts() {
     } finally {
       setIsSaving(false);
     }
-  }, [drafts]);
+  }, [drafts, updateDraftsCache]);
 
   const clearError = useCallback(() => {
     setError(null);
   }, []);
 
-  // Load drafts on mount
-  useEffect(() => {
-    loadDrafts();
-  }, [loadDrafts]);
-
   return {
-    // Existing state and functions
     drafts,
     isLoading,
     error,
@@ -274,8 +263,6 @@ export function useDrafts() {
     updateDraft,
     deleteDraft,
     clearError,
-
-    // Edit mode state and functions
     editingDraftId,
     isSaving,
     setEditMode,

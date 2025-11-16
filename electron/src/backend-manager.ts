@@ -4,6 +4,7 @@ import * as fs from 'fs';
 import axios from 'axios';
 import findFreePort from 'find-free-port';
 import { logger } from './logger';
+import { app } from 'electron';
 
 export interface BackendStatus {
   isRunning: boolean;
@@ -160,7 +161,7 @@ export class BackendManager {
    * Start the Python backend process
    */
   private async startBackendProcess(): Promise<void> {
-    const isDev = process.env.NODE_ENV === 'development';
+    const isDev = !app.isPackaged;
     
     // Determine the backend executable path
     let backendPath: string;
@@ -251,7 +252,7 @@ export class BackendManager {
         attempts++;
         
         try {
-          const response = await axios.get(`http://localhost:${this.port}/api/health`, {
+          const response = await axios.get(`http://localhost:${this.port}/health`, {
             timeout: 2000
           });
           
@@ -288,7 +289,7 @@ export class BackendManager {
       }
 
       try {
-        const response = await axios.get(`http://localhost:${this.port}/api/health`, {
+        const response = await axios.get(`http://localhost:${this.port}/health`, {
           timeout: 5000
         });
         

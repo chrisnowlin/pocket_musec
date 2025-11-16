@@ -1,28 +1,10 @@
-import { useState, useCallback } from 'react';
-import type { Toast, ToastType } from '../components/unified/Toast';
+import { useCallback } from 'react';
+import { useToastStore } from '../stores/toastStore';
 
 export function useToast() {
-  const [toasts, setToasts] = useState<Toast[]>([]);
-
-  const showToast = useCallback(
-    (message: string, type: ToastType = 'info', duration?: number) => {
-      const id = `toast-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      const newToast: Toast = {
-        id,
-        message,
-        type,
-        duration,
-      };
-
-      setToasts((prev) => [...prev, newToast]);
-      return id;
-    },
-    []
-  );
-
-  const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  }, []);
+  const toasts = useToastStore((state) => state.toasts);
+  const showToast = useToastStore((state) => state.showToast);
+  const removeToast = useToastStore((state) => state.removeToast);
 
   const success = useCallback(
     (message: string, duration?: number) => showToast(message, 'success', duration),
@@ -54,4 +36,3 @@ export function useToast() {
     warning,
   };
 }
-

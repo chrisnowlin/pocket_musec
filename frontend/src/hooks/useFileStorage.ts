@@ -1,7 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FileMetadata, FileStats } from '../types/fileStorage';
 import { ingestionService } from '../services/ingestionService';
 import { FILE_STORAGE_CONSTANTS, FILE_STORAGE_MESSAGES } from '../constants/unified';
+import { useFileStorageStore } from '../stores/fileStorageStore';
 
 interface UseFileStorageOptions {
   autoLoad?: boolean;
@@ -18,8 +20,6 @@ interface UseFileStorageReturn {
   totalPages: number;
   totalCount: number;
   selectedStatus: string;
-  
-  // Actions
   loadFiles: (status?: string, page?: number) => Promise<void>;
   loadFileStats: () => Promise<void>;
   downloadFile: (fileId: string, filename: string) => Promise<void>;
@@ -27,8 +27,6 @@ interface UseFileStorageReturn {
   setStatusFilter: (status: string) => void;
   setCurrentPage: (page: number) => void;
   refresh: () => Promise<void>;
-  
-  // Computed values
   hasFiles: boolean;
   hasErrors: boolean;
   recentlyUploaded: FileMetadata[];
@@ -41,70 +39,109 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
     pageSize = FILE_STORAGE_CONSTANTS.DEFAULT_PAGE_SIZE,
   } = options;
 
-  const [files, setFiles] = useState<FileMetadata[]>([]);
-  const [fileStats, setFileStats] = useState<FileStats | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [currentPage, setCurrentPage] = useState(0);
-  const [totalCount, setTotalCount] = useState(0);
-  const [selectedStatus, setSelectedStatus] = useState(defaultStatus);
+  const files = useFileStorageStore((state) => state.files);
+  const fileStats = useFileStorageStore((state) => state.fileStats);
+  const loading = useFileStorageStore((state) => state.loading);
+  const error = useFileStorageStore((state) => state.error);
+  const currentPage = useFileStorageStore((state) => state.currentPage);
+  const totalCount = useFileStorageStore((state) => state.totalCount);
+  const selectedStatus = useFileStorageStore((state) => state.selectedStatus);
+  const setFiles = useFileStorageStore((state) => state.setFiles);
+  const setFileStats = useFileStorageStore((state) => state.setFileStats);
+  const setLoading = useFileStorageStore((state) => state.setLoading);
+  const setError = useFileStorageStore((state) => state.setError);
+  const setCurrentPage = useFileStorageStore((state) => state.setCurrentPage);
+  const setSelectedStatus = useFileStorageStore((state) => state.setSelectedStatus);
 
-  const loadFiles = useCallback(async (status?: string, page: number = 0) => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      const statusFilter = status || selectedStatus;
-      const response = await ingestionService.getUploadedFiles(
-        statusFilter === 'all' ? undefined : statusFilter,
-        pageSize,
-        page * pageSize
-      );
-      
-      if (response.success && response.files) {
-        setFiles(response.files);
-        if (response.pagination) {
-          setTotalCount(response.pagination.total);
-        }
-      } else {
-        setError(response.error || FILE_STORAGE_MESSAGES.UPLOAD_FAILED);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : FILE_STORAGE_MESSAGES.UPLOAD_FAILED;
-      setError(errorMessage);
-    } finally {
-      setLoading(false);
+  const queryClient = useQueryClient();
+
+  const fetchFiles = useCallback(async (statusValue: string, pageValue: number) => {
+    const statusFilter = statusValue === 'all' ? undefined : statusValue;
+    const response = await ingestionService.getUploadedFiles(
+      statusFilter,
+      pageSize,
+      pageValue * pageSize
+    );
+
+    if (response.success && response.files) {
+      return {
+        files: response.files,
+        total: response.pagination?.total ?? response.files.length,
+      };
     }
-  }, [selectedStatus, pageSize]);
+
+    throw new Error(response.error || FILE_STORAGE_MESSAGES.UPLOAD_FAILED);
+  }, [pageSize]);
+
+  const fetchStats = useCallback(async () => {
+    const response = await ingestionService.getFileStatistics();
+    if (response.success && response.database_stats) {
+      return response.database_stats;
+    }
+    throw new Error(FILE_STORAGE_MESSAGES.UPLOAD_FAILED);
+  }, []);
+
+  const filesQuery = useQuery({
+    queryKey: ['files', selectedStatus, currentPage, pageSize],
+    queryFn: () => fetchFiles(selectedStatus, currentPage),
+    keepPreviousData: true,
+    enabled: autoLoad,
+    onSuccess: ({ files, total }) => {
+      setFiles(files, total);
+      setError('');
+    },
+    onError: (err: any) => {
+      setError(err?.message || FILE_STORAGE_MESSAGES.UPLOAD_FAILED);
+    },
+  });
+
+  useQuery({
+    queryKey: ['fileStats'],
+    queryFn: fetchStats,
+    enabled: autoLoad,
+    onSuccess: (stats) => setFileStats(stats),
+    onError: (err: any) => {
+      console.error('Failed to load file stats:', err);
+    },
+  });
+
+  const loadFiles = useCallback(async (status?: string, page?: number) => {
+    const statusValue = status ?? selectedStatus;
+    const pageValue = page ?? currentPage;
+    setSelectedStatus(statusValue);
+    setCurrentPage(pageValue);
+    const data = await queryClient.fetchQuery({
+      queryKey: ['files', statusValue, pageValue, pageSize],
+      queryFn: () => fetchFiles(statusValue, pageValue),
+    });
+    setFiles(data.files, data.total);
+  }, [selectedStatus, currentPage, setSelectedStatus, setCurrentPage, queryClient, pageSize, fetchFiles, setFiles]);
 
   const loadFileStats = useCallback(async () => {
-    try {
-      const response = await ingestionService.getFileStatistics();
-      if (response.success && response.database_stats) {
-        setFileStats(response.database_stats);
-      }
-    } catch (err) {
-      console.error('Failed to load file stats:', err);
-    }
-  }, []);
+    const stats = await queryClient.fetchQuery({
+      queryKey: ['fileStats'],
+      queryFn: fetchStats,
+    });
+    setFileStats(stats);
+  }, [queryClient, fetchStats, setFileStats]);
 
   const downloadFile = useCallback(async (fileId: string, filename: string) => {
     try {
       const blob = await ingestionService.downloadFile(fileId);
       const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
+      const anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
+      document.body.appendChild(anchor);
+      anchor.click();
       window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      document.body.removeChild(anchor);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : FILE_STORAGE_MESSAGES.DOWNLOAD_FAILED;
       setError(errorMessage);
       throw err;
     }
-  }, []);
+  }, [setError]);
 
   const getFileMetadata = useCallback(async (fileId: string): Promise<FileMetadata | null> => {
     try {
@@ -122,31 +159,25 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
   const setStatusFilter = useCallback((status: string) => {
     setSelectedStatus(status);
     setCurrentPage(0);
-  }, []);
+  }, [setSelectedStatus, setCurrentPage]);
 
   const refresh = useCallback(async () => {
     await Promise.all([
       loadFiles(selectedStatus, currentPage),
-      loadFileStats()
+      loadFileStats(),
     ]);
   }, [loadFiles, loadFileStats, selectedStatus, currentPage]);
 
-  // Auto-load data on mount
   useEffect(() => {
-    if (autoLoad) {
-      loadFiles();
-      loadFileStats();
-    }
-  }, [autoLoad]);
+    setLoading(filesQuery.isFetching);
+  }, [filesQuery.isFetching, setLoading]);
 
-  // Load files when status or page changes
   useEffect(() => {
-    if (autoLoad) {
-      loadFiles(selectedStatus, currentPage);
+    if (defaultStatus && selectedStatus !== defaultStatus) {
+      setSelectedStatus(defaultStatus);
     }
-  }, [selectedStatus, currentPage, autoLoad, loadFiles]);
+  }, [defaultStatus, selectedStatus, setSelectedStatus]);
 
-  // Computed values
   const hasFiles = files.length > 0;
   const hasErrors = error.length > 0;
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -163,7 +194,6 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
     totalPages,
     totalCount,
     selectedStatus,
-    
     loadFiles,
     loadFileStats,
     downloadFile,
@@ -171,28 +201,23 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
     setStatusFilter,
     setCurrentPage,
     refresh,
-    
     hasFiles,
     hasErrors,
     recentlyUploaded,
   };
 }
 
-// Utility hook for file upload validation
 export function useFileValidation() {
   const validateFile = useCallback((file: File): string | null => {
-    // Check file size
     if (file.size > FILE_STORAGE_CONSTANTS.MAX_FILE_SIZE) {
       return FILE_STORAGE_MESSAGES.FILE_TOO_LARGE;
     }
 
-    // Check file extension
     const extension = '.' + file.name.split('.').pop()?.toLowerCase();
     if (!FILE_STORAGE_CONSTANTS.ALLOWED_EXTENSIONS.includes(extension)) {
       return FILE_STORAGE_MESSAGES.INVALID_FILE_TYPE;
     }
 
-    // Check MIME type
     if (!FILE_STORAGE_CONSTANTS.SUPPORTED_MIME_TYPES.includes(file.type)) {
       return FILE_STORAGE_MESSAGES.INVALID_FILE_TYPE;
     }
@@ -200,9 +225,9 @@ export function useFileValidation() {
     return null;
   }, []);
 
-  const validateMultipleFiles = useCallback((files: File[]): { valid: File[], invalid: Array<{ file: File, error: string }> } => {
+  const validateMultipleFiles = useCallback((files: File[]) => {
     const valid: File[] = [];
-    const invalid: Array<{ file: File, error: string }> = [];
+    const invalid: Array<{ file: File; error: string }> = [];
 
     files.forEach(file => {
       const error = validateFile(file);

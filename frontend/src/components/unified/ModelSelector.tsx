@@ -21,35 +21,19 @@ export default function ModelSelector({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [localSelectedModel, setLocalSelectedModel] = useState<string | null>(currentModel);
-  const [hasLoadedFromApi, setHasLoadedFromApi] = useState(false);
   
-  // Sync local state with prop when it changes, but only if we haven't loaded from API yet
-  // Once API has loaded, it becomes the source of truth
+  // Always sync to the latest prop so other components stay in control of the selection
   useEffect(() => {
-    console.log('[ModelSelector] Prop sync effect:', {
-      currentModel,
-      sessionId,
-      hasLoadedFromApi,
-      localSelectedModel,
-      willSync: !hasLoadedFromApi
-    });
-    if (!hasLoadedFromApi) {
-      console.log('[ModelSelector] Syncing local state with prop:', currentModel);
-      setLocalSelectedModel(currentModel);
-    } else {
-      console.log('[ModelSelector] Skipping prop sync - API has loaded');
-    }
-  }, [currentModel, sessionId, hasLoadedFromApi]);
+    setLocalSelectedModel(currentModel ?? null);
+  }, [currentModel, sessionId]);
 
   // Fetch available models when component mounts or session changes
   useEffect(() => {
     if (processingMode !== 'cloud' || !sessionId) {
       setIsLoading(false);
-      setHasLoadedFromApi(false);
       return;
     }
 
-    setHasLoadedFromApi(false);
     fetchAvailableModels();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, processingMode]);
@@ -77,7 +61,6 @@ export default function ModelSelector({
       console.log('  - available_model_ids:', data.available_models.map(m => m.id));
       console.log('  - select_will_show:', modelToUse || '(empty - will show "Select a model...")');
       setLocalSelectedModel(modelToUse);
-      setHasLoadedFromApi(true);
     } catch (err) {
       console.error('Error fetching models:', err);
       setError(err instanceof Error ? err.message : 'Failed to load models');

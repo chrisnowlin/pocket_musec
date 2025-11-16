@@ -1,16 +1,8 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import api from '../lib/api';
 import type { ChatMessage, ChatSender } from '../types/unified';
 import type { SessionResponsePayload, ChatResponsePayload } from '../lib/types';
-
-const WELCOME_MESSAGE_TEXT = "👋 Welcome! I'm your PocketMusec AI assistant. I'll help you craft engaging, standards-aligned music lessons.";
-
-const buildWelcomeMessage = (): ChatMessage => ({
-  id: 'welcome',
-  sender: 'ai',
-  text: WELCOME_MESSAGE_TEXT,
-  timestamp: new Date().toISOString(),
-});
+import { useConversationStore, buildWelcomeMessage } from '../stores/conversationStore';
 
 interface UseChatProps {
   session: SessionResponsePayload | null;
@@ -18,19 +10,17 @@ interface UseChatProps {
   classSize: string;
 }
 
-interface MessageStatus {
-  isPersisted: boolean;
-  hasError: boolean;
-}
-
 export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    buildWelcomeMessage(),
-  ]);
-  const [isTyping, setIsTyping] = useState(false);
-  const [chatError, setChatError] = useState<string | null>(null);
-  const [isLoadingConversation, setIsLoadingConversation] = useState(false);
-  const [messageStatuses, setMessageStatuses] = useState<Record<string, MessageStatus>>({});
+  const messages = useConversationStore((state) => state.messages);
+  const setMessages = useConversationStore((state) => state.setMessages);
+  const appendStoreMessage = useConversationStore((state) => state.appendMessage);
+  const resetStoreMessages = useConversationStore((state) => state.resetMessages);
+  const isTyping = useConversationStore((state) => state.isTyping);
+  const setIsTyping = useConversationStore((state) => state.setIsTyping);
+  const chatError = useConversationStore((state) => state.chatError);
+  const setChatError = useConversationStore((state) => state.setChatError);
+  const isLoadingConversation = useConversationStore((state) => state.isLoadingConversation);
+  const setIsLoadingConversation = useConversationStore((state) => state.setIsLoadingConversation);
   const lastLoadedSessionRef = useRef<string | null>(null);
 
   // Generate stable message IDs based on content and timestamp
@@ -55,33 +45,16 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     return Math.abs(hash).toString(36);
   };
 
-  const appendMessage = useCallback((sender: ChatSender, text: string, id?: string, isPersisted: boolean = false) => {
+  const appendMessage = useCallback((sender: ChatSender, text: string, id?: string) => {
     const messageId = id ?? generateMessageId(sender, text);
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: messageId,
-        sender,
-        text,
-        timestamp: new Date().toISOString(),
-      },
-    ]);
-    
-    // Set initial status for the message
-    setMessageStatuses(prev => ({
-      ...prev,
-      [messageId]: { isPersisted, hasError: false }
-    }));
-    
+    appendStoreMessage({
+      id: messageId,
+      sender,
+      text,
+      timestamp: new Date().toISOString(),
+    });
     return messageId;
-  }, [generateMessageId]);
-
-  const updateMessageStatus = useCallback((messageId: string, status: Partial<MessageStatus>) => {
-    setMessageStatuses(prev => ({
-      ...prev,
-      [messageId]: { ...prev[messageId], ...status }
-    }));
-  }, []);
+  }, [appendStoreMessage, generateMessageId]);
 
   const updateMessageText = useCallback((id: string, updater: (current: string) => string) => {
     setMessages((prev) =>
@@ -128,8 +101,8 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
       setChatError(null);
 
       // Add user message and track its status
-      const userMessageId = appendMessage('user', messageText, undefined, false);
-      const aiMessageId = appendMessage('ai', '', undefined, false);
+      const userMessageId = appendMessage('user', messageText);
+      const aiMessageId = appendMessage('ai', '');
 
       try {
         const response = await api.streamChatMessage(activeSessionId, {
@@ -164,7 +137,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
                   if (event.type === 'persisted') {
                     // Backend confirmed conversation was saved
                     isPersisted = event.session_updated;
-                    updateMessageStatus(userMessageId, { isPersisted, hasError: !isPersisted });
                     if (!isPersisted) {
                       console.warn('Conversation save had issues:', event.message);
                     }
@@ -175,9 +147,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
                   } else if (event.type === 'complete') {
                     const payloadData = event.payload as ChatResponsePayload;
                     updateMessageText(aiMessageId, () => payloadData.response);
-                    
-                    // Mark AI message as persisted since we got a complete response
-                    updateMessageStatus(aiMessageId, { isPersisted: true, hasError: false });
                     
                     if (onComplete) {
                       onComplete(payloadData.session);
@@ -194,8 +163,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
 
         // If we never got a persisted confirmation, mark as error
         if (!isPersisted) {
-          updateMessageStatus(userMessageId, { isPersisted: false, hasError: true });
-          updateMessageStatus(aiMessageId, { isPersisted: false, hasError: true });
           console.warn('No persistence confirmation received for messages');
         }
 
@@ -203,10 +170,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
         console.error('Chat message failed:', err);
         setChatError(err.message || 'Failed to send your message');
         updateMessageText(aiMessageId, () => 'Sorry, I could not generate a response.');
-        
-        // Mark both messages as failed
-        updateMessageStatus(userMessageId, { isPersisted: false, hasError: true });
-        updateMessageStatus(aiMessageId, { isPersisted: false, hasError: true });
       } finally {
         setIsTyping(false);
       }
@@ -215,8 +178,8 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
   );
 
   const resetMessages = useCallback(() => {
-    setMessages([buildWelcomeMessage()]);
-  }, []);
+    resetStoreMessages();
+  }, [resetStoreMessages]);
 
   const loadDraftContent = useCallback((draftTitle: string, draftContent: string) => {
     const introText = draftTitle
@@ -244,10 +207,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     ];
 
     setMessages(draftMessages);
-    setMessageStatuses({
-      [introId]: { isPersisted: false, hasError: false },
-      [draftMessageId]: { isPersisted: false, hasError: false },
-    });
     setChatError(null);
     lastLoadedSessionRef.current = null;
   }, [generateMessageId]);
@@ -271,9 +230,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
       // Start with welcome message
       const restoredMessages: ChatMessage[] = [buildWelcomeMessage()];
 
-      // Build message status map for persisted messages
-      const newMessageStatuses: Record<string, MessageStatus> = {};
-
       conversationHistory.forEach((message: any, index: number) => {
         if (message.role === 'user') {
           const messageId = generateMessageId('user', message.content, index);
@@ -283,7 +239,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
             text: message.content,
             timestamp: new Date().toISOString(),
           });
-          newMessageStatuses[messageId] = { isPersisted: true, hasError: false };
         } else if (message.role === 'assistant') {
           const messageId = generateMessageId('ai', message.content, index);
           restoredMessages.push({
@@ -292,7 +247,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
             text: message.content,
             timestamp: new Date().toISOString(),
           });
-          newMessageStatuses[messageId] = { isPersisted: true, hasError: false };
         }
       });
 
@@ -309,9 +263,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
         return [...prev, ...newMessages];
       });
 
-      // Update message statuses
-      setMessageStatuses(prev => ({ ...prev, ...newMessageStatuses }));
-      
       lastLoadedSessionRef.current = sessionData.id;
     } catch (error) {
       console.error('Failed to load conversation history:', error);
@@ -339,8 +290,6 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     setChatError,
     isLoadingConversation,
     loadConversationMessages,
-    messageStatuses,
-    updateMessageStatus,
     updateMessageText,
     updateMessageWithMetadata,
     generateMessageId,

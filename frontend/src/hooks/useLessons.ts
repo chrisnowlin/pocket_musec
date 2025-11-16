@@ -1,43 +1,62 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
-import type { DraftItem } from '../types/unified';
-
-// Using DraftItem type for LessonItem since they have the same structure
-type LessonItem = DraftItem;
+import { useLessonStore, type LessonItem } from '../stores/lessonStore';
 
 export function useLessons() {
-  const [lessons, setLessons] = useState<LessonItem[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  const [lessonCount, setLessonCount] = useState<number>(0);
+  const lessons = useLessonStore((state) => state.lessons);
+  const lessonCount = useLessonStore((state) => state.lessonCount);
+  const error = useLessonStore((state) => state.error);
+  const setLessons = useLessonStore((state) => state.setLessons);
+  const setError = useLessonStore((state) => state.setError);
+  const upsertLesson = useLessonStore((state) => state.upsertLesson);
+  const removeLesson = useLessonStore((state) => state.removeLesson);
+  const selectedLessonId = useLessonStore((state) => state.selectedLessonId);
+  const setSelectedLessonId = useLessonStore((state) => state.setSelectedLessonId);
+  const queryClient = useQueryClient();
+  const selectedLesson = lessons.find((lesson) => lesson.id === selectedLessonId) || null;
+
+  const {
+    isFetching: isLoading,
+    refetch: refetchLessons,
+  } = useQuery({
+    queryKey: ['lessons'],
+    queryFn: async () => {
+      const result = await api.getLessons();
+      if (!result.ok) {
+        throw new Error(result.message || 'Failed to load lessons');
+      }
+      return result.data as LessonItem[];
+    },
+    onSuccess: (data) => {
+      setLessons(data);
+      setError(null);
+    },
+    onError: (err: any) => {
+      setError(err?.message || 'Failed to load lessons');
+    },
+  });
 
   const loadLessons = useCallback(async () => {
-    setIsLoading(true);
     setError(null);
-
-    try {
-      const result = await api.getLessons();
-      if (result.ok) {
-        setLessons(result.data);
-        setLessonCount(result.data.length);
-        return result.data;
-      } else {
-        setError(result.message || 'Failed to load lessons');
-        return [];
-      }
-    } catch (err: any) {
-      const errorMessage = err.message || 'Failed to load lessons';
-      setError(errorMessage);
+    const result = await refetchLessons();
+    if (result.error) {
+      setError((result.error as Error).message || 'Failed to load lessons');
       return [];
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+    return result.data ?? [];
+  }, [refetchLessons, setError]);
 
   const getLesson = useCallback(async (lessonId: string): Promise<LessonItem | null> => {
+    const cachedLesson = lessons.find((lesson) => lesson.id === lessonId);
+    if (cachedLesson) {
+      return cachedLesson;
+    }
+
     try {
       const result = await api.getPermanentLesson(lessonId);
       if (result.ok) {
+    upsertLesson(result.data);
         return result.data;
       } else {
         setError(result.message || 'Failed to load lesson');
@@ -48,15 +67,17 @@ export function useLessons() {
       setError(errorMessage);
       return null;
     }
-  }, []);
+  }, [lessons, setError, upsertLesson]);
 
   const deleteLesson = useCallback(async (lessonId: string): Promise<boolean> => {
     try {
       const result = await api.deleteLesson(lessonId);
 
       if (result.ok) {
-        setLessons(prev => prev.filter(lesson => lesson.id !== lessonId));
-        setLessonCount(prev => prev - 1);
+        removeLesson(lessonId);
+        if (selectedLessonId === lessonId) {
+          setSelectedLessonId(null);
+        }
         return true;
       } else {
         setError(result.message || 'Failed to delete lesson');
@@ -67,16 +88,14 @@ export function useLessons() {
       setError(errorMessage);
       return false;
     }
-  }, []);
+  }, [removeLesson, selectedLessonId, setSelectedLessonId, setError]);
 
   const promoteFromDraft = useCallback(async (draftId: string): Promise<LessonItem | null> => {
     try {
       const result = await api.promoteLesson(draftId);
 
       if (result.ok) {
-        // Add the newly promoted lesson to the lessons list
-        setLessons(prev => [result.data, ...prev]);
-        setLessonCount(prev => prev + 1);
+        upsertLesson(result.data);
         return result.data;
       } else {
         setError(result.message || 'Failed to promote draft');
@@ -87,16 +106,17 @@ export function useLessons() {
       setError(errorMessage);
       return null;
     }
-  }, []);
+  }, [setError, upsertLesson]);
 
   const demoteToLesson = useCallback(async (lessonId: string): Promise<LessonItem | null> => {
     try {
       const result = await api.demoteLesson(lessonId);
 
       if (result.ok) {
-        // Remove the demoted lesson from the lessons list
-        setLessons(prev => prev.filter(lesson => lesson.id !== lessonId));
-        setLessonCount(prev => prev - 1);
+        removeLesson(lessonId);
+        if (selectedLessonId === lessonId) {
+          setSelectedLessonId(null);
+        }
         return result.data;
       } else {
         setError(result.message || 'Failed to demote lesson');
@@ -107,27 +127,30 @@ export function useLessons() {
       setError(errorMessage);
       return null;
     }
-  }, []);
+  }, [removeLesson, selectedLessonId, setSelectedLessonId, setError]);
 
   const clearError = useCallback(() => {
     setError(null);
-  }, []);
+  }, [setError]);
 
-  // Load lessons on mount
-  useEffect(() => {
-    loadLessons();
-  }, [loadLessons]);
+  const invalidateLessons = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: ['lessons'] });
+  }, [queryClient]);
 
   return {
     lessons,
     isLoading,
     error,
     lessonCount,
+    selectedLesson,
+    selectedLessonId,
+    setSelectedLessonId,
     loadLessons,
     getLesson,
     deleteLesson,
     promoteFromDraft,
     demoteToLesson,
     clearError,
+    invalidateLessons,
   };
 }

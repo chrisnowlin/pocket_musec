@@ -1,7 +1,5 @@
-import { useState, useEffect } from 'react';
 import FileOperationErrorBoundary from '../FileOperationErrorBoundary';
-import type { FileMetadata, FileStats } from '../../types/fileStorage';
-import { ingestionService } from '../../services/ingestionService';
+import { useFileStorage } from '../../hooks/useFileStorage';
 import {
   formatFileSize,
   formatDate,
@@ -12,6 +10,7 @@ import {
   FILE_STATUS_COLORS
 } from '../../types/fileStorage';
 import { formatDateTime } from '../../lib/dateUtils';
+import { useFileStorageStore } from '../../stores/fileStorageStore';
 
 interface FileManagerProps {
   onViewIngestion?: () => void;
@@ -22,67 +21,28 @@ export default function FileManager({
   onViewIngestion,
   onFileDownloaded 
 }: FileManagerProps) {
-  const [files, setFiles] = useState<FileMetadata[]>([]);
-  const [fileStats, setFileStats] = useState<FileStats | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>('');
-  const [selectedStatus, setSelectedStatus] = useState<string>('all');
-  const [currentPage, setCurrentPage] = useState(0);
-  const [pageSize] = useState(10);
-
-  const loadFiles = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      
-      const statusFilter = selectedStatus === 'all' ? undefined : selectedStatus;
-      const response = await ingestionService.getUploadedFiles(
-        statusFilter, 
-        pageSize, 
-        currentPage * pageSize
-      );
-      
-      if (response.success && response.files) {
-        setFiles(response.files);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load files');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadFileStats = async () => {
-    try {
-      const stats = await ingestionService.getFileStatistics();
-      if (stats.success) {
-        setFileStats(stats.database_stats);
-      }
-    } catch (err) {
-      console.error('Failed to load file stats:', err);
-    }
-  };
-
-  useEffect(() => {
-    loadFiles();
-    loadFileStats();
-  }, [selectedStatus, currentPage]);
+  const {
+    files,
+    fileStats,
+    loading,
+    error,
+    selectedStatus,
+    currentPage,
+    totalPages,
+    setStatusFilter,
+    setCurrentPage,
+    downloadFile,
+  } = useFileStorage({ autoLoad: true, pageSize: 10 });
+  const setFileError = useFileStorageStore((state) => state.setError);
 
   const handleDownloadFile = async (fileId: string, filename: string) => {
     try {
-      const blob = await ingestionService.downloadFile(fileId);
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = filename;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
-      
+      await downloadFile(fileId, filename);
       onFileDownloaded?.(fileId, filename);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to download file');
+      const message = err instanceof Error ? err.message : 'Failed to download file';
+      setFileError(message);
+      console.error('Failed to download file:', err);
     }
   };
 
@@ -98,12 +58,12 @@ export default function FileManager({
     <FileOperationErrorBoundary
       onFileError={(error, operation) => {
         console.error(`FileManager file operation error in ${operation}:`, error);
-        setError(`Failed to ${operation}: ${error.message}`);
+        setFileError(`Failed to ${operation}: ${error.message}`);
       }}
     >
       <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-ink-800">File Manager</h2>
           <p className="text-ink-600 mt-1">
@@ -179,7 +139,7 @@ export default function FileManager({
             <button
               key={option.value}
               onClick={() => {
-                setSelectedStatus(option.value);
+                setStatusFilter(option.value);
                 setCurrentPage(0);
               }}
               className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${

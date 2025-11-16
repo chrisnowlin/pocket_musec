@@ -133,14 +133,14 @@ class PocketMusecApp {
     });
 
     // Load the app
-    const isDev = process.env.NODE_ENV === 'development';
+    const isDev = !app.isPackaged;
     if (isDev) {
       // In development, load from Vite dev server
       await this.mainWindow.loadURL('http://localhost:5173');
       this.mainWindow.webContents.openDevTools();
     } else {
       // In production, load from built files
-      const indexPath = path.join(__dirname, '../frontend/dist/index.html');
+      const indexPath = path.join(__dirname, '../../frontend/dist/index.html');
       await this.mainWindow.loadFile(indexPath);
     }
 

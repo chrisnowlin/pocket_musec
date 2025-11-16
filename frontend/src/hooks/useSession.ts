@@ -1,8 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef, type SetStateAction } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/api';
 import type { SessionResponsePayload, StandardRecord } from '../lib/types';
 import type { ConversationGroup, ConversationItem } from '../types/unified';
 import { frontendToBackendGrade, frontendToBackendStrand } from '../lib/gradeUtils';
+import { useConversationStore } from '../stores/conversationStore';
 
 // Helper function to transform API response from snake_case to camelCase
 const transformStandard = (standard: any): StandardRecord => {
@@ -31,17 +33,45 @@ const transformSession = (session: any): SessionResponsePayload => {
 };
 
 export function useSession() {
-  const [session, setSession] = useState<SessionResponsePayload | null>(null);
+  const session = useConversationStore((state) => state.session);
+  const setSession = useConversationStore((state) => state.setSession);
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [standards, setStandards] = useState<StandardRecord[]>([]);
   const [isRetryingSession, setIsRetryingSession] = useState<boolean>(false);
   const [retrySuccess, setRetrySuccess] = useState<boolean | null>(null);
   const [retryMessage, setRetryMessage] = useState<string>('');
-  const [sessions, setSessions] = useState<SessionResponsePayload[]>([]);
-  const [isLoadingSessions, setIsLoadingSessions] = useState<boolean>(false);
+  const queryClient = useQueryClient();
+  const {
+    data: sessionsData,
+    isFetching: isLoadingSessions,
+    refetch: refetchSessions,
+  } = useQuery({
+    queryKey: ['sessions'],
+    queryFn: async () => {
+      const result = await api.listSessions();
+      if (!result.ok) {
+        throw new Error(result.message || 'Failed to load sessions');
+      }
+      return result.data;
+    },
+    staleTime: 1000 * 60 * 5,
+  });
+  const sessions = sessionsData ?? [];
+  const setSessions = useCallback((updater: SetStateAction<SessionResponsePayload[]>) => {
+    queryClient.setQueryData<SessionResponsePayload[]>(['sessions'], (current = []) => {
+      if (typeof updater === 'function') {
+        return (updater as (prev: SessionResponsePayload[]) => SessionResponsePayload[])(current);
+      }
+      return updater;
+    });
+  }, [queryClient]);
+  const standardsRequestRef = useRef(0);
+  const retryFeedbackTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const loadStandards = useCallback(async (grade: string, strand: string) => {
     try {
+      standardsRequestRef.current += 1;
+      const requestId = standardsRequestRef.current;
       // Handle "All Grades" and "All Strands" - don't filter by these
       const params: { grade_level?: string; strand_code?: string; limit?: number } = {};
       
@@ -58,7 +88,7 @@ export function useSession() {
       
       const result = await api.listStandards(params);
 
-      if (result.ok) {
+      if (result.ok && requestId === standardsRequestRef.current) {
         // Transform API response from snake_case to camelCase
         const payload = result.data.map(transformStandard);
         setStandards(payload);
@@ -114,6 +144,7 @@ export function useSession() {
         if (result.ok) {
           const transformedSession = transformSession(result.data);
           setSession(transformedSession);
+          setSessionError(null);
           await loadStandards(
             transformedSession.grade_level ?? defaultGrade,
             transformedSession.strand_code ?? defaultStrand
@@ -170,8 +201,11 @@ export function useSession() {
         return null;
       } finally {
         setIsRetryingSession(false);
+        if (retryFeedbackTimeoutRef.current) {
+          clearTimeout(retryFeedbackTimeoutRef.current);
+        }
         // Clear feedback after 3 seconds
-        setTimeout(() => {
+        retryFeedbackTimeoutRef.current = setTimeout(() => {
           setRetrySuccess(null);
           setRetryMessage('');
         }, 3000);
@@ -181,23 +215,9 @@ export function useSession() {
   );
 
   const loadSessions = useCallback(async () => {
-    setIsLoadingSessions(true);
-    try {
-      const result = await api.listSessions();
-      if (result.ok) {
-        setSessions(result.data);
-        return result.data;
-      } else {
-        console.error('Failed to load sessions:', result.message);
-        return [];
-      }
-    } catch (err: any) {
-      console.error('Failed to load sessions', err);
-      return [];
-    } finally {
-      setIsLoadingSessions(false);
-    }
-  }, []);
+    const result = await refetchSessions();
+    return result.data ?? [];
+  }, [refetchSessions]);
 
   const loadConversation = useCallback(async (sessionId: string) => {
     try {
@@ -206,6 +226,7 @@ export function useSession() {
         // Transform selected_standard if present
         const transformedSession = transformSession(result.data);
         setSession(transformedSession);
+        setSessionError(null);
         
         // Load standards for the session's grade and strand
         if (transformedSession.grade_level && transformedSession.strand_code) {
@@ -398,10 +419,11 @@ export function useSession() {
   );
 
   useEffect(() => {
-    // Only run on mount - don't create a session automatically
-    // Sessions should be created explicitly by user action (New Conversation button)
-    loadSessions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    return () => {
+      if (retryFeedbackTimeoutRef.current) {
+        clearTimeout(retryFeedbackTimeoutRef.current);
+      }
+    };
   }, []);
 
   return {

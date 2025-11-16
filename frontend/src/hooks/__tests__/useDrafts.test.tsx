@@ -3,6 +3,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { useDrafts } from '../useDrafts'
 import type { DraftItem } from '../../types/unified'
 import type { LessonDocumentM2 } from '../../lib/types'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 
 // Mock the API client with factory function to avoid hoisting issues
 vi.mock('../../lib/api', () => {
@@ -39,6 +41,13 @@ const mockCreateDraft = __mocks.mockCreateDraft
 const mockUpdateDraft = __mocks.mockUpdateDraft
 const mockDeleteDraft = __mocks.mockDeleteDraft
 
+const createWrapper = () => {
+  const queryClient = new QueryClient()
+  return ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+  )
+}
+
 describe('useDrafts', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -70,7 +79,8 @@ describe('useDrafts', () => {
   })
 
   it('initializes with empty drafts', () => {
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     expect(result.current.drafts).toEqual([])
     expect(result.current.isLoading).toBe(true)
@@ -90,7 +100,8 @@ describe('useDrafts', () => {
       message: null,
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     // Wait for the initial load to complete
     await act(async () => {
@@ -117,7 +128,8 @@ describe('useDrafts', () => {
       message: null,
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     await act(async () => {
       const draft = await result.current.createDraft('session-1', 'New Draft', 'New content')
@@ -161,7 +173,8 @@ describe('useDrafts', () => {
       message: null,
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     // Wait for initial load
     await act(async () => {
@@ -204,7 +217,8 @@ describe('useDrafts', () => {
       message: null,
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     // Wait for initial load
     await act(async () => {
@@ -224,7 +238,8 @@ describe('useDrafts', () => {
   })
 
   it('manages edit mode state', () => {
-    const { result } = renderHook(() => useDrafts())
+    const wrapper = createWrapper()
+    const { result } = renderHook(() => useDrafts(), { wrapper })
 
     expect(result.current.editingDraftId).toBe(null)
 
@@ -242,7 +257,7 @@ describe('useDrafts', () => {
   })
 
   it('checks if editing draft', () => {
-    const { result } = renderHook(() => useDrafts())
+    const { result } = renderHook(() => useDrafts(), { wrapper: createWrapper() })
 
     expect(result.current.isEditingDraft('draft-1')).toBe(false)
 
@@ -269,7 +284,7 @@ describe('useDrafts', () => {
       message: null,
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const { result } = renderHook(() => useDrafts(), { wrapper: createWrapper() })
 
     // Wait for initial load
     await act(async () => {
@@ -314,7 +329,7 @@ describe('useDrafts', () => {
       message: null,
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const { result } = renderHook(() => useDrafts(), { wrapper: createWrapper() })
 
     // Wait for initial load
     await act(async () => {
@@ -341,7 +356,7 @@ describe('useDrafts', () => {
       message: 'API Error',
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const { result } = renderHook(() => useDrafts(), { wrapper: createWrapper() })
 
     // Wait for initial load
     await act(async () => {
@@ -359,7 +374,7 @@ describe('useDrafts', () => {
       message: 'API Error',
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const { result } = renderHook(() => useDrafts(), { wrapper: createWrapper() })
 
     // Wait for initial load with error
     await act(async () => {
@@ -390,7 +405,7 @@ describe('useDrafts', () => {
       message: null,
     })
 
-    const { result } = renderHook(() => useDrafts())
+    const { result } = renderHook(() => useDrafts(), { wrapper: createWrapper() })
 
     // Wait for initial load
     await act(async () => {
@@ -482,7 +497,7 @@ describe('useDrafts', () => {
       message: null,
     });
 
-    const { result } = renderHook(() => useDrafts());
+    const { result } = renderHook(() => useDrafts(), { wrapper: createWrapper() });
 
     // Wait for initial load
     await act(async () => {

@@ -23,48 +23,41 @@ import { useToast } from '../hooks/useToast';
 import api from '../lib/api';
 import { frontendToBackendGrade } from '../lib/gradeUtils';
 import type {
-  UIState,
-  ChatState,
-  LessonSettings,
   BrowseState,
   SettingsState
 } from '../types/unified';
 import type { StandardRecord } from '../lib/types';
+import { useConversationStore } from '../stores/conversationStore';
+import { useUIStore } from '../stores/uiStore';
 
 const LessonEditor = lazy(() => import('../components/unified/LessonEditor'));
 
 export default function UnifiedPage() {
-  // Grouped state management
-  const [uiState, setUiState] = useState<UIState>({
-    mode: 'chat',
-    imageModalOpen: false,
-  });
+  // UI and global state stores
+  const mode = useUIStore((state) => state.mode);
+  const setMode = useUIStore((state) => state.setMode);
+  const imageModalOpen = useUIStore((state) => state.imageModalOpen);
+  const setImageModalOpen = useUIStore((state) => state.setImageModalOpen);
+  const draftsModalOpen = useUIStore((state) => state.draftsModalOpen);
+  const setDraftsModalOpen = useUIStore((state) => state.setDraftsModalOpen);
+  const conversationEditor = useUIStore((state) => state.conversationEditor);
+  const openConversationEditorUI = useUIStore((state) => state.openConversationEditor);
+  const closeConversationEditorUI = useUIStore((state) => state.closeConversationEditor);
+  const setConversationEditorSaving = useUIStore((state) => state.setConversationEditorSaving);
+  const seedConversationEditor = useUIStore((state) => state.seedConversationEditor);
+  const deleteConfirm = useUIStore((state) => state.deleteConfirm);
+  const openDeleteConfirm = useUIStore((state) => state.openDeleteConfirm);
+  const closeDeleteConfirm = useUIStore((state) => state.closeDeleteConfirm);
+  const clearAllHistoryConfirmOpen = useUIStore((state) => state.clearAllHistoryConfirmOpen);
+  const setClearAllHistoryConfirmOpen = useUIStore((state) => state.setClearAllHistoryConfirmOpen);
 
-  const [draftsModalOpen, setDraftsModalOpen] = useState(false);
-  const [conversationEditorOpen, setConversationEditorOpen] = useState(false);
-  const [conversationEditorContent, setConversationEditorContent] = useState('');
-  const [conversationEditorSessionId, setConversationEditorSessionId] = useState<string | null>(null);
-  const [isSavingConversationEditor, setIsSavingConversationEditor] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [pendingDeleteSessionId, setPendingDeleteSessionId] = useState<string | null>(null);
-  const [clearAllHistoryConfirmOpen, setClearAllHistoryConfirmOpen] = useState(false);
+  const lessonSettings = useConversationStore((state) => state.lessonSettings);
+  const updateLessonSettings = useConversationStore((state) => state.updateLessonSettings);
+  const chatState = useConversationStore((state) => state.chatState);
+  const setChatInputValue = useConversationStore((state) => state.setChatInput);
 
   // Toast notifications
   const { toasts, removeToast, success, error, info } = useToast();
-
-  const [chatState, setChatState] = useState<ChatState>({
-    input: '',
-  });
-
-  const [lessonSettings, setLessonSettings] = useState<LessonSettings>({
-    selectedStandards: [],
-    selectedGrade: 'All Grades',
-    selectedStrand: 'All Strands',
-    selectedObjectives: [],
-    lessonContext: 'Class has recorders and a 30-minute block with mixed instruments.',
-    lessonDuration: '30 minutes',
-    classSize: '25',
-  });
 
   const [browseState, setBrowseState] = useState<BrowseState>({
     query: '',
@@ -73,19 +66,6 @@ export default function UnifiedPage() {
   const [settingsState, setSettingsState] = useState<SettingsState>({
     processingMode: 'cloud',
   });
-
-  // State setter functions with proper immutability
-  const updateUIState = useCallback((updates: Partial<UIState>) => {
-    setUiState(prev => ({ ...prev, ...updates }));
-  }, []);
-
-  const updateChatState = useCallback((updates: Partial<ChatState>) => {
-    setChatState(prev => ({ ...prev, ...updates }));
-  }, []);
-
-  const updateLessonSettings = useCallback((updates: Partial<LessonSettings>) => {
-    setLessonSettings(prev => ({ ...prev, ...updates }));
-  }, []);
 
   const updateBrowseState = useCallback((updates: Partial<BrowseState>) => {
     setBrowseState(prev => ({ ...prev, ...updates }));
@@ -197,7 +177,7 @@ export default function UnifiedPage() {
     
     // Reset messages for the new conversation
     resetMessages();
-    updateUIState({ mode: 'chat' });
+    setMode('chat');
   };
 
   const handleSelectConversation = async (sessionId: string) => {
@@ -220,7 +200,7 @@ export default function UnifiedPage() {
       await loadSessions();
       
       // Switch to chat mode
-      updateUIState({ mode: 'chat' });
+      setMode('chat');
     }
   };
 
@@ -228,7 +208,7 @@ export default function UnifiedPage() {
     const trimmed = chatState.input.trim();
     if (!trimmed) return;
 
-    updateChatState({ input: '' });
+    setChatInputValue('');
     processChatMessage(trimmed, setSession);
   };
 
@@ -238,7 +218,7 @@ export default function UnifiedPage() {
   }, [updateMessageWithMetadata]);
 
   const handleStartChat = async (standard: StandardRecord, prompt: string) => {
-    updateUIState({ mode: 'chat' });
+    setMode('chat');
     updateLessonSettings({ 
       selectedStandards: [standard],
       selectedGrade: standard.grade,
@@ -282,17 +262,16 @@ export default function UnifiedPage() {
       
       // Close the modal and switch to chat mode
       handleCloseDraftsModal();
-      updateUIState({ mode: 'chat' });
+      setMode('chat');
       
       // Load the draft content into the chat so the user can continue iterating
       loadDraftContent(draft.title, draft.content);
 
       // Seed the conversation editor so edits start from the selected draft
-      setConversationEditorContent(draft.content);
       const sessionIdFromMetadata = typeof draft.metadata?.['session_id'] === 'string'
         ? (draft.metadata['session_id'] as string)
         : null;
-      setConversationEditorSessionId(sessionIdFromMetadata);
+      seedConversationEditor(sessionIdFromMetadata, draft.content);
     }
   };
 
@@ -318,16 +297,14 @@ export default function UnifiedPage() {
 
   // Conversation menu handlers
   const handleDeleteConversation = (sessionId: string) => {
-    setPendingDeleteSessionId(sessionId);
-    setDeleteConfirmOpen(true);
+    openDeleteConfirm(sessionId);
   };
 
   const confirmDeleteConversation = async () => {
-    if (!pendingDeleteSessionId) return;
+    if (!deleteConfirm.sessionId) return;
 
-    const sessionId = pendingDeleteSessionId;
-    setDeleteConfirmOpen(false);
-    setPendingDeleteSessionId(null);
+    const sessionId = deleteConfirm.sessionId;
+    closeDeleteConfirm();
 
     // Optimistically remove the session from the list immediately
     setSessions(prev => prev.filter(s => s.id !== sessionId));
@@ -358,8 +335,7 @@ export default function UnifiedPage() {
   };
 
   const cancelDeleteConversation = () => {
-    setDeleteConfirmOpen(false);
-    setPendingDeleteSessionId(null);
+    closeDeleteConfirm();
   };
 
   // Clear all chat history handlers
@@ -437,9 +413,7 @@ export default function UnifiedPage() {
         return;
       }
 
-      setConversationEditorContent(lessonContent);
-      setConversationEditorSessionId(sessionId);
-      setConversationEditorOpen(true);
+      openConversationEditorUI(sessionId, lessonContent);
     } catch (err) {
       console.error('Error opening conversation editor:', err);
       error('An error occurred while opening the editor.');
@@ -447,44 +421,41 @@ export default function UnifiedPage() {
   };
 
   const handleSaveConversationEditor = async (content: string) => {
-    if (!conversationEditorSessionId) return;
+    const editorSessionId = conversationEditor.sessionId;
+    if (!editorSessionId) return;
 
-    setIsSavingConversationEditor(true);
+    setConversationEditorSaving(true);
     try {
       // Try to update existing draft or create new one
-      const draftsResult = await api.getLessonBySession(conversationEditorSessionId);
+      const draftsResult = await api.getLessonBySession(editorSessionId);
       
       if (draftsResult.ok && draftsResult.data.length > 0) {
         // Update existing draft
         const draftId = draftsResult.data[0].id;
         const updateResult = await api.updateDraft(draftId, { content });
         if (updateResult.ok) {
-          setConversationEditorOpen(false);
-          setConversationEditorSessionId(null);
-          setConversationEditorContent('');
+          closeConversationEditorUI();
         } else {
           throw new Error(updateResult.message);
         }
       } else {
         // Create new draft
-        const sessionResult = await api.getSession(conversationEditorSessionId);
+        const sessionResult = await api.getSession(editorSessionId);
         if (sessionResult.ok) {
           const session = sessionResult.data;
           const createResult = await api.createDraft({
-            session_id: conversationEditorSessionId,
+            session_id: editorSessionId,
             title: `${session.grade_level || 'Lesson'} · ${session.strand_code || 'Lesson'} Strand`,
             content,
             metadata: {
-              session_id: conversationEditorSessionId,
+              session_id: editorSessionId,
               grade_level: session.grade_level,
               strand_code: session.strand_code,
               standard_id: session.selected_standards?.[0]?.code,
             },
           });
           if (createResult.ok) {
-            setConversationEditorOpen(false);
-            setConversationEditorSessionId(null);
-            setConversationEditorContent('');
+            closeConversationEditorUI();
           } else {
             throw new Error(createResult.message);
           }
@@ -494,14 +465,12 @@ export default function UnifiedPage() {
       console.error('Error saving conversation editor:', err);
       error(`Failed to save: ${err.message || 'Unknown error'}`);
     } finally {
-      setIsSavingConversationEditor(false);
+      setConversationEditorSaving(false);
     }
   };
 
   const handleCancelConversationEditor = () => {
-    setConversationEditorOpen(false);
-    setConversationEditorSessionId(null);
-    setConversationEditorContent('');
+    closeConversationEditorUI();
   };
 
   return (
@@ -510,11 +479,11 @@ export default function UnifiedPage() {
         {/* Sidebar */}
         <Sidebar
           width={sidebarWidth}
-          mode={uiState.mode}
-          onModeChange={(newMode) => updateUIState({ mode: newMode })}
-          onUploadDocuments={() => updateUIState({ mode: 'ingestion' })}
-          onUploadImages={() => updateUIState({ imageModalOpen: true })}
-          onOpenSettings={() => updateUIState({ mode: 'settings' })}
+          mode={mode}
+          onModeChange={setMode}
+          onUploadDocuments={() => setMode('ingestion')}
+          onUploadImages={() => setImageModalOpen(true)}
+          onOpenSettings={() => setMode('settings')}
           conversationGroups={formatSessionsAsConversations()}
           onSelectConversation={handleSelectConversation}
           isLoadingSessions={isLoadingSessions}
@@ -534,12 +503,12 @@ export default function UnifiedPage() {
         <section className="flex-1 flex flex-col panel workspace-panel-glass">
           {/* Dynamic Content Area */}
           <div className="flex-1 overflow-hidden">
-            {uiState.mode === 'chat' && (
+            {mode === 'chat' && (
               <ChatPanel
                 messages={messages}
                 isTyping={isTyping}
                 chatInput={chatState.input}
-                setChatInput={(input) => updateChatState({ input })}
+                setChatInput={setChatInputValue}
                 onSendMessage={handleSendMessage}
                 sessionError={sessionError}
                 chatError={chatError}
@@ -555,7 +524,7 @@ export default function UnifiedPage() {
               />
             )}
 
-            {uiState.mode === 'browse' && (
+            {mode === 'browse' && (
               <BrowsePanel
                 standards={standards}
                 selectedGrade={lessonSettings.selectedGrade}
@@ -570,7 +539,7 @@ export default function UnifiedPage() {
               />
             )}
 
-            {uiState.mode === 'ingestion' && (
+            {mode === 'ingestion' && (
               <div className="h-full overflow-y-auto px-6 py-4">
                 <div className="max-w-4xl mx-auto">
                   <div className="mb-6">
@@ -594,7 +563,7 @@ export default function UnifiedPage() {
               </div>
             )}
 
-            {uiState.mode === 'images' && (
+            {mode === 'images' && (
               <ImagePanel
                 images={imageHooks.images}
                 storageInfo={imageHooks.storageInfo}
@@ -612,7 +581,7 @@ export default function UnifiedPage() {
               />
             )}
 
-            {uiState.mode === 'settings' && (
+            {mode === 'settings' && (
               <SettingsPanel
                 processingMode={settingsState.processingMode}
                 onProcessingModeChange={(mode) => updateSettingsState({ processingMode: mode })}
@@ -620,7 +589,7 @@ export default function UnifiedPage() {
               />
             )}
 
-            {uiState.mode === 'embeddings' && (
+            {mode === 'embeddings' && (
               <div className="h-full overflow-y-auto">
                 <EmbeddingsManager />
               </div>
@@ -647,7 +616,7 @@ export default function UnifiedPage() {
           standards={standards}
           session={session}
           sessionError={sessionError}
-          mode={uiState.mode}
+          mode={mode}
           messageCount={messages.length}
           storageInfo={imageHooks.storageInfo}
           draftCount={draftCount}
@@ -689,9 +658,9 @@ export default function UnifiedPage() {
 
       {/* Modals */}
       <ImageUploadModal
-        isOpen={uiState.imageModalOpen}
+        isOpen={imageModalOpen}
         onClose={() => {
-          updateUIState({ imageModalOpen: false });
+          setImageModalOpen(false);
           imageHooks.setImageDragActive(false);
         }}
         isUploading={imageHooks.isUploading}
@@ -723,10 +692,10 @@ export default function UnifiedPage() {
       />
 
       {/* Conversation Editor Modal */}
-      {conversationEditorOpen && (
+      {conversationEditor.open && (
         <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/60 p-4">
           <div className="w-full h-full max-h-[90vh] flex flex-col">
-            {isSavingConversationEditor && (
+            {conversationEditor.isSaving && (
               <div className="absolute top-4 right-4 z-90 bg-blue-100 text-blue-800 px-3 py-2 rounded-md text-sm flex items-center gap-2">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
                 Saving lesson...
@@ -735,7 +704,7 @@ export default function UnifiedPage() {
             <ErrorBoundary>
               <Suspense fallback={<div className="flex-1 flex items-center justify-center text-ink-600">Loading editor...</div>}>
                 <LessonEditor
-                  content={conversationEditorContent}
+                  content={conversationEditor.content}
                   onSave={handleSaveConversationEditor}
                   onCancel={handleCancelConversationEditor}
                   autoSave={false}
@@ -748,7 +717,7 @@ export default function UnifiedPage() {
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog
-        isOpen={deleteConfirmOpen}
+        isOpen={deleteConfirm.open}
         title="Delete Conversation"
         message="Are you sure you want to delete this conversation? This action cannot be undone."
         confirmLabel="Delete"

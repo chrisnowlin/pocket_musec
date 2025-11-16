@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, cleanup } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { useState } from 'react';
 import { vi, describe, it, expect, beforeEach } from 'vitest';
@@ -24,23 +24,6 @@ const { mockApiClient } = vi.hoisted(() => {
 
 vi.mock('../../lib/api', () => ({
   apiClient: mockApiClient,
-}));
-
-// Mock the usePresentations hook
-const mockUsePresentations = {
-  generatePresentation: vi.fn(),
-  getPresentation: vi.fn(),
-  exportPresentation: vi.fn(),
-  downloadExport: vi.fn(),
-  loadPresentations: vi.fn(),
-  isGenerating: false,
-  isExporting: false,
-  error: null,
-  clearError: vi.fn(),
-};
-
-vi.mock('../../hooks/usePresentations', () => ({
-  usePresentations: () => mockUsePresentations,
 }));
 
 // Mock URL.createObjectURL and revokeObjectURL for download tests
@@ -164,6 +147,9 @@ function PresentationFlowTest({ lessonId }: { lessonId: string }) {
     if (result) {
       setPresentationStatus(result.status);
       setPresentationId(result.id);
+    } else {
+      setPresentationStatus(undefined);
+      setPresentationId(undefined);
     }
   };
 
@@ -220,48 +206,30 @@ function PresentationFlowTest({ lessonId }: { lessonId: string }) {
 describe('Presentation Flow Integration Tests', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
-    // Reset mock implementations
-    mockUsePresentations.generatePresentation.mockResolvedValue(mockPresentationSummary);
-    mockUsePresentations.getPresentation.mockResolvedValue(mockPresentationDocument);
-    mockUsePresentations.exportPresentation.mockResolvedValue({
-      id: 'export-1',
-      presentation_id: 'test-presentation-1',
-      export_format: 'json',
-      file_url: 'http://example.com/export.json',
-      file_size_bytes: 1024,
-      created_at: '2025-01-01T00:00:00Z',
-      expires_at: '2025-01-02T00:00:00Z',
-    });
-    mockUsePresentations.downloadExport.mockImplementation(async () => {
-      const anchor = document.createElement('a');
-      document.body.appendChild(anchor);
-      anchor.click();
-      document.body.removeChild(anchor);
-      return undefined;
-    });
-    mockUsePresentations.clearError.mockImplementation(() => {});
-    mockUsePresentations.isGenerating = false;
-    mockUsePresentations.isExporting = false;
-    mockUsePresentations.error = null;
+    mockApiClient.get.mockReset();
+    mockApiClient.post.mockReset();
+    mockApiClient.delete.mockReset();
   });
 
   describe('Complete Presentation Generation Flow', () => {
     it('should generate, view, and export a presentation successfully', async () => {
-      // Mock hook responses
-      mockUsePresentations.generatePresentation.mockResolvedValueOnce(mockPresentationSummary);
-      mockUsePresentations.getPresentation.mockResolvedValueOnce(mockPresentationDocument);
-      mockUsePresentations.exportPresentation.mockResolvedValueOnce({
-        id: 'export-1',
-        presentation_id: 'test-presentation-1',
-        export_format: 'json',
-        file_url: 'http://example.com/export.json',
-        file_size_bytes: 1024,
-        created_at: '2025-01-01T00:00:00Z',
-        expires_at: '2025-01-02T00:00:00Z',
-      });
+      mockApiClient.post
+        .mockResolvedValueOnce({ ok: true, data: mockPresentationSummary })
+        .mockResolvedValueOnce({
+          ok: true,
+          data: {
+            id: 'export-1',
+            presentation_id: 'test-presentation-1',
+            export_format: 'json',
+            file_url: 'http://example.com/export.json',
+            file_size_bytes: 1024,
+            created_at: '2025-01-01T00:00:00Z',
+            expires_at: '2025-01-02T00:00:00Z',
+          },
+        });
 
-      // Mock fetch for download
+      mockApiClient.get.mockResolvedValueOnce({ ok: true, data: mockPresentationDocument });
+
       global.fetch = vi.fn().mockResolvedValueOnce({
         ok: true,
         blob: vi.fn().mockResolvedValueOnce(new Blob(['{}'], { type: 'application/json' })),
@@ -311,7 +279,9 @@ describe('Presentation Flow Integration Tests', () => {
       fireEvent.click(screen.getByText('Export JSON'));
 
       await waitFor(() => {
-        expect(mockUsePresentations.exportPresentation).toHaveBeenCalledWith('test-presentation-1', 'json');
+        expect(mockApiClient.post).toHaveBeenCalledWith('/presentations/test-presentation-1/export', {
+          format: 'json',
+        });
       });
 
       // Should trigger download
@@ -325,7 +295,6 @@ describe('Presentation Flow Integration Tests', () => {
     });
 
     it('should handle generation failure gracefully', async () => {
-      // Mock API failure
       mockApiClient.post.mockResolvedValueOnce({
         ok: false,
         message: 'Generation failed',
@@ -340,7 +309,6 @@ describe('Presentation Flow Integration Tests', () => {
         expect(screen.getByText('Generation failed')).toBeInTheDocument();
       });
 
-      // Should be able to clear error and try again
       fireEvent.click(screen.getByText('Clear Error'));
       expect(screen.queryByText('Generation failed')).not.toBeInTheDocument();
       expect(screen.getByText('Generate Presentation')).toBeInTheDocument();
@@ -399,12 +367,14 @@ describe('Presentation Flow Integration Tests', () => {
       };
 
       // Test pending status
+      const renderFlow = () => render(<PresentationFlowTest lessonId="test-lesson-1" />);
+
       mockApiClient.post.mockResolvedValueOnce({
         ok: true,
         data: pendingPresentation,
       });
 
-      render(<PresentationFlowTest lessonId="test-lesson-1" />);
+      renderFlow();
 
       fireEvent.click(screen.getByText('Generate Presentation'));
 
@@ -413,11 +383,14 @@ describe('Presentation Flow Integration Tests', () => {
         expect(screen.queryByText('View Presentation')).not.toBeInTheDocument();
       });
 
-      // Test generating status
+      cleanup();
+
       mockApiClient.post.mockResolvedValueOnce({
         ok: true,
         data: generatingPresentation,
       });
+
+      renderFlow();
 
       fireEvent.click(screen.getByText('Generate Presentation'));
 
@@ -426,11 +399,14 @@ describe('Presentation Flow Integration Tests', () => {
         expect(screen.queryByText('View Presentation')).not.toBeInTheDocument();
       });
 
-      // Test failed status
+      cleanup();
+
       mockApiClient.post.mockResolvedValueOnce({
         ok: true,
         data: failedPresentation,
       });
+
+      renderFlow();
 
       fireEvent.click(screen.getByText('Generate Presentation'));
 
