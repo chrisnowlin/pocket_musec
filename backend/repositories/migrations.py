@@ -58,6 +58,9 @@ class MigrationManager:
         if current_version < 9:
             self.migrate_to_v9_model_selection()
 
+        if current_version < 10:
+            self.migrate_to_v10_lessons_and_presentations()
+
         logger.info(
             f"All migrations completed. Current version: {self.get_schema_version()}"
         )
@@ -103,9 +106,108 @@ class MigrationManager:
         finally:
             conn.close()
 
+    def migrate_to_v10_lessons_and_presentations(self) -> None:
+        """
+        Migrate to version 10: Add lessons and presentations tables
+
+        Adds:
+        - lessons table for storing lesson documents with m2.0 schema support
+        - presentations table for storing generated slide decks
+        """
+        current_version = self.get_schema_version()
+
+        if current_version >= 10:
+            logger.info(
+                f"Database already at version {current_version}, skipping v10 migration"
+            )
+            return
+
+        logger.info(
+            "Starting migration to version 10: Add lessons and presentations tables"
+        )
+
+        conn = self.get_connection()
+        try:
+            # Create lessons table
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS lessons (
+                    id TEXT PRIMARY KEY,
+                    session_id TEXT NOT NULL,
+                    user_id TEXT NOT NULL,
+                    title TEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    metadata TEXT,
+                    processing_mode TEXT DEFAULT 'cloud',
+                    is_draft INTEGER DEFAULT 0,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE,
+                    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+                )
+            """)
+
+            # Create presentations table
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS presentations (
+                    id TEXT PRIMARY KEY,
+                    lesson_id TEXT NOT NULL,
+                    lesson_revision INTEGER NOT NULL,
+                    version TEXT DEFAULT 'p1.0',
+                    status TEXT DEFAULT 'pending',
+                    style TEXT DEFAULT 'default',
+                    slides TEXT NOT NULL,  -- JSON serialized slide data
+                    export_assets TEXT,   -- JSON serialized export metadata
+                    error_code TEXT,
+                    error_message TEXT,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    FOREIGN KEY (lesson_id) REFERENCES lessons(id) ON DELETE CASCADE
+                )
+            """)
+
+            # Create indexes for presentations table
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_presentations_lesson_revision 
+                ON presentations(lesson_id, lesson_revision)
+            """)
+
+            conn.execute("""
+                CREATE INDEX IF NOT EXISTS idx_presentations_status 
+                ON presentations(status)
+            """)
+
+            # Create unique constraint to ensure only one active presentation per lesson revision
+            conn.execute("""
+                CREATE UNIQUE INDEX IF NOT EXISTS idx_presentations_unique_active 
+                ON presentations(lesson_id, lesson_revision) 
+                WHERE status IN ('complete', 'pending')
+            """)
+
+            conn.commit()
+
+            # Update schema version
+            self.set_schema_version(10)
+
+            logger.info(
+                "Version 10 migration (lessons and presentations tables) completed successfully"
+            )
+
+        except Exception as e:
+            conn.rollback()
+            logger.error(f"Migration v10 failed: {e}")
+            raise
+        finally:
+            conn.close()
+
 
 # Convenience functions
 def run_migration_v9(db_path: str) -> None:
     """Convenience function to run v9 migration"""
     migrator = MigrationManager(db_path)
     migrator.migrate_to_v9_model_selection()
+
+
+def run_migration_v10(db_path: str) -> None:
+    """Convenience function to run v10 migration"""
+    migrator = MigrationManager(db_path)
+    migrator.migrate_to_v10_lessons_and_presentations()

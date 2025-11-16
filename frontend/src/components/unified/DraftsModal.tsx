@@ -6,8 +6,12 @@ import VersionComparisonModal from './VersionComparisonModal';
 import BaseModal from './BaseModal';
 import ErrorBoundary from '../ErrorBoundary';
 import { formatDateTime } from '../../lib/dateUtils';
+import { PresentationCTA } from './PresentationCTA';
+import { PresentationViewer } from './PresentationViewer';
+import usePresentations from '../../hooks/usePresentations';
 
 import type { DraftsModalProps, ExportFormat, DraftItem } from '../../types/unified';
+import type { PresentationDocument, PresentationStatus } from '../../types/presentations';
 
 export default function DraftsModal({
   isOpen,
@@ -18,11 +22,30 @@ export default function DraftsModal({
   onDeleteDraft,
   onUpdateDraft,
 }: DraftsModalProps) {
+  // Presentation hooks
+  const {
+    generatePresentation,
+    getPresentation,
+    exportPresentation,
+    downloadExport,
+    isGenerating,
+    isExporting: isPresentationExporting,
+    getStatusDisplay,
+    canViewPresentation,
+    canGeneratePresentation,
+  } = usePresentations();
+
   // Search and filter state
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGrade, setSelectedGrade] = useState('');
   const [selectedStrand, setSelectedStrand] = useState('');
   const [selectedDraft, setSelectedDraft] = useState<DraftItem | null>(null);
+
+  // Presentation state
+  const [presentationStatuses, setPresentationStatuses] = useState<Record<string, PresentationStatus>>({});
+  const [presentationIds, setPresentationIds] = useState<Record<string, string>>({});
+  const [viewingPresentation, setViewingPresentation] = useState<PresentationDocument | null>(null);
+  const [isPresentationViewerOpen, setIsPresentationViewerOpen] = useState(false);
 
   // Editor state
   const [isEditing, setIsEditing] = useState(false);
@@ -256,6 +279,39 @@ ${exportingDraft.content}`;
     setIsVersionModalOpen(true);
   }, []);
 
+  // Handle presentation generation
+  const handleGeneratePresentation = useCallback(async (draft: DraftItem) => {
+    const result = await generatePresentation(draft.id);
+    if (result) {
+      setPresentationStatuses(prev => ({ ...prev, [draft.id]: result.status }));
+      setPresentationIds(prev => ({ ...prev, [draft.id]: result.id }));
+    }
+  }, [generatePresentation]);
+
+  // Handle view presentation
+  const handleViewPresentation = useCallback(async (draft: DraftItem) => {
+    // Use presentation_id from draft metadata if available, otherwise from our state
+    const presentationId = draft.presentation_status?.presentation_id || presentationIds[draft.id];
+    if (presentationId) {
+      const presentation = await getPresentation(presentationId);
+      if (presentation) {
+        setViewingPresentation(presentation);
+        setIsPresentationViewerOpen(true);
+      }
+    }
+  }, [getPresentation, presentationIds]);
+
+  // Handle presentation export
+  const handlePresentationExport = useCallback(async (format: 'json' | 'markdown') => {
+    if (!viewingPresentation) return;
+    
+    const exportResult = await exportPresentation(viewingPresentation.id, format);
+    if (exportResult) {
+      const filename = `${viewingPresentation.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.${format}`;
+      await downloadExport(exportResult.file_url, filename);
+    }
+  }, [viewingPresentation, exportPresentation, downloadExport]);
+
   // Early return AFTER all hooks
   if (!isOpen) return null;
 
@@ -450,65 +506,78 @@ ${exportingDraft.content}`;
                             Last updated {formatDateTime(draft.updatedAt)}
                           </p>
                         </div>
-                        <div className="flex items-center gap-2 ml-4 flex-shrink-0">
-                          {draft.originalContent && draft.originalContent !== draft.content && (
+                        <div className="flex flex-col gap-2 ml-4 flex-shrink-0">
+                          <div className="flex items-center gap-2">
+                            {draft.originalContent && draft.originalContent !== draft.content && (
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleViewVersionComparison(draft);
+                                }}
+                                className="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                                title="View changes made to this draft"
+                                aria-label={`View changes for draft: ${draft.title || 'Untitled Draft'}`}
+                              >
+                                Changes
+                              </button>
+                            )}
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
-                                handleViewVersionComparison(draft);
+                                handleEditDraft(draft);
                               }}
-                              className="px-3 py-1.5 text-sm bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-                              title="View changes made to this draft"
-                              aria-label={`View changes for draft: ${draft.title || 'Untitled Draft'}`}
+                              className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                              title="Edit this draft"
+                              aria-label={`Edit draft: ${draft.title || 'Untitled Draft'}`}
                             >
-                              Changes
+                              Edit
                             </button>
-                          )}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleEditDraft(draft);
-                            }}
-                            className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-                            title="Edit this draft"
-                            aria-label={`Edit draft: ${draft.title || 'Untitled Draft'}`}
-                          >
-                            Edit
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setExportingDraft(draft);
-                              setIsExportModalOpen(true);
-                            }}
-                            className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
-                            title="Export this draft"
-                            aria-label={`Export draft: ${draft.title || 'Untitled Draft'}`}
-                          >
-                            Export
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onOpenDraft(draft.id);
-                            }}
-                            className="px-3 py-1.5 text-sm bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700 transition-colors"
-                            title="Continue editing this draft"
-                            aria-label={`Open draft: ${draft.title || 'Untitled Draft'}`}
-                          >
-                            Open
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              onDeleteDraft(draft.id);
-                            }}
-                            className="px-3 py-1.5 text-sm bg-parchment-200 text-ink-700 rounded-md hover:bg-parchment-300 transition-colors"
-                            aria-label={`Delete draft: ${draft.title || 'Untitled Draft'}`}
-                            title="Delete this draft"
-                          >
-                            Delete
-                          </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setExportingDraft(draft);
+                                setIsExportModalOpen(true);
+                              }}
+                              className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                              title="Export this draft"
+                              aria-label={`Export draft: ${draft.title || 'Untitled Draft'}`}
+                            >
+                              Export
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onOpenDraft(draft.id);
+                              }}
+                              className="px-3 py-1.5 text-sm bg-ink-600 text-parchment-100 rounded-md hover:bg-ink-700 transition-colors"
+                              title="Continue editing this draft"
+                              aria-label={`Open draft: ${draft.title || 'Untitled Draft'}`}
+                            >
+                              Open
+                            </button>
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                onDeleteDraft(draft.id);
+                              }}
+                              className="px-3 py-1.5 text-sm bg-parchment-200 text-ink-700 rounded-md hover:bg-parchment-300 transition-colors"
+                              aria-label={`Delete draft: ${draft.title || 'Untitled Draft'}`}
+                              title="Delete this draft"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <PresentationCTA
+                              lessonId={draft.id}
+                              presentationStatus={draft.presentation_status?.status || presentationStatuses[draft.id]}
+                              presentationId={draft.presentation_status?.presentation_id || presentationIds[draft.id]}
+                              onGenerate={() => handleGeneratePresentation(draft)}
+                              onView={() => handleViewPresentation(draft)}
+                              disabled={isGenerating}
+                              size="sm"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -551,6 +620,17 @@ ${exportingDraft.content}`;
         draft={comparingDraft}
         originalContent={comparingDraft?.originalContent}
       />
+
+      {/* Presentation Viewer Modal */}
+      {viewingPresentation && (
+        <PresentationViewer
+          presentation={viewingPresentation}
+          isOpen={isPresentationViewerOpen}
+          onClose={() => setIsPresentationViewerOpen(false)}
+          onExport={handlePresentationExport}
+          isExporting={isPresentationExporting}
+        />
+      )}
     </>
   );
 }

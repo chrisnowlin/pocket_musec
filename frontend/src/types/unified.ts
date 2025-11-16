@@ -60,6 +60,8 @@ export interface QuickStats {
   activeDrafts: number;
 }
 
+import type { PresentationStatus } from './presentations';
+
 export interface DraftItem {
   id: string;
   title: string;
@@ -74,6 +76,10 @@ export interface DraftItem {
   standard?: string;
   createdAt: string;
   updatedAt: string;
+  presentation_status?: {
+    status: PresentationStatus;
+    presentation_id?: string;
+  };
 }
 
 export interface LessonItem {

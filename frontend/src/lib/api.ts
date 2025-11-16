@@ -214,6 +214,23 @@ const api = {
   promoteLesson: (lessonId: string) => apiClient.post<DraftItem>(`/lessons/${lessonId}/promote`),
   demoteLesson: (lessonId: string) => apiClient.post<DraftItem>(`/lessons/${lessonId}/demote`),
   deleteLesson: (lessonId: string) => apiClient.delete(`/lessons/${lessonId}`),
+
+  // Presentation operations
+  getPresentations: (lessonId?: string) => {
+    const url = lessonId ? `/presentations?lesson_id=${lessonId}` : '/presentations';
+    return apiClient.get(url);
+  },
+  getPresentation: (presentationId: string) => apiClient.get(`/presentations/${presentationId}`),
+  generatePresentation: (payload: { lesson_id: string; options?: any }) =>
+    apiClient.post('/presentations/generate', payload),
+  getPresentationStatus: (presentationId: string) => 
+    apiClient.get(`/presentations/${presentationId}/status`),
+  deletePresentation: (presentationId: string) => 
+    apiClient.delete(`/presentations/${presentationId}`),
+  exportPresentation: (presentationId: string, format: 'json' | 'markdown') =>
+    apiClient.post(`/presentations/${presentationId}/export`, { format }),
+  refreshPresentation: (presentationId: string) =>
+    apiClient.post(`/presentations/${presentationId}/refresh`),
 }
 
 export default api

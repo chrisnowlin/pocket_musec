@@ -6,7 +6,7 @@ from datetime import datetime
 from typing import Optional, List
 
 from .database import DatabaseManager
-from ..auth import Lesson
+from auth import Lesson
 
 
 class LessonRepository:

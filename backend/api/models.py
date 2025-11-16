@@ -152,6 +152,7 @@ class LessonSummary(BaseModel):
     content: str
     metadata: Dict[str, Any]
     citations: List[str] = Field(default_factory=list)
+    presentation_status: Optional[Dict[str, Any]] = None
 
 
 class ChatMessageRequest(BaseModel):

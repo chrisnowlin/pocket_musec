@@ -6,9 +6,10 @@ from pydantic import BaseModel
 import json
 
 from ..dependencies import get_current_user
-from ...auth import User
+from auth import User
 from ..models import LessonSummary
-from ...repositories.lesson_repository import LessonRepository
+from repositories.lesson_repository import LessonRepository
+from services.presentation_service import PresentationService
 
 router = APIRouter(prefix="/api/lessons", tags=["lessons"])
 
@@ -29,6 +30,8 @@ async def list_lessons(
 
     # Convert to LessonSummary responses
     results = []
+    presentation_service = PresentationService()
+
     for lesson in lessons:
         # Parse metadata
         metadata = {}
@@ -38,14 +41,22 @@ async def list_lessons(
             except (json.JSONDecodeError, TypeError):
                 metadata = {}
 
-        results.append(LessonSummary(
-            id=lesson.id,
-            title=lesson.title,
-            summary=lesson.content[:200] + "..." if len(lesson.content) > 200 else lesson.content,
-            content=lesson.content,
-            metadata=metadata,
-            citations=[],
-        ))
+        # Get presentation status
+        presentation_status = presentation_service.get_presentation_status(lesson.id)
+
+        results.append(
+            LessonSummary(
+                id=lesson.id,
+                title=lesson.title,
+                summary=lesson.content[:200] + "..."
+                if len(lesson.content) > 200
+                else lesson.content,
+                content=lesson.content,
+                metadata=metadata,
+                citations=[],
+                presentation_status=presentation_status,
+            )
+        )
 
     return results
 
@@ -61,8 +72,7 @@ async def get_lesson(
     lesson = lesson_repo.get_lesson(lesson_id)
     if not lesson or lesson.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lesson not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Lesson not found"
         )
 
     # Parse metadata
@@ -73,13 +83,20 @@ async def get_lesson(
         except (json.JSONDecodeError, TypeError):
             metadata = {}
 
+    # Get presentation status
+    presentation_service = PresentationService()
+    presentation_status = presentation_service.get_presentation_status(lesson.id)
+
     return LessonSummary(
         id=lesson.id,
         title=lesson.title,
-        summary=lesson.content[:200] + "..." if len(lesson.content) > 200 else lesson.content,
+        summary=lesson.content[:200] + "..."
+        if len(lesson.content) > 200
+        else lesson.content,
         content=lesson.content,
         metadata=metadata,
         citations=[],
+        presentation_status=presentation_status,
     )
 
 
@@ -95,8 +112,7 @@ async def delete_lesson(
     lesson = lesson_repo.get_lesson(lesson_id)
     if not lesson or lesson.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lesson not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Lesson not found"
         )
 
     # Delete the lesson
@@ -104,7 +120,7 @@ async def delete_lesson(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete lesson"
+            detail="Failed to delete lesson",
         )
 
     return {"message": "Lesson deleted successfully"}
@@ -276,8 +292,7 @@ async def promote_lesson(
     lesson = lesson_repo.get_lesson(lesson_id)
     if not lesson or lesson.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lesson not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Lesson not found"
         )
 
     # Promote the lesson
@@ -285,7 +300,7 @@ async def promote_lesson(
     if not promoted_lesson:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to promote lesson"
+            detail="Failed to promote lesson",
         )
 
     # Parse metadata
@@ -293,17 +308,86 @@ async def promote_lesson(
     if promoted_lesson.metadata:
         try:
             import json
+
             metadata = json.loads(promoted_lesson.metadata)
         except (json.JSONDecodeError, TypeError):
             metadata = {}
 
+    # Trigger presentation generation if this is an m2.0 lesson document
+    if metadata and "lesson_document" in metadata:
+        try:
+            # Mark any existing presentations as stale since lesson is being updated
+            lesson_doc = metadata["lesson_document"]
+            if isinstance(lesson_doc, dict) and "revision" in lesson_doc:
+                presentation_service = PresentationService()
+                stale_count = presentation_service.mark_stale_on_lesson_update(
+                    lesson_id=lesson_id, new_revision=lesson_doc["revision"]
+                )
+                if stale_count > 0:
+                    import logging
+
+                    logger = logging.getLogger(__name__)
+                    logger.info(
+                        f"Marked {stale_count} presentations as stale for lesson {lesson_id}"
+                    )
+
+                # Trigger new presentation generation
+                from services.presentation_jobs import create_presentation_job
+                import asyncio
+
+                async def trigger_job():
+                    try:
+                        job_id = create_presentation_job(
+                            lesson_id=lesson_id,
+                            user_id=current_user.id,
+                            style="default",
+                            use_llm_polish=True,
+                            timeout_seconds=30,
+                        )
+                        # Execute the job in background
+                        from services.presentation_jobs import get_job_manager
+
+                        job_manager = get_job_manager()
+                        await asyncio.get_event_loop().run_in_executor(
+                            None,
+                            job_manager.execute_job,
+                            job_id,
+                            "default",
+                            True,
+                            30,
+                        )
+                    except Exception as e:
+                        import logging
+
+                        logger = logging.getLogger(__name__)
+                        logger.warning(
+                            f"Failed to trigger presentation generation for lesson {lesson_id}: {e}"
+                        )
+
+                # Schedule the background task
+                asyncio.create_task(trigger_job())
+        except Exception as e:
+            import logging
+
+            logger = logging.getLogger(__name__)
+            logger.warning(
+                f"Failed to handle presentation generation for lesson {lesson_id}: {e}"
+            )
+
+    # Get presentation status for response
+    presentation_service = PresentationService()
+    presentation_status = presentation_service.get_presentation_status(lesson_id)
+
     return LessonSummary(
         id=promoted_lesson.id,
         title=promoted_lesson.title,
-        summary=promoted_lesson.content[:200] + "..." if len(promoted_lesson.content) > 200 else promoted_lesson.content,
+        summary=promoted_lesson.content[:200] + "..."
+        if len(promoted_lesson.content) > 200
+        else promoted_lesson.content,
         content=promoted_lesson.content,
         metadata=metadata,
         citations=[],
+        presentation_status=presentation_status,
     )
 
 
@@ -319,8 +403,7 @@ async def demote_lesson(
     lesson = lesson_repo.get_lesson(lesson_id)
     if not lesson or lesson.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Lesson not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Lesson not found"
         )
 
     # Demote the lesson
@@ -328,7 +411,7 @@ async def demote_lesson(
     if not demoted_lesson:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to demote lesson"
+            detail="Failed to demote lesson",
         )
 
     # Parse metadata
@@ -336,6 +419,7 @@ async def demote_lesson(
     if demoted_lesson.metadata:
         try:
             import json
+
             metadata = json.loads(demoted_lesson.metadata)
         except (json.JSONDecodeError, TypeError):
             metadata = {}
@@ -343,7 +427,9 @@ async def demote_lesson(
     return LessonSummary(
         id=demoted_lesson.id,
         title=demoted_lesson.title,
-        summary=demoted_lesson.content[:200] + "..." if len(demoted_lesson.content) > 200 else demoted_lesson.content,
+        summary=demoted_lesson.content[:200] + "..."
+        if len(demoted_lesson.content) > 200
+        else demoted_lesson.content,
         content=demoted_lesson.content,
         metadata=metadata,
         citations=[],

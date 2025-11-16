@@ -6,16 +6,17 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import ValidationError
 
-from ...repositories.lesson_repository import LessonRepository
-from ...repositories.session_repository import SessionRepository
+from repositories.lesson_repository import LessonRepository
+from repositories.session_repository import SessionRepository
 from ..models import (
     DraftResponse,
     DraftCreateRequest,
     DraftUpdateRequest,
 )
 from ..dependencies import get_current_user
-from ...auth import User
-from ...lessons.schema_m2 import build_m2_lesson_document
+from auth import User
+from lessons.schema_m2 import build_m2_lesson_document
+from services.presentation_service import PresentationService
 
 router = APIRouter(prefix="/api/drafts", tags=["drafts"])
 
@@ -28,7 +29,6 @@ def _parse_metadata(raw_metadata: Optional[str]) -> Dict[str, Any]:
         return json.loads(raw_metadata)
     except (json.JSONDecodeError, TypeError):
         return {}
-
 
 
 def _validate_and_attach_m2_document(
@@ -77,6 +77,59 @@ def _validate_and_attach_m2_document(
     return metadata
 
 
+def _trigger_presentation_generation(lesson_id: str, user_id: str) -> None:
+    """Trigger presentation generation for a lesson in the background.
+
+    This is a fire-and-forget operation that doesn't block the response.
+    """
+    try:
+        from services.presentation_jobs import create_presentation_job
+        import asyncio
+
+        # Create the job asynchronously
+        async def trigger_job():
+            try:
+                job_id = create_presentation_job(
+                    lesson_id=lesson_id,
+                    user_id=user_id,
+                    style="default",
+                    use_llm_polish=True,
+                    timeout_seconds=30,
+                )
+                # Execute the job in background
+                from services.presentation_jobs import get_job_manager
+
+                job_manager = get_job_manager()
+                await asyncio.get_event_loop().run_in_executor(
+                    None,
+                    job_manager.execute_job,
+                    job_id,
+                    "default",
+                    True,
+                    30,
+                )
+            except Exception as e:
+                # Log error but don't fail the draft creation
+                import logging
+
+                logger = logging.getLogger(__name__)
+                logger.warning(
+                    f"Failed to trigger presentation generation for lesson {lesson_id}: {e}"
+                )
+
+        # Schedule the background task
+        asyncio.create_task(trigger_job())
+
+    except Exception as e:
+        # Log error but don't fail the draft creation
+        import logging
+
+        logger = logging.getLogger(__name__)
+        logger.warning(
+            f"Failed to schedule presentation generation for lesson {lesson_id}: {e}"
+        )
+
+
 def _lesson_to_draft_response(lesson, session_repo: SessionRepository) -> DraftResponse:
     """Convert a lesson to a draft response format.
 
@@ -101,7 +154,8 @@ def _lesson_to_draft_response(lesson, session_repo: SessionRepository) -> DraftR
         content=lesson.content,
         metadata=metadata,
         grade=metadata.get("grade_level") or (session.grade_level if session else None),
-        strand=metadata.get("strand_code") or (session.strand_code if session else None),
+        strand=metadata.get("strand_code")
+        or (session.strand_code if session else None),
         standard=metadata.get("standard_id"),
         created_at=lesson.created_at.isoformat() if lesson.created_at else None,
         updated_at=lesson.updated_at.isoformat() if lesson.updated_at else None,
@@ -139,8 +193,7 @@ async def get_draft(
     lesson = lesson_repo.get_lesson(draft_id)
     if not lesson or lesson.user_id != current_user.id or not lesson.is_draft:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Draft not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found"
         )
 
     return _lesson_to_draft_response(lesson, session_repo)
@@ -159,12 +212,13 @@ async def create_draft(
     session = session_repo.get_session(request.session_id)
     if not session or session.user_id != current_user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Session not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Session not found"
         )
 
     # Create the lesson as a draft
-    metadata_dict: Optional[Dict[str, Any]] = dict(request.metadata) if request.metadata else None
+    metadata_dict: Optional[Dict[str, Any]] = (
+        dict(request.metadata) if request.metadata else None
+    )
     if metadata_dict is not None:
         metadata_dict = _validate_and_attach_m2_document(metadata_dict)
 
@@ -177,6 +231,10 @@ async def create_draft(
         processing_mode=current_user.processing_mode.value,
         is_draft=True,
     )
+
+    # Trigger presentation generation if this is an m2.0 lesson document
+    if metadata_dict and "lesson_document" in metadata_dict:
+        _trigger_presentation_generation(lesson.id, current_user.id)
 
     return _lesson_to_draft_response(lesson, session_repo)
 
@@ -195,8 +253,7 @@ async def update_draft(
     lesson = lesson_repo.get_lesson(draft_id)
     if not lesson or lesson.user_id != current_user.id or not lesson.is_draft:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Draft not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found"
         )
 
     # Update the draft
@@ -221,7 +278,7 @@ async def update_draft(
     if not updated_lesson:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to update draft"
+            detail="Failed to update draft",
         )
 
     return _lesson_to_draft_response(updated_lesson, session_repo)
@@ -239,8 +296,7 @@ async def delete_draft(
     lesson = lesson_repo.get_lesson(draft_id)
     if not lesson or lesson.user_id != current_user.id or not lesson.is_draft:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Draft not found"
+            status_code=status.HTTP_404_NOT_FOUND, detail="Draft not found"
         )
 
     # Delete the draft
@@ -248,7 +304,7 @@ async def delete_draft(
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to delete draft"
+            detail="Failed to delete draft",
         )
 
     return {"message": "Draft deleted successfully"}
