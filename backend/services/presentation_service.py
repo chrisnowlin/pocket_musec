@@ -8,17 +8,19 @@ import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 
-from repositories.presentation_repository import PresentationRepository
-from repositories.lesson_repository import LessonRepository
-from llm.chutes_client import ChutesClient
-from lessons.presentation_schema import (
+from backend.repositories.presentation_repository import PresentationRepository
+from backend.repositories.lesson_repository import LessonRepository
+from backend.llm.chutes_client import ChutesClient
+from backend.lessons.presentation_schema import (
     PresentationDocument,
     PresentationStatus,
+    PresentationSlide,
+    SourceSection,
     PresentationExport,
 )
-from lessons.presentation_builder import build_presentation_scaffold
-from lessons.presentation_polish import polish_presentation_slides
-from lessons.schema_m2 import LessonDocumentM2
+from backend.lessons.presentation_builder import build_presentation_scaffold
+from backend.lessons.presentation_polish import polish_presentation_slides
+from backend.lessons.schema_m2 import LessonDocumentM2
 
 logger = logging.getLogger(__name__)
 

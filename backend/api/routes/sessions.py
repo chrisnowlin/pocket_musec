@@ -8,14 +8,14 @@ from typing import List, Dict, Any, Optional, Union, Tuple
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 
-from ...repositories.session_repository import SessionRepository
-from ...repositories.lesson_repository import LessonRepository
-from ...repositories.standards_repository import StandardsRepository
-from ...pocketflow.lesson_agent import LessonAgent
-from ...pocketflow.flow import Flow
-from ...pocketflow.store import Store
-from ...utils.standards import format_grade_display
-from ...llm.model_router import ModelRouter
+from backend.repositories.session_repository import SessionRepository
+from backend.repositories.lesson_repository import LessonRepository
+from backend.repositories.standards_repository import StandardsRepository
+from backend.pocketflow.lesson_agent import LessonAgent
+from backend.pocketflow.flow import Flow
+from backend.pocketflow.store import Store
+from backend.utils.standards import format_grade_display
+from backend.llm.model_router import ModelRouter
 from ..models import (
     SessionCreateRequest,
     SessionUpdateRequest,

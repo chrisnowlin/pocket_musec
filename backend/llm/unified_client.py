@@ -8,7 +8,7 @@ from enum import Enum
 from .chutes_client import ChutesClient, Message, ChatResponse
 from .local_provider import OllamaProvider
 from .model_router import ProcessingMode, ModelRouter
-from ..config import config
+from backend.config import config
 
 logger = logging.getLogger(__name__)
 

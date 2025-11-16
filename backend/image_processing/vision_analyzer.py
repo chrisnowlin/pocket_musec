@@ -7,7 +7,7 @@ from typing import Optional, Dict
 import os
 import logging
 
-from ..config import config
+from backend.config import config
 
 logger = logging.getLogger(__name__)
 
@@ -20,9 +20,7 @@ class VisionAnalyzer:
     """
 
     def __init__(
-        self,
-        api_key: Optional[str] = None,
-        api_base_url: Optional[str] = None
+        self, api_key: Optional[str] = None, api_base_url: Optional[str] = None
     ):
         """
         Initialize vision analyzer
@@ -40,7 +38,7 @@ class VisionAnalyzer:
     def analyze_image(
         self,
         image_path: str,
-        prompt: str = "Describe this image in detail, focusing on any musical notation, instruments, educational content, or instructional diagrams."
+        prompt: str = "Describe this image in detail, focusing on any musical notation, instruments, educational content, or instructional diagrams.",
     ) -> Optional[str]:
         """
         Analyze image using vision model
@@ -58,8 +56,8 @@ class VisionAnalyzer:
 
         try:
             # Read and encode image
-            with open(image_path, 'rb') as f:
-                image_data = base64.b64encode(f.read()).decode('utf-8')
+            with open(image_path, "rb") as f:
+                image_data = base64.b64encode(f.read()).decode("utf-8")
 
             # Determine image format
             suffix = Path(image_path).suffix.lower()
@@ -70,7 +68,7 @@ class VisionAnalyzer:
                 f"{self.api_base_url}/chat/completions",
                 headers={
                     "Authorization": f"Bearer {self.api_key}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
                 },
                 json={
                     "model": "Qwen/Qwen3-VL-235B-A22B-Instruct",
@@ -78,30 +76,27 @@ class VisionAnalyzer:
                         {
                             "role": "user",
                             "content": [
-                                {
-                                    "type": "text",
-                                    "text": prompt
-                                },
+                                {"type": "text", "text": prompt},
                                 {
                                     "type": "image_url",
                                     "image_url": {
                                         "url": f"data:{mime_type};base64,{image_data}"
-                                    }
-                                }
-                            ]
+                                    },
+                                },
+                            ],
                         }
                     ],
                     "max_tokens": 500,
-                    "temperature": 0.3
+                    "temperature": 0.3,
                 },
-                timeout=30
+                timeout=30,
             )
 
             response.raise_for_status()
             result = response.json()
 
             # Extract analysis from response
-            analysis = result['choices'][0]['message']['content']
+            analysis = result["choices"][0]["message"]["content"]
 
             logger.info(f"Vision analysis completed: {len(analysis)} characters")
             return analysis
@@ -137,10 +132,7 @@ Format the response as a structured analysis."""
         analysis = self.analyze_image(image_path, prompt)
 
         if analysis:
-            return {
-                "type": "sheet_music",
-                "analysis": analysis
-            }
+            return {"type": "sheet_music", "analysis": analysis}
         return None
 
     def analyze_diagram(self, image_path: str) -> Optional[Dict[str, str]]:
@@ -165,10 +157,7 @@ Format the response as a structured analysis."""
         analysis = self.analyze_image(image_path, prompt)
 
         if analysis:
-            return {
-                "type": "instructional_diagram",
-                "analysis": analysis
-            }
+            return {"type": "instructional_diagram", "analysis": analysis}
         return None
 
     def extract_elements(self, image_path: str) -> Optional[Dict[str, list]]:
@@ -197,23 +186,25 @@ Provide a structured list."""
             # Parse elements from analysis
             # This is a simplified version; could be enhanced with structured output
             return {
-                "elements": [line.strip() for line in analysis.split('\n') if line.strip()],
-                "raw_analysis": analysis
+                "elements": [
+                    line.strip() for line in analysis.split("\n") if line.strip()
+                ],
+                "raw_analysis": analysis,
             }
         return None
 
     def _get_mime_type(self, suffix: str) -> str:
         """Get MIME type from file suffix"""
         mime_types = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.webp': 'image/webp',
-            '.tiff': 'image/tiff',
-            '.tif': 'image/tiff'
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
+            ".tiff": "image/tiff",
+            ".tif": "image/tiff",
         }
-        return mime_types.get(suffix, 'image/jpeg')
+        return mime_types.get(suffix, "image/jpeg")
 
     def is_available(self) -> bool:
         """Check if vision analysis is available"""

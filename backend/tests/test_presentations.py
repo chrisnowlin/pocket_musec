@@ -6,18 +6,18 @@ import os
 from datetime import datetime, timezone
 from unittest.mock import Mock, patch, AsyncMock
 
-from lessons.presentation_schema import (
+from backend.lessons.presentation_schema import (
     PresentationDocument,
-    PresentationSlide,
     PresentationStatus,
+    PresentationSlide,
     SourceSection,
-    build_presentation_document,
 )
-from lessons.presentation_builder import (
-    PresentationScaffoldBuilder,
+from backend.lessons.presentation_builder import (
     build_presentation_scaffold,
+    build_presentation_document,
+    PresentationScaffoldBuilder,
 )
-from lessons.schema_m2 import (
+from backend.lessons.schema_m2 import (
     LessonDocumentM2,
     LessonContent,
     LessonActivity,
@@ -25,9 +25,9 @@ from lessons.schema_m2 import (
     LessonTiming,
 )
 from auth.models import Lesson
-from repositories.presentation_repository import PresentationRepository
-from services.presentation_service import PresentationService
-from services.presentation_jobs import create_presentation_job, get_job_manager
+from backend.repositories.presentation_repository import PresentationRepository
+from backend.services.presentation_service import PresentationService
+from backend.services.presentation_jobs import create_presentation_job, get_job_manager
 
 
 class TestPresentationSchema:

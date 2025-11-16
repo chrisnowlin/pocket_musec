@@ -6,7 +6,7 @@ import logging
 
 from .chutes_client import ChutesClient, Message
 from .local_provider import OllamaProvider
-from ..config import config
+from backend.config import config
 
 logger = logging.getLogger(__name__)
 

@@ -7,11 +7,11 @@ import tempfile
 from pathlib import Path
 import logging
 
-from ...auth import User
-from ...image_processing import ImageProcessor, ImageRepository
+from backend.auth import User
+from backend.image_processing import ImageProcessor, ImageRepository
 from ..dependencies import get_current_user
 from ..models import MessageResponse
-from ...config import config
+from backend.config import config
 
 logger = logging.getLogger(__name__)
 

@@ -4,7 +4,7 @@ import sqlite3
 from pathlib import Path
 from typing import Optional
 
-from ..config import config
+from backend.config import config
 
 
 class DatabaseManager:

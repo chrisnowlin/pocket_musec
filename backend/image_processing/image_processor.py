@@ -20,9 +20,7 @@ class ImageProcessor:
     """
 
     def __init__(
-        self,
-        storage_path: Optional[str] = None,
-        api_key: Optional[str] = None
+        self, storage_path: Optional[str] = None, api_key: Optional[str] = None
     ):
         """
         Initialize image processor
@@ -32,18 +30,20 @@ class ImageProcessor:
             api_key: Chutes API key for vision analysis (defaults to config)
         """
         # Use centralized config if no overrides provided
-        from ..config import config
-        
+        from config import config
+
         self.ocr_engine = OCREngine()
         self.vision_analyzer = VisionAnalyzer(api_key=api_key or config.chutes.api_key)
-        self.storage = ImageStorage(storage_path=storage_path or config.image_processing.storage_path)
+        self.storage = ImageStorage(
+            storage_path=storage_path or config.image_processing.storage_path
+        )
 
     def process_image(
         self,
         image_path: str,
         user_id: str,
         original_filename: str,
-        analyze_vision: bool = True
+        analyze_vision: bool = True,
     ) -> Dict:
         """
         Process image with OCR and optional vision analysis
@@ -64,7 +64,7 @@ class ImageProcessor:
             stored_path, compressed_path, file_size = self.storage.store_image(
                 image_path=image_path,
                 user_id=user_id,
-                original_filename=original_filename
+                original_filename=original_filename,
             )
 
             # Run OCR
@@ -90,7 +90,7 @@ class ImageProcessor:
                 "ocr_confidence": ocr_confidence,
                 "vision_summary": vision_summary,
                 "image_type": image_type,
-                "metadata": metadata
+                "metadata": metadata,
             }
 
             logger.info(f"Image processed successfully: {image_type}")
@@ -101,10 +101,7 @@ class ImageProcessor:
             raise
 
     def process_sheet_music(
-        self,
-        image_path: str,
-        user_id: str,
-        original_filename: str
+        self, image_path: str, user_id: str, original_filename: str
     ) -> Dict:
         """
         Process sheet music image with specialized analysis
@@ -122,23 +119,20 @@ class ImageProcessor:
             image_path=image_path,
             user_id=user_id,
             original_filename=original_filename,
-            analyze_vision=False  # We'll use specialized analysis
+            analyze_vision=False,  # We'll use specialized analysis
         )
 
         # Specialized sheet music analysis
         if self.vision_analyzer.is_available():
             music_analysis = self.vision_analyzer.analyze_sheet_music(image_path)
             if music_analysis:
-                result['music_analysis'] = music_analysis
-                result['image_type'] = 'sheet_music'
+                result["music_analysis"] = music_analysis
+                result["image_type"] = "sheet_music"
 
         return result
 
     def process_diagram(
-        self,
-        image_path: str,
-        user_id: str,
-        original_filename: str
+        self, image_path: str, user_id: str, original_filename: str
     ) -> Dict:
         """
         Process instructional diagram with specialized analysis
@@ -156,23 +150,20 @@ class ImageProcessor:
             image_path=image_path,
             user_id=user_id,
             original_filename=original_filename,
-            analyze_vision=False  # We'll use specialized analysis
+            analyze_vision=False,  # We'll use specialized analysis
         )
 
         # Specialized diagram analysis
         if self.vision_analyzer.is_available():
             diagram_analysis = self.vision_analyzer.analyze_diagram(image_path)
             if diagram_analysis:
-                result['diagram_analysis'] = diagram_analysis
-                result['image_type'] = 'instructional_diagram'
+                result["diagram_analysis"] = diagram_analysis
+                result["image_type"] = "instructional_diagram"
 
         return result
 
     def batch_process(
-        self,
-        image_paths: list,
-        user_id: str,
-        analyze_vision: bool = True
+        self, image_paths: list, user_id: str, analyze_vision: bool = True
     ) -> list:
         """
         Process multiple images in batch
@@ -193,27 +184,21 @@ class ImageProcessor:
                     image_path=image_path,
                     user_id=user_id,
                     original_filename=filename,
-                    analyze_vision=analyze_vision
+                    analyze_vision=analyze_vision,
                 )
-                results.append({
-                    "filename": filename,
-                    "status": "success",
-                    "result": result
-                })
+                results.append(
+                    {"filename": filename, "status": "success", "result": result}
+                )
             except Exception as e:
                 logger.error(f"Batch processing failed for {filename}: {e}")
-                results.append({
-                    "filename": filename,
-                    "status": "error",
-                    "error": str(e)
-                })
+                results.append(
+                    {"filename": filename, "status": "error", "error": str(e)}
+                )
 
         return results
 
     def _detect_image_type(
-        self,
-        extracted_text: str,
-        vision_summary: Optional[str]
+        self, extracted_text: str, vision_summary: Optional[str]
     ) -> str:
         """
         Detect image type based on content
@@ -227,23 +212,43 @@ class ImageProcessor:
         """
         # Check for musical notation indicators
         music_keywords = [
-            'treble', 'bass', 'clef', 'sharp', 'flat', 'measure',
-            'tempo', 'allegro', 'andante', 'forte', 'piano'
+            "treble",
+            "bass",
+            "clef",
+            "sharp",
+            "flat",
+            "measure",
+            "tempo",
+            "allegro",
+            "andante",
+            "forte",
+            "piano",
         ]
 
         text_lower = extracted_text.lower()
         vision_lower = (vision_summary or "").lower()
 
-        if any(keyword in text_lower or keyword in vision_lower for keyword in music_keywords):
+        if any(
+            keyword in text_lower or keyword in vision_lower
+            for keyword in music_keywords
+        ):
             return "sheet_music"
 
         # Check for diagram indicators
         diagram_keywords = [
-            'diagram', 'chart', 'illustration', 'step', 'process',
-            'figure', 'instruction'
+            "diagram",
+            "chart",
+            "illustration",
+            "step",
+            "process",
+            "figure",
+            "instruction",
         ]
 
-        if any(keyword in text_lower or keyword in vision_lower for keyword in diagram_keywords):
+        if any(
+            keyword in text_lower or keyword in vision_lower
+            for keyword in diagram_keywords
+        ):
             return "instructional_diagram"
 
         # Default to general
@@ -261,13 +266,14 @@ class ImageProcessor:
         """
         try:
             from PIL import Image
+
             with Image.open(image_path) as img:
                 return {
                     "width": img.width,
                     "height": img.height,
                     "format": img.format,
                     "mode": img.mode,
-                    "size_bytes": Path(image_path).stat().st_size
+                    "size_bytes": Path(image_path).stat().st_size,
                 }
         except Exception as e:
             logger.error(f"Metadata extraction failed: {e}")
@@ -277,15 +283,15 @@ class ImageProcessor:
         """Get MIME type from filename"""
         suffix = Path(filename).suffix.lower()
         mime_types = {
-            '.jpg': 'image/jpeg',
-            '.jpeg': 'image/jpeg',
-            '.png': 'image/png',
-            '.gif': 'image/gif',
-            '.webp': 'image/webp',
-            '.tiff': 'image/tiff',
-            '.tif': 'image/tiff'
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
+            ".tiff": "image/tiff",
+            ".tif": "image/tiff",
         }
-        return mime_types.get(suffix, 'image/jpeg')
+        return mime_types.get(suffix, "image/jpeg")
 
     def get_storage_info(self) -> Dict:
         """Get storage quota information"""

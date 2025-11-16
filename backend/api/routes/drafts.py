@@ -6,17 +6,17 @@ from typing import List, Dict, Any, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import ValidationError
 
-from repositories.lesson_repository import LessonRepository
-from repositories.session_repository import SessionRepository
+from backend.repositories.lesson_repository import LessonRepository
+from backend.repositories.session_repository import SessionRepository
 from ..models import (
     DraftResponse,
     DraftCreateRequest,
     DraftUpdateRequest,
 )
 from ..dependencies import get_current_user
-from auth import User
-from lessons.schema_m2 import build_m2_lesson_document
-from services.presentation_service import PresentationService
+from backend.auth import User
+from backend.lessons.schema_m2 import build_m2_lesson_document
+from backend.services.presentation_service import PresentationService
 
 router = APIRouter(prefix="/api/drafts", tags=["drafts"])
 

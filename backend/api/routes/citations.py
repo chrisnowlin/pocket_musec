@@ -5,9 +5,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from ..dependencies import get_current_user
-from ...auth import User
-from ...citations.citation_formatter import CitationFormatter, CitationStyle
-from ...citations.citation_tracker import CitationTracker, SourceReference
+from backend.auth import User
+from backend.citations.citation_formatter import CitationFormatter, CitationStyle
+from backend.citations.citation_tracker import CitationTracker, SourceReference
 
 router = APIRouter(prefix="/api/citations", tags=["citations"])
 

@@ -7,16 +7,16 @@ from datetime import datetime
 from pydantic import BaseModel
 import logging
 
-from ...llm.embeddings import (
+from backend.llm.embeddings import (
     StandardsEmbedder,
     StandardsEmbeddings,
     EmbeddedStandard,
     EmbeddedObjective,
 )
 from ..dependencies import get_current_user
-from ...auth import User
-from ...services.embedding_job_manager import get_job_manager, EmbeddingJobManager
-from ...models.embedding_jobs import EmbeddingJob, JobStatus
+from backend.auth import User
+from backend.services.embedding_job_manager import get_job_manager, EmbeddingJobManager
+from backend.models.embedding_jobs import EmbeddingJob, JobStatus
 
 logger = logging.getLogger(__name__)
 

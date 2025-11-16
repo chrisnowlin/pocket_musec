@@ -2,7 +2,7 @@
 
 from fastapi import Depends
 
-from ..auth.models import User, UserRole, ProcessingMode
+from backend.auth.models import User, UserRole, ProcessingMode
 
 
 # Default demo user for single-user mode

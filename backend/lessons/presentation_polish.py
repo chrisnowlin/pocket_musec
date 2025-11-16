@@ -9,7 +9,7 @@ import logging
 from typing import List, Optional, Dict, Any
 import time
 
-from llm.chutes_client import ChutesClient, Message, ChutesAPIError
+from backend.llm.chutes_client import ChutesClient, Message, ChutesAPIError
 from .presentation_schema import PresentationSlide, PresentationDocument
 from .presentation_builder import build_presentation_scaffold
 from .schema_m2 import LessonDocumentM2

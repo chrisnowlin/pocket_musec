@@ -7,7 +7,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Optional, List
 
-from ..auth import Image as ImageModel
+from backend.auth import Image as ImageModel
 
 
 class ImageRepository:

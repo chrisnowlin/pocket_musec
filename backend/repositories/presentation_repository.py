@@ -7,7 +7,7 @@ from datetime import datetime
 from typing import Optional, List, Dict, Any
 
 from .database import DatabaseManager
-from lessons.presentation_schema import (
+from backend.lessons.presentation_schema import (
     PresentationDocument,
     PresentationStatus,
     PresentationSlide,

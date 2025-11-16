@@ -16,15 +16,15 @@ import json
 import io
 
 from ..dependencies import get_current_user
-from auth import User
-from repositories.lesson_repository import LessonRepository
-from services.presentation_service import PresentationService
-from services.presentation_jobs import (
+from backend.auth import User
+from backend.repositories.lesson_repository import LessonRepository
+from backend.services.presentation_service import PresentationService
+from backend.services.presentation_jobs import (
     get_job_manager,
     create_presentation_job,
     get_presentation_job_status,
 )
-from lessons.presentation_schema import PresentationDocument, PresentationStatus
+from backend.lessons.presentation_schema import PresentationDocument, PresentationStatus
 
 router = APIRouter(prefix="/api/presentations", tags=["presentations"])
 

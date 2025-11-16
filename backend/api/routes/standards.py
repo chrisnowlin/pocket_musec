@@ -3,11 +3,11 @@
 from typing import Optional, List
 from fastapi import APIRouter, Query, Depends, HTTPException, status
 
-from ...repositories.standards_repository import StandardsRepository
+from backend.repositories.standards_repository import StandardsRepository
 from ..models import StandardResponse
 from ..dependencies import get_current_user
-from ...auth import User
-from ...utils.standards import format_grade_display
+from backend.auth import User
+from backend.utils.standards import format_grade_display
 
 router = APIRouter(prefix="/api/standards", tags=["standards"])
 

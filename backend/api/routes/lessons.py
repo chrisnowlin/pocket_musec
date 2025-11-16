@@ -6,10 +6,10 @@ from pydantic import BaseModel
 import json
 
 from ..dependencies import get_current_user
-from auth import User
+from backend.auth import User
 from ..models import LessonSummary
-from repositories.lesson_repository import LessonRepository
-from services.presentation_service import PresentationService
+from backend.repositories.lesson_repository import LessonRepository
+from backend.services.presentation_service import PresentationService
 
 router = APIRouter(prefix="/api/lessons", tags=["lessons"])
 

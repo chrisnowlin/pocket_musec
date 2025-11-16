@@ -16,13 +16,14 @@ from .routes import (
     embeddings,
     citations,
     lessons,
+    presentations,
 )
 from .middleware import (
     RateLimitMiddleware,
     SecurityHeadersMiddleware,
 )
-from ..repositories.migrations import MigrationManager
-from ..config import config
+from backend.repositories.migrations import MigrationManager
+from backend.config import config
 
 # Configure logging
 logging.basicConfig(
@@ -69,6 +70,7 @@ app.include_router(drafts.router)
 app.include_router(embeddings.router)
 app.include_router(citations.router)
 app.include_router(lessons.router)
+app.include_router(presentations.router)
 
 
 # Exception handlers

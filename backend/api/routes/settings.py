@@ -5,8 +5,8 @@ from pydantic import BaseModel
 from typing import List
 import logging
 
-from ...auth import User, ProcessingMode
-from ...llm.model_router import ModelRouter
+from backend.auth import User, ProcessingMode
+from backend.llm.model_router import ModelRouter
 from ..dependencies import get_current_user
 from ..models import MessageResponse
 

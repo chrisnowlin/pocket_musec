@@ -9,6 +9,7 @@ from . import (
     embeddings,
     citations,
     lessons,
+    presentations,
 )
 
 __all__ = [
@@ -20,4 +21,5 @@ __all__ = [
     "embeddings",
     "citations",
     "lessons",
+    "presentations",
 ]
