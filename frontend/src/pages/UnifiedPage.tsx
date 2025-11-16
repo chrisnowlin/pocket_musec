@@ -573,11 +573,15 @@ export default function UnifiedPage() {
             )}
 
             {mode === 'settings' && (
-              <SettingsPanel
-                processingMode={settingsState.processingMode}
-                onProcessingModeChange={(mode) => updateSettingsState({ processingMode: mode })}
-                onClearChatHistory={handleClearAllChatHistory}
-              />
+              <div className="h-full overflow-y-auto px-6 py-4">
+                <div className="max-w-4xl mx-auto">
+                  <SettingsPanel
+                    processingMode={settingsState.processingMode}
+                    onProcessingModeChange={(mode) => updateSettingsState({ processingMode: mode })}
+                    onClearChatHistory={handleClearAllChatHistory}
+                  />
+                </div>
+              </div>
             )}
 
             {mode === 'embeddings' && (

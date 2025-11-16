@@ -5,6 +5,9 @@ import UnifiedPage from './pages/UnifiedPage';
 import PocketPlannerPage from './pages/PocketPlannerPage';
 import MusecDBPage from './pages/MusecDBPage';
 import MusecTrackerPage from './pages/MusecTrackerPage';
+import ProgressSystemDemo from './components/unified/ProgressSystemDemo';
+import PresentationPage from './pages/PresentationPage';
+import PresentationViewer from './components/presentation/PresentationViewer';
 
 function App() {
   return (
@@ -79,6 +82,22 @@ function App() {
             >
               <MusecTrackerPage />
             </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/presentations"
+          element={
+            <FileOperationErrorBoundary>
+              <PresentationPage />
+            </FileOperationErrorBoundary>
+          }
+        />
+        <Route
+          path="/presentations/:presentationId"
+          element={
+            <FileOperationErrorBoundary>
+              <PresentationViewer />
+            </FileOperationErrorBoundary>
           }
         />
         <Route path="*" element={<Navigate to="/" replace />} />

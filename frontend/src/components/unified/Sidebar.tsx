@@ -183,30 +183,36 @@ function Sidebar({
       </nav>
 
       <div className="p-3 border-t border-ink-700">
-        <div className="grid grid-cols-2 gap-2">
+        <div className="grid grid-cols-3 gap-2">
           <button
             onClick={() => navigate('/')}
-            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
           >
             PocketMusec
           </button>
           <button
             onClick={() => navigate('/planner')}
-            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
           >
             PocketPlanner
           </button>
           <button
             onClick={() => navigate('/db')}
-            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
           >
             MusecDB
           </button>
           <button
             onClick={() => navigate('/tracker')}
-            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
           >
             MusecTracker
+          </button>
+          <button
+            onClick={() => navigate('/presentations')}
+            className="bg-ink-600 hover:bg-ink-700 text-parchment-100 rounded-lg px-3 py-2 text-sm font-medium transition-colors"
+          >
+            Presentations
           </button>
         </div>
       </div>
