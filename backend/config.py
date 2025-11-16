@@ -85,7 +85,7 @@ class LLMConfig:
 
     default_model: str = field(
         default_factory=lambda: os.getenv(
-            "DEFAULT_MODEL", "Qwen/Qwen3-VL-235B-A22B-Instruct"
+            "DEFAULT_MODEL", "moonshotai/Kimi-K2-Thinking"
         )
     )
     embedding_model: str = field(

@@ -28,17 +28,17 @@ class ModelRouter:
     # Available Chutes API models
     AVAILABLE_CLOUD_MODELS = [
         {
-            "id": "Qwen/Qwen3-VL-235B-A22B-Instruct",
-            "name": "Qwen3-VL (Default)",
-            "description": "High-quality multimodal model with vision capabilities",
-            "capabilities": ["text", "vision"],
+            "id": "moonshotai/Kimi-K2-Thinking",
+            "name": "Kimi K2 Thinking (Default)",
+            "description": "Advanced reasoning model with step-by-step thinking - produces comprehensive, detailed lesson plans with enhanced pedagogical depth",
+            "capabilities": ["text", "reasoning", "detailed-planning"],
             "recommended": True,
         },
         {
-            "id": "moonshotai/Kimi-K2-Thinking",
-            "name": "Kimi K2 Thinking",
-            "description": "Advanced reasoning model with step-by-step thinking",
-            "capabilities": ["text", "reasoning"],
+            "id": "Qwen/Qwen3-VL-235B-A22B-Instruct",
+            "name": "Qwen3-VL",
+            "description": "High-quality multimodal model with vision capabilities - faster for quick lesson outlines",
+            "capabilities": ["text", "vision"],
             "recommended": False,
         },
     ]

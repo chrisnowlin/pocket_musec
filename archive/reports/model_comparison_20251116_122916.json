@@ -1,0 +1,36 @@
+{
+  "moonshotai/Kimi-K2-Thinking": {
+    "generation_time": 88.13223,
+    "length": 12854,
+    "words": 1743,
+    "quality_score": 100.0,
+    "metrics": {
+      "objectives": true,
+      "activities": true,
+      "assessment": true,
+      "materials": true,
+      "timing": true,
+      "differentiation": true,
+      "standards": true,
+      "structured": true
+    },
+    "preview": "## Lesson Overview\n- **Grade Level:** Accomplished (High School Advanced - Grades 10-12)\n- **Duration:** 45 minutes\n- **Focus Area:** Connect strand - Historical music analysis and contemporary composition\n- **Primary Standard:** AC.CN.1 - Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups\n- **Key Concepts:** Medieval/Renaissance modes, melodic composition, historical context, transferable skills\n\n## Le"
+  },
+  "Qwen/Qwen3-VL-235B-A22B-Instruct": {
+    "generation_time": 32.74584,
+    "length": 9459,
+    "words": 1289,
+    "quality_score": 100.0,
+    "metrics": {
+      "objectives": true,
+      "activities": true,
+      "assessment": true,
+      "materials": true,
+      "timing": true,
+      "differentiation": true,
+      "standards": true,
+      "structured": true
+    },
+    "preview": "## Lesson Overview\n\n- **Grade Level**: Accomplished (typically grades 9\u201312, advanced music students)  \n- **Duration**: 45 minutes  \n- **Focus Area**: Connect \u2014 Relating music to cultural, historical, and personal contexts through melodic composition on xylophones  \n- **Primary Standard**: AC.CN.1 \u2014 Relate musical ideas and works with personal, societal, cultural, historical, and daily life contexts, including diverse and marginalized groups  \n- **Learning Objectives**:  \n  - AC.CN.1.1 \u2014 Analyze "
+  }
+}
