@@ -45,7 +45,7 @@ class StandardsEmbeddings:
     def __init__(self, client: Optional[ChutesClient] = None):
         self.client = client or ChutesClient()
         self.db_manager = DatabaseManager()
-        from config import config
+        from backend.config import config
 
         self.prepared_texts_dir = Path(config.paths.prepared_texts_dir)
         self.prepared_texts_dir.mkdir(parents=True, exist_ok=True)
