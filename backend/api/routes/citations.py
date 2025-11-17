@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 
 from ..dependencies import get_current_user
+from ..models import CamelModel
 from backend.auth import User
 from backend.citations.citation_formatter import CitationFormatter, CitationStyle
 from backend.citations.citation_tracker import CitationTracker, SourceReference
@@ -12,21 +13,21 @@ from backend.citations.citation_tracker import CitationTracker, SourceReference
 router = APIRouter(prefix="/api/citations", tags=["citations"])
 
 
-class CitationRequest(BaseModel):
+class CitationRequest(CamelModel):
     """Request for citation formatting"""
 
     sources: List[Dict[str, Any]]
     format: str = "ieee"
 
 
-class CitationResponse(BaseModel):
+class CitationResponse(CamelModel):
     """Response containing formatted citations"""
 
     citations: List[str]
     metadata: Dict[str, Any]
 
 
-class CitationSource(BaseModel):
+class CitationSource(CamelModel):
     """Individual citation source"""
 
     title: str

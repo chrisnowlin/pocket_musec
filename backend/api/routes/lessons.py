@@ -6,8 +6,8 @@ from pydantic import BaseModel
 import json
 
 from ..dependencies import get_current_user
+from ..models import CamelModel, LessonSummary
 from backend.auth import User
-from ..models import LessonSummary
 from backend.repositories.lesson_repository import LessonRepository
 from backend.services.presentation_service import PresentationService
 
@@ -126,7 +126,7 @@ async def delete_lesson(
     return {"message": "Lesson deleted successfully"}
 
 
-class LessonGenerationRequest(BaseModel):
+class LessonGenerationRequest(CamelModel):
     """Request for direct lesson generation"""
 
     grade_level: str

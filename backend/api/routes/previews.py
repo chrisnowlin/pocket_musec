@@ -15,9 +15,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Body, status
 from pydantic import BaseModel
 
 from ..dependencies import get_current_user
+from ..models import CamelModel
 from backend.auth import User
 from backend.services.preview_service import PreviewService
-from backend.services.presentation_errors import PresentationError, PresentationErrorCode, create_error_from_exception
+from backend.services.presentation_errors import (
+    PresentationError,
+    PresentationErrorCode,
+    create_error_from_exception,
+)
 from backend.models.preview_schema import PresentationPreview
 
 router = APIRouter(prefix="/api/previews", tags=["previews"])
@@ -65,24 +70,35 @@ async def get_preview(
     """
     try:
         if not presentation_id:
-            raise PresentationError.validation_failed("presentation_id", presentation_id)
+            raise PresentationError.validation_failed(
+                "presentation_id", presentation_id
+            )
         preview_service = PreviewService()
         preview = preview_service.get_preview(presentation_id, current_user.id)
         if not preview:
-            raise PresentationError.validation_failed("presentation_id", presentation_id)
+            raise PresentationError.validation_failed(
+                "presentation_id", presentation_id
+            )
         return preview
     except PresentationError as e:
-        _log_api_error(e, "get_preview", current_user.id, presentation_id=presentation_id)
+        _log_api_error(
+            e, "get_preview", current_user.id, presentation_id=presentation_id
+        )
         raise _handle_preview_error(e)
     except Exception as e:
         err = create_error_from_exception(
-            e, {"operation": "get_preview", "presentation_id": presentation_id, "user_id": current_user.id}
+            e,
+            {
+                "operation": "get_preview",
+                "presentation_id": presentation_id,
+                "user_id": current_user.id,
+            },
         )
         _log_api_error(err, "get_preview", current_user.id)
         raise _handle_preview_error(err)
 
 
-class GeneratePreviewBody(BaseModel):
+class GeneratePreviewBody(CamelModel):
     """Optional request body for preview generation.
 
     ``style_id`` is optional and, if provided, will be used when generating the preview.
@@ -103,16 +119,27 @@ async def generate_preview(
     """
     try:
         if not presentation_id:
-            raise PresentationError.validation_failed("presentation_id", presentation_id)
+            raise PresentationError.validation_failed(
+                "presentation_id", presentation_id
+            )
         preview_service = PreviewService()
-        preview = preview_service.generate_preview(presentation_id, style_id=body.style_id)
+        preview = preview_service.generate_preview(
+            presentation_id, style_id=body.style_id
+        )
         return preview
     except PresentationError as e:
-        _log_api_error(e, "generate_preview", current_user.id, presentation_id=presentation_id)
+        _log_api_error(
+            e, "generate_preview", current_user.id, presentation_id=presentation_id
+        )
         raise _handle_preview_error(e)
     except Exception as e:
         err = create_error_from_exception(
-            e, {"operation": "generate_preview", "presentation_id": presentation_id, "user_id": current_user.id}
+            e,
+            {
+                "operation": "generate_preview",
+                "presentation_id": presentation_id,
+                "user_id": current_user.id,
+            },
         )
         _log_api_error(err, "generate_preview", current_user.id)
         raise _handle_preview_error(err)
@@ -131,14 +158,18 @@ async def list_user_previews(
     try:
         preview_service = PreviewService()
         repo = preview_service.preview_repo
-        previews = repo.list_previews(user_id=current_user.id, limit=limit, offset=offset)
+        previews = repo.list_previews(
+            user_id=current_user.id, limit=limit, offset=offset
+        )
         return previews
     except Exception as e:
         err = create_error_from_exception(
             e, {"operation": "list_user_previews", "user_id": current_user.id}
         )
         _log_api_error(err, "list_user_previews", current_user.id)
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(err)
+        )
 
 
 @router.delete("/{presentation_id}")
@@ -153,11 +184,15 @@ async def delete_preview(
     """
     try:
         if not presentation_id:
-            raise PresentationError.validation_failed("presentation_id", presentation_id)
+            raise PresentationError.validation_failed(
+                "presentation_id", presentation_id
+            )
         preview_service = PreviewService()
         preview = preview_service.get_preview(presentation_id, current_user.id)
         if not preview:
-            raise PresentationError.validation_failed("presentation_id", presentation_id)
+            raise PresentationError.validation_failed(
+                "presentation_id", presentation_id
+            )
         # Prevent deletion if linked to a full presentation
         if getattr(preview, "converted_to_presentation_id", None):
             raise HTTPException(
@@ -170,15 +205,25 @@ async def delete_preview(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="Failed to delete preview",
             )
-        return {"message": "Preview deleted successfully", "preview_id": presentation_id}
+        return {
+            "message": "Preview deleted successfully",
+            "preview_id": presentation_id,
+        }
     except PresentationError as e:
-        _log_api_error(e, "delete_preview", current_user.id, presentation_id=presentation_id)
+        _log_api_error(
+            e, "delete_preview", current_user.id, presentation_id=presentation_id
+        )
         raise _handle_preview_error(e)
     except HTTPException:
         raise
     except Exception as e:
         err = create_error_from_exception(
-            e, {"operation": "delete_preview", "presentation_id": presentation_id, "user_id": current_user.id}
+            e,
+            {
+                "operation": "delete_preview",
+                "presentation_id": presentation_id,
+                "user_id": current_user.id,
+            },
         )
         _log_api_error(err, "delete_preview", current_user.id)
         raise _handle_preview_error(err)

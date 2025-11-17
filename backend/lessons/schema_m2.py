@@ -12,9 +12,10 @@ from typing import Any, Dict, List, Optional, Union, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, Field
+from backend.api.models import CamelModel
 
 
-class LessonStandard(BaseModel):
+class LessonStandard(CamelModel):
     """Standard metadata included in m2.0 lesson documents."""
 
     code: str
@@ -22,7 +23,7 @@ class LessonStandard(BaseModel):
     summary: str
 
 
-class LessonActivity(BaseModel):
+class LessonActivity(CamelModel):
     """An instructional activity within the lesson content."""
 
     id: str
@@ -33,13 +34,13 @@ class LessonActivity(BaseModel):
     citations: List[str] = Field(default_factory=list)
 
 
-class LessonTiming(BaseModel):
+class LessonTiming(CamelModel):
     """Overall timing information for the lesson."""
 
     total_minutes: int
 
 
-class LessonContent(BaseModel):
+class LessonContent(CamelModel):
     """Nested instructional content for an m2.0 lesson."""
 
     materials: List[str] = Field(default_factory=list)
@@ -56,7 +57,7 @@ class LessonContent(BaseModel):
     timing: LessonTiming
 
 
-class LessonDocumentM2(BaseModel):
+class LessonDocumentM2(CamelModel):
     """Structured JSON representation of a lesson for milestone 2 (m2.0).
 
     This mirrors the requirements in
@@ -100,7 +101,7 @@ def _ensure_global_citations(document: Dict[str, Any]) -> Dict[str, Any]:
     merged: List[str] = []
 
     # Start with any explicit top-level citations
-    for c in (document.get("citations") or []):
+    for c in document.get("citations") or []:
         if isinstance(c, str) and c not in seen:
             seen.add(c)
             merged.append(c)
@@ -111,7 +112,7 @@ def _ensure_global_citations(document: Dict[str, Any]) -> Dict[str, Any]:
     for activity in activities:
         if not isinstance(activity, dict):
             continue
-        for c in (activity.get("citations") or []):
+        for c in activity.get("citations") or []:
             if isinstance(c, str) and c not in seen:
                 seen.add(c)
                 merged.append(c)
@@ -176,7 +177,3 @@ def build_m2_lesson_document(
 
     # Let Pydantic handle structural validation and coercion.
     return LessonDocumentM2(**base)
-
-
-
-

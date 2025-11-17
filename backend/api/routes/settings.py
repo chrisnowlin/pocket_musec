@@ -8,7 +8,7 @@ import logging
 from backend.auth import User, ProcessingMode
 from backend.llm.model_router import ModelRouter
 from ..dependencies import get_current_user
-from ..models import MessageResponse
+from ..models import MessageResponse, CamelModel
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +17,7 @@ CURRENT_PROCESSING_MODE = ProcessingMode.CLOUD
 
 
 # Pydantic models
-class ProcessingModeInfo(BaseModel):
+class ProcessingModeInfo(CamelModel):
     """Processing mode information"""
 
     id: str
@@ -30,20 +30,20 @@ class ProcessingModeInfo(BaseModel):
     error: str = ""
 
 
-class ProcessingModeResponse(BaseModel):
+class ProcessingModeResponse(CamelModel):
     """Processing mode response"""
 
     modes: List[ProcessingModeInfo]
     current: str
 
 
-class UpdateProcessingModeRequest(BaseModel):
+class UpdateProcessingModeRequest(CamelModel):
     """Request to update processing mode"""
 
     mode: str  # "cloud" or "local"
 
 
-class ModelInfoResponse(BaseModel):
+class ModelInfoResponse(CamelModel):
     """Local model information"""
 
     available: bool

@@ -9,62 +9,62 @@ import { normalizeCitations } from './citationUtils';
 // Test data
 export const createTestCitation = (overrides: Partial<Citation> = {}): Citation => ({
   id: 'test-citation-1',
-  lesson_id: 'test-lesson-1',
-  source_type: 'document',
-  source_id: 'test-source-1',
-  source_title: 'Test Document',
-  page_number: 1,
+  lessonId: 'test-lesson-1',
+  sourceType: 'document',
+  sourceId: 'test-source-1',
+  sourceTitle: 'Test Document',
+  pageNumber: 1,
   excerpt: 'This is a test citation with file information',
-  citation_text: 'This is a test citation with file information',
-  citation_number: 1,
-  file_id: 'test-file-1',
-  created_at: '2024-01-01T00:00:00Z',
+  citationText: 'This is a test citation with file information',
+  citationNumber: 1,
+  fileId: 'test-file-1',
+  createdAt: '2024-01-01T00:00:00Z',
   ...overrides
 });
 
 export const createTestFileMetadata = (overrides: Partial<FileMetadata> = {}): FileMetadata => ({
   id: 'test-file-1',
-  file_id: 'test-file-1',
-  original_filename: 'test-document.pdf',
-  file_hash: 'test-hash',
-  file_size: 1024000,
-  mime_type: 'application/pdf',
-  document_type: 'standards',
-  ingestion_status: 'completed',
-  created_at: '2024-01-01T00:00:00Z',
-  updated_at: '2024-01-01T00:00:00Z',
+  fileId: 'test-file-1',
+  originalFilename: 'test-document.pdf',
+  fileHash: 'test-hash',
+  fileSize: 1024000,
+  mimeType: 'application/pdf',
+  documentType: 'standards',
+  ingestionStatus: 'completed',
+  createdAt: '2024-01-01T00:00:00Z',
+  updatedAt: '2024-01-01T00:00:00Z',
   ...overrides
 });
 
 export const createTestFileCitation = (overrides: Partial<FileCitation> = {}): FileCitation => ({
   citation: createTestCitation(),
-  file_metadata: createTestFileMetadata(),
-  is_file_available: true,
-  download_url: '/api/files/test-file-1/download',
+  fileMetadata: createTestFileMetadata(),
+  isFileAvailable: true,
+  downloadUrl: '/api/files/test-file-1/download',
   ...overrides
 });
 
 export const createTestEnhancedCitation = (overrides: Partial<EnhancedCitation> = {}): EnhancedCitation => ({
   id: 'test-citation-1',
-  citation_number: 1,
-  source_title: 'Test Document',
-  source_type: 'document',
-  file_metadata: {
+  citationNumber: 1,
+  sourceTitle: 'Test Document',
+  sourceType: 'document',
+  fileMetadata: {
     id: 'test-file-1',
-    file_id: 'test-file-1',
-    original_filename: 'test-document.pdf',
-    file_size: 1024000,
-    mime_type: 'application/pdf',
-    created_at: '2024-01-01T00:00:00Z',
-    document_type: 'standards',
+    fileId: 'test-file-1',
+    originalFilename: 'test-document.pdf',
+    fileSize: 1024000,
+    mimeType: 'application/pdf',
+    createdAt: '2024-01-01T00:00:00Z',
+    documentType: 'standards',
   },
-  page_number: 1,
+  pageNumber: 1,
   excerpt: 'This is a test citation with file information',
-  citation_text: 'This is a test citation with file information',
-  is_file_available: true,
-  can_download: true,
-  formatted_date: 'Jan 1, 2024',
-  relative_time: '2 hours ago',
+  citationText: 'This is a test citation with file information',
+  isFileAvailable: true,
+  canDownload: true,
+  formattedDate: 'Jan 1, 2024',
+  relativeTime: '2 hours ago',
   ...overrides
 });
 
@@ -84,7 +84,7 @@ export const testCitationNormalization = () => {
   // Test with mixed citations
   const mixedCitations = [
     'Document 1 - Page 1',
-    createTestCitation({ id: 'test-citation-2', source_title: 'Document 2' })
+    createTestCitation({ id: 'test-citation-2', sourceTitle: 'Document 2' })
   ];
   
   const normalizedMixed = normalizeCitations(mixedCitations);
@@ -105,12 +105,12 @@ export const testCitationValidation = () => {
   
   // Test valid citation
   const validCitation = createTestCitation();
-  const isValid = validCitation.id !== '' && validCitation.source_title !== '';
+  const isValid = validCitation.id !== '' && validCitation.sourceTitle !== '';
   console.log('Valid citation validation:', isValid ? 'PASSED' : 'FAILED');
   
   // Test invalid citation (missing required fields)
-  const invalidCitation = { ...createTestCitation(), id: '', source_title: '' };
-  const isInvalid = invalidCitation.id === '' || invalidCitation.source_title === '';
+  const invalidCitation = { ...createTestCitation(), id: '', sourceTitle: '' };
+  const isInvalid = invalidCitation.id === '' || invalidCitation.sourceTitle === '';
   console.log('Invalid citation validation:', isInvalid ? 'PASSED' : 'FAILED');
   
   return isValid && isInvalid;
@@ -121,7 +121,7 @@ export const testEnhancedCitationDetection = () => {
   
   // Test with enhanced citation
   const enhancedCitation = createTestEnhancedCitation();
-  const isEnhanced = enhancedCitation.file_metadata !== undefined;
+  const isEnhanced = enhancedCitation.fileMetadata !== undefined;
   console.log('Enhanced citation detection:', isEnhanced ? 'PASSED' : 'FAILED');
   
   // Test with legacy citation
@@ -136,13 +136,13 @@ export const testFileCitationAvailability = () => {
   console.log('Testing file citation availability...');
   
   // Test available file citation
-  const availableCitation = createTestFileCitation({ is_file_available: true });
-  const availableTest = availableCitation.is_file_available && availableCitation.file_metadata !== undefined;
+  const availableCitation = createTestFileCitation({ isFileAvailable: true });
+  const availableTest = availableCitation.isFileAvailable && availableCitation.fileMetadata !== undefined;
   console.log('Available file citation test:', availableTest ? 'PASSED' : 'FAILED');
   
   // Test unavailable file citation
-  const unavailableCitation = createTestFileCitation({ is_file_available: false, file_metadata: undefined });
-  const unavailableTest = !unavailableCitation.is_file_available && unavailableCitation.file_metadata === undefined;
+  const unavailableCitation = createTestFileCitation({ isFileAvailable: false, fileMetadata: undefined });
+  const unavailableTest = !unavailableCitation.isFileAvailable && unavailableCitation.fileMetadata === undefined;
   console.log('Unavailable file citation test:', unavailableTest ? 'PASSED' : 'FAILED');
   
   return availableTest && unavailableTest;

@@ -13,6 +13,7 @@ from uuid import uuid4
 from enum import Enum
 
 from pydantic import BaseModel, Field
+from backend.api.models import CamelModel
 
 
 class PresentationStatus(str, Enum):
@@ -37,7 +38,7 @@ class SourceSection(str, Enum):
     CLOSURE = "closure"
 
 
-class PresentationSlide(BaseModel):
+class PresentationSlide(CamelModel):
     """Individual slide within a presentation document."""
 
     id: str
@@ -53,7 +54,7 @@ class PresentationSlide(BaseModel):
     standard_codes: List[str] = Field(default_factory=list)
 
 
-class PresentationExport(BaseModel):
+class PresentationExport(CamelModel):
     """Export asset metadata for a presentation."""
 
     format: str  # "json", "markdown", "pptx", "pdf"
@@ -62,7 +63,7 @@ class PresentationExport(BaseModel):
     file_size_bytes: Optional[int] = None
 
 
-class PresentationDocument(BaseModel):
+class PresentationDocument(CamelModel):
     """Structured JSON representation of a presentation (p1.0).
 
     This mirrors the requirements in

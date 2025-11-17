@@ -55,7 +55,7 @@ class CitationService {
       return {
         success: true,
         citations: citationObjects,
-        enhanced_citations: enhancedCitations,
+        enhancedCitations: enhancedCitations,
       };
     } catch (error) {
       const errorInfo = handleCitationError(error instanceof Error ? error : new Error('Unknown error'), 'getLessonCitations');
@@ -94,7 +94,7 @@ class CitationService {
       return {
         success: true,
         citations: [data.citation],
-        enhanced_citations: enhancedCitations,
+        enhancedCitations: enhancedCitations,
       };
     } catch (error) {
       return {
@@ -132,7 +132,7 @@ class CitationService {
       return {
         success: true,
         citations: data.citations,
-        enhanced_citations: enhancedCitations,
+        enhancedCitations: enhancedCitations,
       };
     } catch (error) {
       return {
@@ -171,8 +171,8 @@ class CitationService {
       let fileMetadata: FileMetadata | undefined;
 
       // Try to get file metadata if file_id is present
-      if (citation.file_id) {
-        fileMetadata = await this.getFileMetadata(citation.file_id);
+      if (citation.fileId) {
+        fileMetadata = await this.getFileMetadata(citation.fileId);
       }
 
       // Create enhanced citation
@@ -180,17 +180,17 @@ class CitationService {
       
       const enhancedCitation: EnhancedCitation = {
         id: citation.id,
-        citation_number: citation.citation_number,
-        source_title: citation.source_title,
-        source_type: citation.source_type,
-        citation_text: citation.citation_text,
-        page_number: citation.page_number,
+        citationNumber: citation.citationNumber,
+        sourceTitle: citation.sourceTitle,
+        sourceType: citation.sourceType,
+        citationText: citation.citationText,
+        pageNumber: citation.pageNumber,
         excerpt: citation.excerpt,
-        file_metadata: fileInfo.file_metadata,
-        is_file_available: fileInfo.is_file_available || false,
-        can_download: fileInfo.can_download || false,
-        formatted_date: fileInfo.formatted_date,
-        relative_time: fileInfo.relative_time,
+        fileMetadata: fileInfo.fileMetadata,
+        isFileAvailable: fileInfo.isFileAvailable || false,
+        canDownload: fileInfo.canDownload || false,
+        formattedDate: fileInfo.formattedDate,
+        relativeTime: fileInfo.relativeTime,
       };
 
       enhancedCitations.push(enhancedCitation);
@@ -273,13 +273,13 @@ class CitationService {
   handleLegacyCitations(legacyCitations: string[]): Citation[] {
     return legacyCitations.map((citation, index) => ({
       id: `legacy-${index}`,
-      lesson_id: 'unknown',
-      source_type: 'document' as const,
-      source_id: citation,
-      source_title: citation,
-      citation_text: citation,
-      citation_number: index + 1,
-      created_at: new Date().toISOString(),
+      lessonId: 'unknown',
+      sourceType: 'document' as const,
+      sourceId: citation,
+      sourceTitle: citation,
+      citationText: citation,
+      citationNumber: index + 1,
+      createdAt: new Date().toISOString(),
     }));
   }
 
@@ -289,12 +289,12 @@ class CitationService {
   handleLegacyEnhancedCitations(legacyCitations: string[]): EnhancedCitation[] {
     return legacyCitations.map((citation, index) => ({
       id: `legacy-${index}`,
-      citation_number: index + 1,
-      source_title: citation,
-      source_type: 'document',
-      citation_text: citation,
-      is_file_available: false,
-      can_download: false,
+      citationNumber: index + 1,
+      sourceTitle: citation,
+      sourceType: 'document',
+      citationText: citation,
+      isFileAvailable: false,
+      canDownload: false,
     }));
   }
 
@@ -303,7 +303,7 @@ class CitationService {
    */
   async downloadMultipleCitationFiles(citations: EnhancedCitation[]): Promise<void> {
     const downloadableCitations = citations.filter(
-      c => c.is_file_available && c.can_download && c.file_metadata
+      c => c.isFileAvailable && c.canDownload && c.fileMetadata
     );
 
     if (downloadableCitations.length === 0) {
@@ -312,16 +312,16 @@ class CitationService {
 
     // Download files with a small delay between each to avoid overwhelming the server
     for (const citation of downloadableCitations) {
-      if (citation.file_metadata) {
+      if (citation.fileMetadata) {
         try {
           await this.downloadCitationFile(
-            citation.file_metadata.file_id,
-            citation.file_metadata.original_filename
+            citation.fileMetadata.fileId,
+            citation.fileMetadata.originalFilename
           );
           // Small delay between downloads
           await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
-          console.error(`Failed to download ${citation.file_metadata.original_filename}:`, error);
+          console.error(`Failed to download ${citation.fileMetadata.originalFilename}:`, error);
           // Continue with other files even if one fails
         }
       }
