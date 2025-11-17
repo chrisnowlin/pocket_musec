@@ -58,3 +58,8 @@ data/
 *.tmp
 .temp/
 temp/
+
+# Frontend build artifacts and cache
+frontend/node_modules/.vite/
+frontend/.vite/
+frontend/dist/
