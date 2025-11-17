@@ -9,6 +9,28 @@ All authenticated endpoints require a valid JWT access token in the Authorizatio
 Authorization: Bearer <access_token>
 ```
 
+## Important: camelCase Convention
+
+**All API request and response payloads use camelCase property names.** This is a mandatory standard throughout the entire API.
+
+```json
+// ✅ CORRECT - Use camelCase
+{
+  "userId": "123",
+  "gradeLevel": "Grade 3",
+  "createdAt": "2025-11-17T00:00:00Z"
+}
+
+// ❌ INCORRECT - Do NOT use snake_case
+{
+  "user_id": "123",
+  "grade_level": "Grade 3",
+  "created_at": "2025-11-17T00:00:00Z"
+}
+```
+
+See [CODING_STANDARDS.md](./CODING_STANDARDS.md) for complete details on naming conventions.
+
 **Note:** PocketMusec now operates as a web-only application. All functionality is accessible through the web interface at `http://localhost:5173`. The API is provided for developers who want to integrate with PocketMusec programmatically.
 
 ## Authentication Endpoints
