@@ -1,0 +1,1248 @@
+⏭️  Skipping (100% complete): Holistic Musical Thinking.pdf
+
+📚 Found 8 PDFs to process (SLOW MODE):
+   1. Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher.pdf
+   2. Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer.pdf
+   3. From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman.pdf
+   4. Hacking_Classroom_Management_-_Mike_Roberts.pdf
+   5. Mindsets_in_the_Classroom_-_Mary_Cay_Ricci.pdf
+   6. School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff.pdf
+   7. The_Classroom_Behavior_Manua_-_Scott_Ervin.pdf
+   8. Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon.pdf
+
+🐢 SLOW MODE Configuration:
+   - Concurrency: 3 requests (vs 10 in fast mode)
+   - Pages per request: 2 (batching for efficiency)
+   - Max retries: 5 (vs 3 in fast mode)
+   - Longer backoff times
+   - More conservative and reliable
+
+======================================================================
+
+📖 Processing 1/8: Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher.pdf
+======================================================================
+======================================================================
+🚀 Processing: Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher (SLOW MODE)
+======================================================================
+📊 Total pages: 170
+
+📄 Converting PDF to PNGs...
+   PDF: Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher.pdf
+   Output: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher/extracted/pages_png
+✅ Found 170 existing PNGs, skipping conversion
+
+📝 Extracting text from 170 pages...
+   Concurrency: 3 requests (SLOW mode)
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+   Found 73 already extracted, processing 97 remaining
+
+✅ Pages 0001,0006       |   8.7s |  4386 tokens
+✅ Pages 0079,0080       |  38.1s |  7018 tokens
+✅ Pages 0076,0077       |  64.5s |  8377 tokens
+✅ Pages 0074,0075       |  71.8s |  8847 tokens
+✅ Pages 0081,0082       |  39.3s |  7172 tokens
+✅ Pages 0083,0084       |  51.7s |  7568 tokens
+✅ Pages 0085,0086       |  59.9s |  8253 tokens
+✅ Pages 0087,0088       |  53.6s |  8112 tokens
+✅ Pages 0089,0090       |  67.8s |  8720 tokens
+✅ Pages 0091,0092       |  57.7s |  7715 tokens
+✅ Pages 0093,0094       |  86.1s |  9483 tokens
+✅ Pages 0097,0098       |  54.7s |  7295 tokens
+✅ Pages 0095,0096       |  62.8s |  8089 tokens
+✅ Pages 0103,0104       |  64.6s |  8166 tokens
+✅ Pages 0099,0100       |  99.9s |  9961 tokens
+✅ Pages 0101,0102       | 106.9s | 10458 tokens
+✅ Pages 0105,0106       |  40.8s |  6530 tokens
+✅ Pages 0107,0108       |  51.2s |  7725 tokens
+✅ Pages 0109,0110       |  63.5s |  9095 tokens
+✅ Pages 0111,0112       |  70.0s |  9050 tokens
+✅ Pages 0113,0114       |  63.6s |  8582 tokens
+✅ Pages 0115,0116       |  54.0s |  8203 tokens
+✅ Pages 0117,0118       |  66.5s |  9196 tokens
+✅ Pages 0119,0120       |  60.4s |  8481 tokens
+✅ Pages 0121,0122       |  60.7s |  8316 tokens
+✅ Pages 0123,0124       |  49.1s |  7756 tokens
+✅ Pages 0125,0126       |  61.6s |  8438 tokens
+✅ Pages 0127,0128       |  62.9s |  8439 tokens
+✅ Pages 0129,0130       |  69.0s |  9085 tokens
+✅ Pages 0131,0132       |  49.2s |  7670 tokens
+✅ Pages 0135,0136       |  59.3s |  8488 tokens
+✅ Pages 0133,0134       |  80.7s |  9944 tokens
+✅ Pages 0137,0138       |  77.8s |  9746 tokens
+✅ Pages 0139,0140       |  42.6s |  7233 tokens
+✅ Pages 0141,0142       |  46.4s |  7445 tokens
+✅ Pages 0143,0144       |  62.5s |  8522 tokens
+✅ Pages 0145,0146       |  54.1s |  8091 tokens
+✅ Pages 0147,0148       |  77.2s |  9699 tokens
+✅ Pages 0149,0150       |  57.1s |  8185 tokens
+✅ Pages 0151,0152       |  81.7s |  9855 tokens
+✅ Pages 0153,0154       |  60.3s |  8444 tokens
+✅ Pages 0155,0156       |  63.2s |  8890 tokens
+✅ Pages 0159,0160       |  82.9s | 10074 tokens
+✅ Pages 0157,0158       |  98.9s | 11235 tokens
+✅ Pages 0161,0162       |  90.8s | 10969 tokens
+✅ Pages 0167,0168       |  43.8s |  7643 tokens
+✅ Pages 0165,0166       |  70.8s |  9176 tokens
+✅ Pages 0169            |  10.7s |  3761 tokens
+✅ Pages 0163,0164       | 108.6s | 11913 tokens
+
+======================================================================
+✨ Extraction Complete!
+   Success: 170/170 pages (100%)
+   Failed: 0 pages
+   Time: 17.5 minutes
+   Tokens: 415,499
+   Rate: 5.6 pages/minute
+   Cost: $6.23
+======================================================================
+
+🧹 Removing watermarks...
+✅ Cleaned 0 files
+
+📖 Creating complete book file...
+✅ Created: Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher_COMPLETE.md
+   Size: 0.31 MB
+   Words: 50,737
+   Pages: 170
+
+📚 Creating continuous reading version...
+✅ Created: Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher_CONTINUOUS.md
+   Size: 0.31 MB
+   Words: 49,872
+
+📋 Summary saved to: PROCESSING_SUMMARY.md
+
+======================================================================
+🎉 PROCESSING COMPLETE!
+======================================================================
+
+📁 Output directory: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher/extracted
+
+⏸️  Pausing 30 seconds before next PDF...
+
+📖 Processing 2/8: Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer.pdf
+======================================================================
+======================================================================
+🚀 Processing: Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer (SLOW MODE)
+======================================================================
+📊 Total pages: 96
+
+📄 Converting PDF to PNGs...
+   PDF: Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer.pdf
+   Output: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer/extracted/pages_png
+✅ Found 96 existing PNGs, skipping conversion
+
+📝 Extracting text from 96 pages...
+   Concurrency: 3 requests (SLOW mode)
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+   Found 0 already extracted, processing 96 remaining
+
+✅ Pages 0000,0001       |  10.9s |  4446 tokens
+✅ Pages 0002,0003       |  43.8s |  7168 tokens
+✅ Pages 0008,0009       |  47.2s |  7117 tokens
+✅ Pages 0006,0007       | 108.8s |  8112 tokens
+✅ Pages 0004,0005       | 122.7s |  6946 tokens
+✅ Pages 0010,0011       |  41.3s |  6840 tokens
+✅ Pages 0016,0017       |  27.9s |  5868 tokens
+✅ Pages 0012,0013       |  45.6s |  7139 tokens
+✅ Pages 0020,0021       |  25.4s |  5825 tokens
+✅ Pages 0014,0015       |  74.4s |  9327 tokens
+✅ Pages 0022,0023       |  25.9s |  5906 tokens
+✅ Pages 0026,0027       |  47.2s |  7452 tokens
+✅ Pages 0028,0029       |  43.8s |  7351 tokens
+✅ Pages 0018,0019       | 151.5s |  7400 tokens
+✅ Pages 0024,0025       | 116.9s |  6453 tokens
+✅ Pages 0032,0033       |  35.0s |  6424 tokens
+✅ Pages 0030,0031       |  41.4s |  6796 tokens
+✅ Pages 0038,0039       |  52.2s |  8028 tokens
+✅ Pages 0034,0035       |  90.6s |  8991 tokens
+✅ Pages 0036,0037       |  80.6s |  8796 tokens
+✅ Pages 0040,0041       |  27.0s |  5994 tokens
+✅ Pages 0044,0045       |  43.7s |  6918 tokens
+✅ Pages 0046,0047       |  65.8s |  8455 tokens
+✅ Pages 0048,0049       |  39.3s |  6633 tokens
+✅ Pages 0050,0051       |  28.3s |  5787 tokens
+✅ Pages 0052,0053       |  39.1s |  6643 tokens
+✅ Pages 0054,0055       |  51.8s |  7559 tokens
+✅ Pages 0042,0043       | 195.6s | 10536 tokens
+✅ Pages 0058,0059       |  40.7s |  6709 tokens
+✅ Pages 0056,0057       |  84.1s |  9795 tokens
+✅ Pages 0062,0063       |  53.4s |  7696 tokens
+✅ Pages 0060,0061       |  71.6s |  7050 tokens
+✅ Pages 0064,0065       |  63.9s |  8295 tokens
+✅ Pages 0070,0071       |  26.7s |  5748 tokens
+✅ Pages 0066,0067       |  71.6s |  8736 tokens
+✅ Pages 0072,0073       |  18.2s |  5017 tokens
+✅ Pages 0074,0075       |  42.7s |  6901 tokens
+✅ Pages 0076,0077       |  45.3s |  7032 tokens
+✅ Pages 0068,0069       | 170.4s | 10316 tokens
+✅ Pages 0078,0079       |  63.8s |  8088 tokens
+✅ Pages 0080,0081       |  73.2s |  8158 tokens
+✅ Pages 0084,0085       |  63.9s |  7653 tokens
+✅ Pages 0082,0083       |  96.9s |  8415 tokens
+✅ Pages 0086,0087       | 103.3s |  8630 tokens
+✅ Pages 0088,0089       |  88.6s |  9918 tokens
+✅ Pages 0092,0093       |  73.6s |  7983 tokens
+✅ Pages 0094,0095       |  52.3s |  7624 tokens
+✅ Pages 0090,0091       | 257.5s |  5751 tokens
+
+======================================================================
+✨ Extraction Complete!
+   Success: 96/96 pages (100%)
+   Failed: 0 pages
+   Time: 19.9 minutes
+   Tokens: 356,425
+   Rate: 4.8 pages/minute
+   Cost: $5.35
+======================================================================
+
+🧹 Removing watermarks...
+✅ Cleaned 0 files
+
+📖 Creating complete book file...
+✅ Created: Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer_COMPLETE.md
+   Size: 0.11 MB
+   Words: 20,719
+   Pages: 96
+
+📚 Creating continuous reading version...
+✅ Created: Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer_CONTINUOUS.md
+   Size: 0.11 MB
+   Words: 20,238
+
+📋 Summary saved to: PROCESSING_SUMMARY.md
+
+======================================================================
+🎉 PROCESSING COMPLETE!
+======================================================================
+
+📁 Output directory: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer/extracted
+
+⏸️  Pausing 30 seconds before next PDF...
+
+📖 Processing 3/8: From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman.pdf
+======================================================================
+======================================================================
+🚀 Processing: From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman (SLOW MODE)
+======================================================================
+📊 Total pages: 228
+
+📄 Converting PDF to PNGs...
+   PDF: From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman.pdf
+   Output: /Users/cnowlin/Developer/pocket_musec/data/pdfs/From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman/extracted/pages_png
+✅ Found 228 existing PNGs, skipping conversion
+
+📝 Extracting text from 228 pages...
+   Concurrency: 3 requests (SLOW mode)
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+   Found 0 already extracted, processing 228 remaining
+
+✅ Pages 0002,0003       |  24.6s |  6051 tokens
+✅ Pages 0004,0005       |  36.2s |  6787 tokens
+✅ Pages 0006,0007       |  53.3s |  8054 tokens
+✅ Pages 0000,0001       |  79.0s |  5030 tokens
+✅ Pages 0012,0013       |  35.5s |  6717 tokens
+✅ Pages 0008,0009       |  79.4s |  9330 tokens
+✅ Pages 0010,0011       |  61.4s |  8472 tokens
+✅ Pages 0014,0015       |  32.5s |  6391 tokens
+✅ Pages 0016,0017       |  74.7s |  8444 tokens
+✅ Pages 0018,0019       |  59.2s |  8332 tokens
+✅ Pages 0020,0021       |  76.0s |  9652 tokens
+✅ Pages 0022,0023       |  42.7s |  6937 tokens
+✅ Pages 0026,0027       |  16.6s |  5289 tokens
+✅ Pages 0024,0025       |  63.0s |  8554 tokens
+✅ Pages 0030,0031       |  53.1s |  8248 tokens
+✅ Pages 0028,0029       |  63.3s |  7317 tokens
+✅ Pages 0032,0033       |  58.3s |  8135 tokens
+✅ Pages 0034,0035       |  51.7s |  7736 tokens
+✅ Pages 0036,0037       |  55.9s |  7982 tokens
+✅ Pages 0040,0041       |  43.7s |  7137 tokens
+✅ Pages 0038,0039       |  94.0s |  9739 tokens
+✅ Pages 0042,0043       |  70.8s |  9171 tokens
+✅ Pages 0044,0045       |  74.4s |  8989 tokens
+✅ Pages 0046,0047       |  60.7s |  8191 tokens
+✅ Pages 0050,0051       |  35.1s |  6595 tokens
+✅ Pages 0048,0049       |  93.0s | 10635 tokens
+✅ Pages 0052,0053       |  54.5s |  8025 tokens
+✅ Pages 0056,0057       |  29.1s |  6071 tokens
+✅ Pages 0054,0055       |  68.7s |  9023 tokens
+✅ Pages 0060,0061       |  31.8s |  6438 tokens
+✅ Pages 0058,0059       |  50.6s |  7704 tokens
+✅ Pages 0062,0063       |  42.2s |  7127 tokens
+✅ Pages 0064,0065       |  49.6s |  7685 tokens
+✅ Pages 0066,0067       |  55.3s |  7497 tokens
+✅ Pages 0068,0069       |  57.3s |  8282 tokens
+✅ Pages 0072,0073       |  34.7s |  6749 tokens
+✅ Pages 0070,0071       |  57.3s |  8251 tokens
+✅ Pages 0076,0077       |  49.6s |  6894 tokens
+✅ Pages 0074,0075       |  55.8s |  8407 tokens
+✅ Pages 0078,0079       |  58.0s |  8212 tokens
+✅ Pages 0080,0081       |  43.5s |  7372 tokens
+✅ Pages 0086,0087       |  32.3s |  6455 tokens
+✅ Pages 0084,0085       |  55.6s |  8158 tokens
+✅ Pages 0090,0091       |  28.8s |  6419 tokens
+✅ Pages 0082,0083       | 121.1s | 13219 tokens
+✅ Pages 0088,0089       |  71.3s |  9158 tokens
+✅ Pages 0092,0093       |  46.8s |  7748 tokens
+✅ Pages 0094,0095       |  36.8s |  6708 tokens
+✅ Pages 0096,0097       |  27.8s |  6048 tokens
+✅ Pages 0100,0101       |  37.9s |  6987 tokens
+✅ Pages 0102,0103       |  27.9s |  6148 tokens
+✅ Pages 0098,0099       |  56.7s |  8274 tokens
+✅ Pages 0104,0105       |  55.1s |  7989 tokens
+✅ Pages 0106,0107       |  57.7s |  8311 tokens
+✅ Pages 0108,0109       |  65.8s |  9164 tokens
+✅ Pages 0112,0113       |  48.0s |  7843 tokens
+✅ Pages 0110,0111       |  60.0s |  8414 tokens
+✅ Pages 0114,0115       |  46.9s |  7444 tokens
+✅ Pages 0118,0119       |  49.2s |  7658 tokens
+✅ Pages 0116,0117       |  62.6s |  8876 tokens
+✅ Pages 0120,0121       |  53.5s |  8161 tokens
+✅ Pages 0126,0127       |  43.8s |  7611 tokens
+✅ Pages 0124,0125       |  57.8s |  8254 tokens
+✅ Pages 0122,0123       |  73.8s |  9286 tokens
+✅ Pages 0130,0131       |  41.9s |  7164 tokens
+✅ Pages 0128,0129       |  55.9s |  8255 tokens
+✅ Pages 0132,0133       |  46.1s |  7376 tokens
+✅ Pages 0136,0137       |  53.8s |  7879 tokens
+✅ Pages 0138,0139       |  48.3s |  7498 tokens
+✅ Pages 0134,0135       |  71.4s |  9160 tokens
+✅ Pages 0144,0145       |  19.0s |  5372 tokens
+✅ Pages 0142,0143       |  46.3s |  7068 tokens
+✅ Pages 0140,0141       |  62.5s |  7980 tokens
+✅ Pages 0148,0149       |  49.3s |  7168 tokens
+✅ Pages 0146,0147       |  70.7s |  8833 tokens
+✅ Pages 0150,0151       |  50.5s |  7303 tokens
+✅ Pages 0152,0153       |  39.9s |  6801 tokens
+✅ Pages 0156,0157       |  39.8s |  6900 tokens
+✅ Pages 0158,0159       |  31.3s |  6380 tokens
+✅ Pages 0154,0155       |  69.7s |  8813 tokens
+✅ Pages 0160,0161       |  78.8s |  9099 tokens
+✅ Pages 0164,0165       |  83.3s |  9496 tokens
+✅ Pages 0162,0163       |  97.4s | 11005 tokens
+✅ Pages 0166,0167       |  42.2s |  6934 tokens
+✅ Pages 0168,0169       |  44.6s |  7008 tokens
+✅ Pages 0170,0171       |  54.9s |  8092 tokens
+✅ Pages 0172,0173       |  94.2s | 10803 tokens
+✅ Pages 0174,0175       |  69.8s |  9145 tokens
+✅ Pages 0176,0177       |  53.5s |  7841 tokens
+✅ Pages 0182,0183       |  56.3s |  7955 tokens
+✅ Pages 0180,0181       |  66.7s |  8395 tokens
+✅ Pages 0186,0187       |  44.8s |  6933 tokens
+✅ Pages 0184,0185       |  56.9s |  7732 tokens
+✅ Pages 0178,0179       | 122.8s | 12211 tokens
+✅ Pages 0188,0189       |  33.8s |  6291 tokens
+✅ Pages 0192,0193       |  60.4s |  7404 tokens
+✅ Pages 0190,0191       |  77.1s |  8522 tokens
+✅ Pages 0196,0197       |  41.5s |  6761 tokens
+✅ Pages 0198,0199       |  46.7s |  6981 tokens
+✅ Pages 0194,0195       | 114.4s | 11396 tokens
+✅ Pages 0200,0201       |  64.1s |  8369 tokens
+✅ Pages 0202,0203       |  63.5s |  8504 tokens
+✅ Pages 0204,0205       |  62.0s |  8397 tokens
+✅ Pages 0206,0207       |  47.9s |  7454 tokens
+✅ Pages 0208,0209       |  41.8s |  7091 tokens
+✅ Pages 0210,0211       |  43.0s |  7193 tokens
+✅ Pages 0214,0215       |  26.1s |  5925 tokens
+✅ Pages 0212,0213       |  39.7s |  6941 tokens
+✅ Pages 0216,0217       |  16.2s |  5113 tokens
+✅ Pages 0218,0219       |  78.9s |  9625 tokens
+✅ Pages 0222,0223       |  82.4s |  9800 tokens
+✅ Pages 0226,0227       |  27.6s |  5433 tokens
+✅ Pages 0220,0221       | 116.1s | 11911 tokens
+✅ Pages 0224,0225       |  56.7s |  7508 tokens
+
+======================================================================
+✨ Extraction Complete!
+   Success: 228/228 pages (100%)
+   Failed: 0 pages
+   Time: 35.4 minutes
+   Tokens: 901,203
+   Rate: 6.4 pages/minute
+   Cost: $13.52
+======================================================================
+
+🧹 Removing watermarks...
+✅ Cleaned 49 files
+
+📖 Creating complete book file...
+✅ Created: From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman_COMPLETE.md
+   Size: 0.36 MB
+   Words: 61,633
+   Pages: 228
+
+📚 Creating continuous reading version...
+✅ Created: From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman_CONTINUOUS.md
+   Size: 0.35 MB
+   Words: 60,489
+
+📋 Summary saved to: PROCESSING_SUMMARY.md
+
+======================================================================
+🎉 PROCESSING COMPLETE!
+======================================================================
+
+📁 Output directory: /Users/cnowlin/Developer/pocket_musec/data/pdfs/From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman/extracted
+
+⏸️  Pausing 30 seconds before next PDF...
+
+📖 Processing 4/8: Hacking_Classroom_Management_-_Mike_Roberts.pdf
+======================================================================
+======================================================================
+🚀 Processing: Hacking_Classroom_Management_-_Mike_Roberts (SLOW MODE)
+======================================================================
+📊 Total pages: 161
+
+📄 Converting PDF to PNGs...
+   PDF: Hacking_Classroom_Management_-_Mike_Roberts.pdf
+   Output: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Hacking_Classroom_Management_-_Mike_Roberts/extracted/pages_png
+✅ Created 161 PNG files
+
+📝 Extracting text from 161 pages...
+   Concurrency: 3 requests (SLOW mode)
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+   Found 0 already extracted, processing 161 remaining
+
+✅ Pages 0000,0001       |  35.4s |  6065 tokens
+✅ Pages 0002,0003       |  89.3s |  8902 tokens
+✅ Pages 0006,0007       |  64.5s |  7513 tokens
+✅ Pages 0004,0005       | 131.7s | 11092 tokens
+✅ Pages 0008,0009       |  68.5s |  7530 tokens
+✅ Pages 0010,0011       |  58.1s |  7121 tokens
+✅ Pages 0012,0013       |  51.2s |  6609 tokens
+✅ Pages 0014,0015       |  70.0s |  7723 tokens
+✅ Pages 0016,0017       |  71.0s |  7790 tokens
+✅ Pages 0018,0019       |  66.0s |  7584 tokens
+✅ Pages 0022,0023       |  48.6s |  6515 tokens
+✅ Pages 0024,0025       |  69.0s |  7620 tokens
+✅ Pages 0026,0027       |  45.1s |  6323 tokens
+✅ Pages 0028,0029       |  47.8s |  6526 tokens
+✅ Pages 0020,0021       | 143.5s | 11488 tokens
+✅ Pages 0032,0033       |  42.6s |  6301 tokens
+✅ Pages 0034,0035       |  48.8s |  6624 tokens
+✅ Pages 0030,0031       | 103.7s |  9431 tokens
+✅ Pages 0036,0037       |  47.1s |  6567 tokens
+✅ Pages 0040,0041       |  62.3s |  7209 tokens
+✅ Pages 0038,0039       |  70.9s |  7760 tokens
+✅ Pages 0042,0043       |  60.7s |  7188 tokens
+✅ Pages 0046,0047       |  54.9s |  6817 tokens
+✅ Pages 0044,0045       |  60.7s |  7292 tokens
+✅ Pages 0048,0049       |  80.8s |  8289 tokens
+✅ Pages 0052,0053       |  48.1s |  6488 tokens
+✅ Pages 0050,0051       |  55.7s |  7005 tokens
+✅ Pages 0058,0059       |  59.9s |  7270 tokens
+✅ Pages 0054,0055       |  76.2s |  7926 tokens
+✅ Pages 0056,0057       |  80.9s |  8165 tokens
+✅ Pages 0062,0063       |  39.7s |  6170 tokens
+✅ Pages 0064,0065       |  59.7s |  7220 tokens
+✅ Pages 0060,0061       |  86.8s |  8510 tokens
+✅ Pages 0066,0067       |  61.1s |  7275 tokens
+✅ Pages 0070,0071       |  49.1s |  6828 tokens
+✅ Pages 0072,0073       |  34.7s |  6005 tokens
+✅ Pages 0068,0069       |  77.0s |  8211 tokens
+✅ Pages 0076,0077       |  60.2s |  7405 tokens
+✅ Pages 0074,0075       |  92.6s |  9025 tokens
+✅ Pages 0078,0079       |  78.2s |  8129 tokens
+✅ Pages 0082,0083       |  53.8s |  6855 tokens
+✅ Pages 0080,0081       |  78.9s |  8086 tokens
+✅ Pages 0084,0085       |  74.4s |  8015 tokens
+✅ Pages 0088,0089       |  29.8s |  5694 tokens
+✅ Pages 0086,0087       |  59.4s |  7315 tokens
+✅ Pages 0094,0095       |  41.0s |  6154 tokens
+✅ Pages 0092,0093       |  73.9s |  7977 tokens
+✅ Pages 0090,0091       |  84.2s |  8621 tokens
+✅ Pages 0100,0101       |  32.1s |  5915 tokens
+✅ Pages 0096,0097       |  67.2s |  7694 tokens
+✅ Pages 0102,0103       |  42.4s |  6368 tokens
+✅ Pages 0104,0105       |  31.8s |  5846 tokens
+✅ Pages 0098,0099       | 107.3s |  9865 tokens
+✅ Pages 0106,0107       |  60.5s |  7332 tokens
+✅ Pages 0108,0109       |  64.3s |  7589 tokens
+✅ Pages 0112,0113       |  49.6s |  6664 tokens
+✅ Pages 0110,0111       |  86.4s |  7713 tokens
+✅ Pages 0114,0115       |  71.8s |  7755 tokens
+✅ Pages 0116,0117       |  58.1s |  7069 tokens
+✅ Pages 0118,0119       |  77.1s |  7894 tokens
+✅ Pages 0120,0121       |  51.1s |  6905 tokens
+✅ Pages 0126,0127       |  39.8s |  6241 tokens
+✅ Pages 0124,0125       |  62.3s |  6458 tokens
+✅ Pages 0122,0123       |  90.5s |  8170 tokens
+✅ Pages 0128,0129       |  48.9s |  6569 tokens
+✅ Pages 0132,0133       |  71.4s |  7652 tokens
+✅ Pages 0130,0131       |  74.3s |  7661 tokens
+✅ Pages 0138,0139       |  45.9s |  6410 tokens
+✅ Pages 0136,0137       |  78.3s |  8073 tokens
+✅ Pages 0134,0135       | 135.1s | 10906 tokens
+✅ Pages 0140,0141       |  63.2s |  7255 tokens
+✅ Pages 0142,0143       |  60.7s |  7202 tokens
+✅ Pages 0146,0147       |  68.9s |  7640 tokens
+✅ Pages 0148,0149       |  56.9s |  7013 tokens
+✅ Pages 0144,0145       | 118.0s |  5755 tokens
+✅ Pages 0152,0153       |  60.8s |  7279 tokens
+✅ Pages 0150,0151       |  83.8s |  8354 tokens
+✅ Pages 0156,0157       |  39.5s |  6129 tokens
+✅ Pages 0154,0155       |  97.5s |  9129 tokens
+✅ Pages 0158,0159       |  72.5s |  8082 tokens
+✅ Pages 0160            |  46.1s |  4501 tokens
+
+======================================================================
+✨ Extraction Complete!
+   Success: 161/161 pages (100%)
+   Failed: 0 pages
+   Time: 30.0 minutes
+   Tokens: 601,316
+   Rate: 5.4 pages/minute
+   Cost: $9.02
+======================================================================
+
+🧹 Removing watermarks...
+✅ Cleaned 35 files
+
+📖 Creating complete book file...
+✅ Created: Hacking_Classroom_Management_-_Mike_Roberts_COMPLETE.md
+   Size: 0.23 MB
+   Words: 40,175
+   Pages: 161
+
+📚 Creating continuous reading version...
+✅ Created: Hacking_Classroom_Management_-_Mike_Roberts_CONTINUOUS.md
+   Size: 0.22 MB
+   Words: 39,370
+
+📋 Summary saved to: PROCESSING_SUMMARY.md
+
+======================================================================
+🎉 PROCESSING COMPLETE!
+======================================================================
+
+📁 Output directory: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Hacking_Classroom_Management_-_Mike_Roberts/extracted
+
+⏸️  Pausing 30 seconds before next PDF...
+
+📖 Processing 5/8: Mindsets_in_the_Classroom_-_Mary_Cay_Ricci.pdf
+======================================================================
+======================================================================
+🚀 Processing: Mindsets_in_the_Classroom_-_Mary_Cay_Ricci (SLOW MODE)
+======================================================================
+📊 Total pages: 153
+
+📄 Converting PDF to PNGs...
+   PDF: Mindsets_in_the_Classroom_-_Mary_Cay_Ricci.pdf
+   Output: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Mindsets_in_the_Classroom_-_Mary_Cay_Ricci/extracted/pages_png
+✅ Created 153 PNG files
+
+📝 Extracting text from 153 pages...
+   Concurrency: 3 requests (SLOW mode)
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+   Found 0 already extracted, processing 153 remaining
+
+✅ Pages 0000,0001       |   7.9s |  4439 tokens
+✅ Pages 0002,0003       |  11.6s |  4552 tokens
+✅ Pages 0008,0009       |  44.9s |  6504 tokens
+✅ Pages 0006,0007       |  71.3s |  7892 tokens
+✅ Pages 0004,0005       |  97.7s |  8911 tokens
+✅ Pages 0010,0011       |  66.3s |  7838 tokens
+✅ Pages 0012,0013       |  60.2s |  7241 tokens
+✅ Pages 0014,0015       |  65.6s |  7943 tokens
+✅ Pages 0018,0019       |  40.4s |  6241 tokens
+✅ Pages 0016,0017       |  69.0s |  7902 tokens
+✅ Pages 0022,0023       |  65.8s |  6094 tokens
+✅ Pages 0024,0025       |  71.5s |  7744 tokens
+✅ Pages 0020,0021       | 121.0s | 10608 tokens
+✅ Pages 0026,0027       |  83.8s |  8550 tokens
+✅ Pages 0028,0029       |  84.0s |  9191 tokens
+✅ Pages 0032,0033       |  39.8s |  6292 tokens
+✅ Pages 0030,0031       |  96.5s |  9358 tokens
+✅ Pages 0034,0035       |  60.9s |  7303 tokens
+✅ Pages 0036,0037       |  54.8s |  7040 tokens
+✅ Pages 0040,0041       |  54.0s |  7054 tokens
+✅ Pages 0038,0039       |  93.5s |  9114 tokens
+✅ Pages 0042,0043       |  87.1s |  8809 tokens
+✅ Pages 0046,0047       |  75.5s |  8168 tokens
+✅ Pages 0044,0045       |  91.2s |  8933 tokens
+✅ Pages 0050,0051       |  35.5s |  6003 tokens
+✅ Pages 0048,0049       |  88.0s |  8772 tokens
+✅ Pages 0052,0053       |  59.8s |  7264 tokens
+✅ Pages 0056,0057       |  60.1s |  6610 tokens
+✅ Pages 0054,0055       | 103.8s |  7504 tokens
+✅ Pages 0060,0061       | 108.5s |  7838 tokens
+✅ Pages 0058,0059       | 156.6s |  9716 tokens
+✅ Pages 0062,0063       | 110.9s |  8412 tokens
+✅ Pages 0064,0065       |  57.6s |  7167 tokens
+✅ Pages 0066,0067       |  70.8s |  7928 tokens
+✅ Pages 0068,0069       |  51.9s |  6759 tokens
+✅ Pages 0070,0071       |  61.8s |  6777 tokens
+✅ Pages 0074,0075       |  61.0s |  7595 tokens
+✅ Pages 0072,0073       |  77.3s |  8058 tokens
+✅ Pages 0080,0081       |  59.5s |  7270 tokens
+✅ Pages 0076,0077       |  95.8s |  8059 tokens
+✅ Pages 0078,0079       |  87.2s |  8771 tokens
+✅ Pages 0086,0087       |  63.4s |  7599 tokens
+✅ Pages 0082,0083       |  87.5s |  8772 tokens
+✅ Pages 0084,0085       |  98.8s |  7555 tokens
+✅ Pages 0088,0089       |  57.4s |  6777 tokens
+✅ Pages 0092,0093       |  50.1s |  6574 tokens
+✅ Pages 0090,0091       |  68.2s |  7591 tokens
+✅ Pages 0096,0097       |  76.3s |  5933 tokens
+✅ Pages 0098,0099       |  90.3s |  8533 tokens
+✅ Pages 0094,0095       | 115.1s |  7461 tokens
+✅ Pages 0104,0105       |  61.2s |  5416 tokens
+✅ Pages 0100,0101       |  89.5s |  8387 tokens
+✅ Pages 0108,0109       |  63.4s |  7684 tokens
+✅ Pages 0102,0103       | 142.8s |  9940 tokens
+✅ Pages 0106,0107       |  70.1s |  7555 tokens
+✅ Pages 0112,0113       |  55.1s |  7088 tokens
+✅ Pages 0114,0115       |  93.4s |  9056 tokens
+✅ Pages 0116,0117       |  65.1s |  7424 tokens
+✅ Pages 0110,0111       | 132.3s | 10842 tokens
+✅ Pages 0118,0119       |  38.3s |  6068 tokens
+✅ Pages 0124,0125       |  44.8s |  6479 tokens
+✅ Pages 0120,0121       |  67.8s |  7690 tokens
+✅ Pages 0122,0123       |  84.3s |  8535 tokens
+✅ Pages 0128,0129       |  72.5s |  6324 tokens
+✅ Pages 0126,0127       |  86.6s |  8525 tokens
+✅ Pages 0132,0133       |  53.6s |  6689 tokens
+✅ Pages 0134,0135       |  69.3s |  7681 tokens
+✅ Pages 0130,0131       | 126.7s |  9723 tokens
+✅ Pages 0136,0137       |  87.2s |  8607 tokens
+✅ Pages 0140,0141       |  78.7s |  8344 tokens
+✅ Pages 0142,0143       |  49.3s |  6681 tokens
+✅ Pages 0146,0147       |  26.1s |  5437 tokens
+✅ Pages 0144,0145       |  71.3s |  8082 tokens
+✅ Pages 0150,0151       |  29.2s |  5665 tokens
+✅ Pages 0148,0149       |  48.0s |  6673 tokens
+✅ Pages 0138,0139       | 214.0s | 14754 tokens
+✅ Pages 0152            |  33.8s |  3809 tokens
+
+======================================================================
+✨ Extraction Complete!
+   Success: 153/153 pages (100%)
+   Failed: 0 pages
+   Time: 32.0 minutes
+   Tokens: 590,177
+   Rate: 4.8 pages/minute
+   Cost: $8.85
+======================================================================
+
+🧹 Removing watermarks...
+✅ Cleaned 20 files
+
+📖 Creating complete book file...
+✅ Created: Mindsets_in_the_Classroom_-_Mary_Cay_Ricci_COMPLETE.md
+   Size: 0.26 MB
+   Words: 43,044
+   Pages: 153
+
+📚 Creating continuous reading version...
+✅ Created: Mindsets_in_the_Classroom_-_Mary_Cay_Ricci_CONTINUOUS.md
+   Size: 0.25 MB
+   Words: 42,281
+
+📋 Summary saved to: PROCESSING_SUMMARY.md
+
+======================================================================
+🎉 PROCESSING COMPLETE!
+======================================================================
+
+📁 Output directory: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Mindsets_in_the_Classroom_-_Mary_Cay_Ricci/extracted
+
+⏸️  Pausing 30 seconds before next PDF...
+
+📖 Processing 6/8: School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff.pdf
+======================================================================
+======================================================================
+🚀 Processing: School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff (SLOW MODE)
+======================================================================
+📊 Total pages: 390
+
+📄 Converting PDF to PNGs...
+   PDF: School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff.pdf
+   Output: /Users/cnowlin/Developer/pocket_musec/data/pdfs/School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff/extracted/pages_png
+✅ Created 390 PNG files
+
+📝 Extracting text from 390 pages...
+   Concurrency: 3 requests (SLOW mode)
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+   Found 0 already extracted, processing 390 remaining
+
+✅ Pages 0000,0001       |  10.4s |  4466 tokens
+✅ Pages 0006,0007       |  35.6s |  6150 tokens
+✅ Pages 0004,0005       |  92.8s |  7258 tokens
+✅ Pages 0010,0011       |  97.4s |  7350 tokens
+✅ Pages 0002,0003       | 205.1s |  9157 tokens
+✅ Pages 0008,0009       | 176.7s | 10269 tokens
+✅ Pages 0012,0013       |  97.9s |  7783 tokens
+✅ Pages 0014,0015       | 114.4s |  8518 tokens
+✅ Pages 0016,0017       | 110.8s |  8402 tokens
+✅ Pages 0018,0019       |  68.7s |  6819 tokens
+✅ Pages 0020,0021       |  71.6s |  6875 tokens
+✅ Pages 0022,0023       |  91.8s |  7912 tokens
+✅ Pages 0024,0025       | 102.2s |  8275 tokens
+✅ Pages 0028,0029       |  71.7s |  7022 tokens
+✅ Pages 0026,0027       | 108.9s |  8801 tokens
+✅ Pages 0030,0031       |  81.0s |  7651 tokens
+✅ Pages 0034,0035       |  62.8s |  6843 tokens
+✅ Pages 0032,0033       |  98.2s |  8205 tokens
+✅ Pages 0036,0037       |  99.7s |  8399 tokens
+✅ Pages 0040,0041       |  67.1s |  6973 tokens
+✅ Pages 0038,0039       | 121.0s |  9182 tokens
+✅ Pages 0042,0043       |  82.3s |  7602 tokens
+✅ Pages 0044,0045       |  92.0s |  7984 tokens
+✅ Pages 0046,0047       | 130.7s |  9779 tokens
+✅ Pages 0048,0049       |  95.1s |  8119 tokens
+✅ Pages 0050,0051       |  77.2s |  7224 tokens
+✅ Pages 0052,0053       |  64.1s |  6575 tokens
+✅ Pages 0056,0057       |  72.7s |  7077 tokens
+✅ Pages 0054,0055       | 124.3s |  9211 tokens
+✅ Pages 0058,0059       | 146.1s |  9999 tokens
+✅ Pages 0060,0061       | 130.1s |  9312 tokens
+✅ Pages 0062,0063       | 110.3s |  8403 tokens
+✅ Pages 0064,0065       |  89.9s |  7716 tokens
+✅ Pages 0068,0069       |  72.2s |  6923 tokens
+✅ Pages 0066,0067       | 136.1s |  9768 tokens
+✅ Pages 0070,0071       |  63.1s |  6778 tokens
+✅ Pages 0072,0073       |  65.7s |  6945 tokens
+✅ Pages 0078,0079       |  61.6s |  7607 tokens
+✅ Pages 0074,0075       |  83.1s |  7864 tokens
+✅ Pages 0076,0077       |  77.7s |  7623 tokens
+✅ Pages 0080,0081       |  44.1s |  6134 tokens
+✅ Pages 0082,0083       |  58.8s |  6995 tokens
+✅ Pages 0084,0085       |  81.2s |  8130 tokens
+✅ Pages 0086,0087       |  69.5s |  7606 tokens
+✅ Pages 0088,0089       |  66.5s |  7466 tokens
+✅ Pages 0090,0091       |  42.6s |  6304 tokens
+✅ Pages 0092,0093       |  85.1s |  8336 tokens
+✅ Pages 0096,0097       |  73.1s |  7946 tokens
+✅ Pages 0094,0095       |  82.6s |  8197 tokens
+✅ Pages 0098,0099       |  46.5s |  6398 tokens
+✅ Pages 0102,0103       |  55.9s |  6637 tokens
+✅ Pages 0100,0101       |  82.6s |  7627 tokens
+✅ Pages 0106,0107       |  30.1s |  5166 tokens
+✅ Pages 0104,0105       |  81.4s |  7775 tokens
+✅ Pages 0110,0111       |  63.8s |  7069 tokens
+✅ Pages 0108,0109       |  91.1s |  8186 tokens
+✅ Pages 0112,0113       |  85.8s |  7802 tokens
+✅ Pages 0116,0117       |  78.7s |  7566 tokens
+✅ Pages 0114,0115       | 122.5s | 10248 tokens
+✅ Pages 0118,0119       |  90.3s |  8305 tokens
+✅ Pages 0120,0121       |  68.3s |  7239 tokens
+✅ Pages 0124,0125       |  67.3s |  7200 tokens
+✅ Pages 0122,0123       |  90.1s |  8337 tokens
+✅ Pages 0126,0127       |  67.9s |  7146 tokens
+✅ Pages 0128,0129       |  53.1s |  6387 tokens
+✅ Pages 0130,0131       |  71.8s |  7093 tokens
+✅ Pages 0132,0133       |  78.1s |  7205 tokens
+✅ Pages 0134,0135       |  76.0s |  7071 tokens
+✅ Pages 0136,0137       |  88.0s |  7918 tokens
+✅ Pages 0138,0139       |  92.5s |  8117 tokens
+✅ Pages 0140,0141       |  69.7s |  7248 tokens
+✅ Pages 0144,0145       |  42.9s |  6138 tokens
+✅ Pages 0142,0143       | 102.5s |  8409 tokens
+✅ Pages 0146,0147       | 100.4s |  8514 tokens
+✅ Pages 0148,0149       |  98.1s |  8984 tokens
+✅ Pages 0150,0151       |  76.3s |  7740 tokens
+✅ Pages 0152,0153       |  63.1s |  7131 tokens
+✅ Pages 0154,0155       |  87.5s |  8136 tokens
+✅ Pages 0156,0157       |  86.5s |  7174 tokens
+✅ Pages 0158,0159       | 102.3s |  8727 tokens
+✅ Pages 0160,0161       |  82.1s |  7932 tokens
+✅ Pages 0164,0165       |  79.4s |  7552 tokens
+✅ Pages 0162,0163       | 134.7s |  8370 tokens
+✅ Pages 0166,0167       | 107.9s |  8784 tokens
+✅ Pages 0172,0173       |  41.4s |  6108 tokens
+✅ Pages 0170,0171       |  92.6s |  8345 tokens
+✅ Pages 0168,0169       | 152.0s | 11043 tokens
+✅ Pages 0178,0179       |  54.5s |  6470 tokens
+✅ Pages 0174,0175       | 109.6s |  8702 tokens
+✅ Pages 0176,0177       | 115.3s |  9036 tokens
+✅ Pages 0180,0181       |  68.3s |  6335 tokens
+✅ Pages 0184,0185       |  87.9s |  7099 tokens
+✅ Pages 0182,0183       | 115.7s |  8035 tokens
+✅ Pages 0186,0187       |  97.4s |  8028 tokens
+✅ Pages 0188,0189       |  72.8s |  6993 tokens
+✅ Pages 0190,0191       |  65.1s |  6656 tokens
+✅ Pages 0192,0193       |  71.7s |  7528 tokens
+✅ Pages 0194,0195       |  94.9s |  7994 tokens
+✅ Pages 0196,0197       |  84.9s |  7659 tokens
+✅ Pages 0198,0199       |  58.0s |  5917 tokens
+✅ Pages 0202,0203       | 114.1s |  7736 tokens
+✅ Pages 0200,0201       | 127.0s |  8393 tokens
+✅ Pages 0206,0207       |  60.7s |  6939 tokens
+✅ Pages 0204,0205       | 162.9s | 10180 tokens
+✅ Pages 0208,0209       |  56.9s |  6923 tokens
+✅ Pages 0214,0215       | 128.4s |  8796 tokens
+✅ Pages 0212,0213       | 136.6s |  9100 tokens
+✅ Pages 0210,0211       | 194.9s | 11433 tokens
+✅ Pages 0216,0217       |  72.3s |  7747 tokens
+✅ Pages 0218,0219       |  98.5s |  9059 tokens
+✅ Pages 0222,0223       |  85.6s |  8177 tokens
+✅ Pages 0224,0225       |  63.3s |  6992 tokens
+✅ Pages 0220,0221       | 140.5s | 10544 tokens
+✅ Pages 0226,0227       |  65.2s |  7251 tokens
+✅ Pages 0228,0229       |  94.9s |  8565 tokens
+✅ Pages 0230,0231       |  78.4s |  7568 tokens
+✅ Pages 0232,0233       |  81.6s |  7628 tokens
+✅ Pages 0238,0239       |  19.7s |  4980 tokens
+✅ Pages 0236,0237       |  78.9s |  7650 tokens
+✅ Pages 0234,0235       | 103.6s |  8631 tokens
+✅ Pages 0240,0241       |  90.5s |  8258 tokens
+✅ Pages 0244,0245       |  50.2s |  6614 tokens
+✅ Pages 0242,0243       |  94.3s |  8404 tokens
+✅ Pages 0246,0247       |  76.1s |  7618 tokens
+✅ Pages 0248,0249       |  81.4s |  7747 tokens
+✅ Pages 0250,0251       | 101.4s |  8540 tokens
+✅ Pages 0252,0253       |  85.5s |  7673 tokens
+✅ Pages 0254,0255       |  79.1s |  7662 tokens
+✅ Pages 0258,0259       |  50.3s |  6766 tokens
+✅ Pages 0260,0261       |  54.3s |  6638 tokens
+✅ Pages 0256,0257       |  98.8s |  8655 tokens
+✅ Pages 0264,0265       |  72.1s |  7700 tokens
+✅ Pages 0266,0267       |  55.2s |  6922 tokens
+✅ Pages 0262,0263       |  87.3s |  8697 tokens
+✅ Pages 0268,0269       |  64.4s |  7518 tokens
+✅ Pages 0270,0271       |  94.4s |  9063 tokens
+✅ Pages 0272,0273       | 117.2s | 10351 tokens
+✅ Pages 0276,0277       |  66.6s |  7504 tokens
+✅ Pages 0274,0275       | 114.8s |  9676 tokens
+✅ Pages 0278,0279       |  91.4s |  8947 tokens
+✅ Pages 0280,0281       |  62.2s |  7357 tokens
+✅ Pages 0282,0283       | 119.9s | 10019 tokens
+✅ Pages 0286,0287       |  82.3s |  7885 tokens
+✅ Pages 0284,0285       | 131.2s |  9341 tokens
+✅ Pages 0288,0289       | 103.0s |  7398 tokens
+✅ Pages 0290,0291       | 112.5s |  7790 tokens
+✅ Pages 0294,0295       |  69.2s |  7317 tokens
+✅ Pages 0292,0293       | 124.3s |  8428 tokens
+✅ Pages 0296,0297       |  73.8s |  7280 tokens
+✅ Pages 0298,0299       |  59.2s |  7080 tokens
+✅ Pages 0302,0303       |  54.1s |  6763 tokens
+✅ Pages 0300,0301       |  79.8s |  7899 tokens
+✅ Pages 0304,0305       |  77.9s |  7941 tokens
+✅ Pages 0308,0309       |  99.5s |  9240 tokens
+✅ Pages 0306,0307       | 139.5s |  9838 tokens
+✅ Pages 0310,0311       |  99.5s |  9017 tokens
+✅ Pages 0312,0313       |  58.7s |  6769 tokens
+✅ Pages 0314,0315       |  77.1s |  7112 tokens
+✅ Pages 0316,0317       |  97.5s |  7271 tokens
+✅ Pages 0318,0319       | 113.5s |  7870 tokens
+✅ Pages 0322,0323       |  95.7s |  7195 tokens
+✅ Pages 0320,0321       | 143.7s |  8676 tokens
+✅ Pages 0324,0325       | 166.8s | 10058 tokens
+✅ Pages 0326,0327       | 106.0s |  8141 tokens
+✅ Pages 0328,0329       | 133.9s |  9429 tokens
+✅ Pages 0332,0333       |  59.0s |  6511 tokens
+✅ Pages 0334,0335       | 122.0s |  8282 tokens
+✅ Pages 0330,0331       | 258.7s | 12952 tokens
+✅ Pages 0336,0337       | 194.8s | 10149 tokens
+✅ Pages 0338,0339       | 132.2s |  8301 tokens
+✅ Pages 0340,0341       | 106.3s |  7520 tokens
+✅ Pages 0342,0343       | 163.3s |  8831 tokens
+✅ Pages 0344,0345       | 141.0s |  8233 tokens
+✅ Pages 0346,0347       | 135.3s |  8013 tokens
+✅ Pages 0348,0349       | 149.1s |  8741 tokens
+✅ Pages 0350,0351       | 138.1s |  8436 tokens
+✅ Pages 0352,0353       | 126.5s |  8233 tokens
+✅ Pages 0354,0355       |  70.3s |  6558 tokens
+✅ Pages 0356,0357       |  85.7s |  7207 tokens
+✅ Pages 0358,0359       |  95.4s |  8270 tokens
+✅ Pages 0362,0363       | 148.8s | 10751 tokens
+✅ Pages 0360,0361       | 211.4s | 11128 tokens
+✅ Pages 0364,0365       | 144.0s | 10186 tokens
+✅ Pages 0368,0369       |  96.1s |  8327 tokens
+✅ Pages 0366,0367       | 144.5s | 10148 tokens
+✅ Pages 0370,0371       | 119.4s |  9424 tokens
+✅ Pages 0374,0375       | 101.9s |  8665 tokens
+✅ Pages 0372,0373       | 108.6s |  8870 tokens
+✅ Pages 0376,0377       | 143.0s | 10049 tokens
+✅ Pages 0380,0381       | 117.1s |  9057 tokens
+✅ Pages 0378,0379       | 170.9s | 10108 tokens
+✅ Pages 0382,0383       | 136.1s |  9340 tokens
+✅ Pages 0384,0385       | 100.5s |  8824 tokens
+✅ Pages 0388,0389       |  22.9s |  5196 tokens
+✅ Pages 0386,0387       |  70.8s |  7659 tokens
+
+======================================================================
+✨ Extraction Complete!
+   Success: 390/390 pages (100%)
+   Failed: 0 pages
+   Time: 102.7 minutes
+   Tokens: 1,563,540
+   Rate: 3.8 pages/minute
+   Cost: $23.45
+======================================================================
+
+🧹 Removing watermarks...
+✅ Cleaned 22 files
+
+📖 Creating complete book file...
+✅ Created: School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff_COMPLETE.md
+   Size: 0.74 MB
+   Words: 112,526
+   Pages: 390
+
+📚 Creating continuous reading version...
+✅ Created: School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff_CONTINUOUS.md
+   Size: 0.74 MB
+   Words: 110,571
+
+📋 Summary saved to: PROCESSING_SUMMARY.md
+
+======================================================================
+🎉 PROCESSING COMPLETE!
+======================================================================
+
+📁 Output directory: /Users/cnowlin/Developer/pocket_musec/data/pdfs/School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff/extracted
+
+⏸️  Pausing 30 seconds before next PDF...
+
+📖 Processing 7/8: The_Classroom_Behavior_Manua_-_Scott_Ervin.pdf
+======================================================================
+======================================================================
+🚀 Processing: The_Classroom_Behavior_Manua_-_Scott_Ervin (SLOW MODE)
+======================================================================
+📊 Total pages: 290
+
+📄 Converting PDF to PNGs...
+   PDF: The_Classroom_Behavior_Manua_-_Scott_Ervin.pdf
+   Output: /Users/cnowlin/Developer/pocket_musec/data/pdfs/The_Classroom_Behavior_Manua_-_Scott_Ervin/extracted/pages_png
+✅ Created 290 PNG files
+
+📝 Extracting text from 290 pages...
+   Concurrency: 3 requests (SLOW mode)
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+   Found 0 already extracted, processing 290 remaining
+
+✅ Pages 0000,0001       |  12.1s |  3440 tokens
+✅ Pages 0002,0003       |  15.2s |  3589 tokens
+✅ Pages 0006,0007       |  36.2s |  4012 tokens
+✅ Pages 0004,0005       | 100.3s |  7280 tokens
+✅ Pages 0008,0009       | 126.6s |  8660 tokens
+✅ Pages 0010,0011       |  96.7s |  7984 tokens
+✅ Pages 0012,0013       |  74.8s |  7031 tokens
+✅ Pages 0016,0017       |  74.2s |  6965 tokens
+✅ Pages 0014,0015       |  89.0s |  7525 tokens
+✅ Pages 0018,0019       |  86.7s |  6787 tokens
+✅ Pages 0020,0021       | 155.2s |  9100 tokens
+✅ Pages 0022,0023       | 152.1s |  9176 tokens
+✅ Pages 0024,0025       | 136.6s |  8902 tokens
+✅ Pages 0026,0027       |  68.3s |  6792 tokens
+✅ Pages 0028,0029       |  66.1s |  6730 tokens
+✅ Pages 0030,0031       |  68.9s |  6837 tokens
+✅ Pages 0032,0033       |  51.4s |  5787 tokens
+✅ Pages 0036,0037       |  78.0s |  7394 tokens
+✅ Pages 0034,0035       | 116.9s |  9469 tokens
+✅ Pages 0038,0039       | 148.1s | 11206 tokens
+✅ Pages 0040,0041       | 103.4s |  8574 tokens
+✅ Pages 0042,0043       | 104.5s |  8701 tokens
+✅ Pages 0046,0047       |  62.6s |  6363 tokens
+✅ Pages 0044,0045       |  84.6s |  7781 tokens
+✅ Pages 0048,0049       |  95.2s |  8074 tokens
+✅ Pages 0052,0053       |  79.6s |  7385 tokens
+✅ Pages 0050,0051       | 147.9s |  9817 tokens
+✅ Pages 0054,0055       | 120.8s |  7778 tokens
+⏳ Pages 0060,0061       | HTTP 429, waiting 3.1s (attempt 1/5)
+✅ Pages 0056,0057       | 145.4s |  7375 tokens
+✅ Pages 0058,0059       | 156.4s |  7574 tokens
+✅ Pages 0060,0061       | 151.7s |  7260 tokens
+✅ Pages 0066,0067       |  75.6s |  5300 tokens
+✅ Pages 0062,0063       | 173.6s |  8011 tokens
+✅ Pages 0064,0065       | 124.8s |  6660 tokens
+✅ Pages 0070,0071       | 100.2s |  5870 tokens
+✅ Pages 0068,0069       | 145.1s |  7105 tokens
+✅ Pages 0072,0073       | 156.4s |  7434 tokens
+✅ Pages 0076,0077       |  61.5s |  4759 tokens
+✅ Pages 0074,0075       | 109.6s |  6228 tokens
+✅ Pages 0078,0079       | 184.1s |  8594 tokens
+✅ Pages 0080,0081       | 171.2s |  8177 tokens
+✅ Pages 0082,0083       | 180.0s |  8408 tokens
+✅ Pages 0084,0085       | 169.2s |  7968 tokens
+✅ Pages 0088,0089       | 139.0s |  7234 tokens
+✅ Pages 0086,0087       | 192.2s |  8741 tokens
+✅ Pages 0090,0091       | 100.6s |  6742 tokens
+✅ Pages 0092,0093       | 106.6s |  7428 tokens
+✅ Pages 0094,0095       | 137.4s |  8581 tokens
+✅ Pages 0096,0097       | 119.7s |  6987 tokens
+✅ Pages 0098,0099       | 119.3s |  6852 tokens
+✅ Pages 0100,0101       | 100.3s |  6775 tokens
+✅ Pages 0102,0103       |  82.4s |  7319 tokens
+✅ Pages 0104,0105       |  91.9s |  7669 tokens
+✅ Pages 0106,0107       |  78.0s |  7288 tokens
+✅ Pages 0108,0109       |  80.1s |  7781 tokens
+✅ Pages 0112,0113       |  50.8s |  5871 tokens
+✅ Pages 0110,0111       | 102.8s |  8651 tokens
+✅ Pages 0114,0115       |  94.5s |  8433 tokens
+✅ Pages 0116,0117       |  79.9s |  7472 tokens
+✅ Pages 0118,0119       |  58.4s |  6428 tokens
+✅ Pages 0122,0123       |  62.5s |  6780 tokens
+✅ Pages 0120,0121       |  68.9s |  6276 tokens
+✅ Pages 0124,0125       |  74.5s |  7708 tokens
+✅ Pages 0126,0127       |  55.4s |  6538 tokens
+✅ Pages 0128,0129       |  89.6s |  8138 tokens
+✅ Pages 0130,0131       |  80.4s |  8094 tokens
+✅ Pages 0134,0135       |  30.4s |  4930 tokens
+✅ Pages 0132,0133       |  84.3s |  8041 tokens
+✅ Pages 0136,0137       |  50.5s |  6254 tokens
+✅ Pages 0142,0143       |  48.6s |  5972 tokens
+✅ Pages 0140,0141       |  65.6s |  6369 tokens
+✅ Pages 0138,0139       |  88.2s |  7778 tokens
+✅ Pages 0146,0147       |  47.7s |  6067 tokens
+✅ Pages 0144,0145       |  66.2s |  6877 tokens
+✅ Pages 0148,0149       |  84.4s |  7868 tokens
+✅ Pages 0150,0151       |  65.1s |  7126 tokens
+✅ Pages 0152,0153       |  65.4s |  7187 tokens
+✅ Pages 0154,0155       |  59.7s |  6681 tokens
+✅ Pages 0158,0159       |  65.7s |  7002 tokens
+✅ Pages 0156,0157       |  92.7s |  8682 tokens
+✅ Pages 0160,0161       |  88.9s |  8156 tokens
+✅ Pages 0162,0163       |  55.9s |  6325 tokens
+✅ Pages 0164,0165       |  71.3s |  7234 tokens
+✅ Pages 0168,0169       |  53.9s |  6268 tokens
+✅ Pages 0166,0167       |  78.4s |  7844 tokens
+✅ Pages 0170,0171       |  64.4s |  6911 tokens
+✅ Pages 0172,0173       |  81.4s |  8011 tokens
+✅ Pages 0174,0175       |  77.5s |  7757 tokens
+✅ Pages 0176,0177       |  76.8s |  7896 tokens
+✅ Pages 0178,0179       |  62.2s |  6737 tokens
+✅ Pages 0180,0181       |  66.5s |  6864 tokens
+✅ Pages 0184,0185       |  52.7s |  6166 tokens
+✅ Pages 0182,0183       |  89.7s |  8585 tokens
+✅ Pages 0186,0187       |  80.7s |  7943 tokens
+✅ Pages 0188,0189       |  61.3s |  6677 tokens
+✅ Pages 0190,0191       |  48.2s |  6064 tokens
+✅ Pages 0192,0193       |  30.6s |  4554 tokens
+✅ Pages 0194,0195       |  52.7s |  6132 tokens
+✅ Pages 0196,0197       |  59.8s |  6588 tokens
+✅ Pages 0200,0201       |  59.6s |  6610 tokens
+✅ Pages 0198,0199       |  99.6s |  8994 tokens
+✅ Pages 0202,0203       |  72.8s |  7174 tokens
+✅ Pages 0206,0207       |  63.7s |  6892 tokens
+✅ Pages 0208,0209       |  55.9s |  6451 tokens
+✅ Pages 0204,0205       |  79.7s |  7686 tokens
+✅ Pages 0212,0213       |  57.4s |  6447 tokens
+✅ Pages 0210,0211       |  84.4s |  8367 tokens
+✅ Pages 0214,0215       |  82.5s |  7944 tokens
+✅ Pages 0218,0219       |  42.9s |  5751 tokens
+✅ Pages 0216,0217       |  78.5s |  7821 tokens
+✅ Pages 0220,0221       |  75.0s |  7568 tokens
+✅ Pages 0222,0223       | 108.9s |  9755 tokens
+✅ Pages 0226,0227       |  72.8s |  7663 tokens
+✅ Pages 0224,0225       |  96.6s |  8621 tokens
+✅ Pages 0228,0229       |  41.5s |  5495 tokens
+✅ Pages 0230,0231       |  58.0s |  6565 tokens
+✅ Pages 0232,0233       |  71.0s |  7372 tokens
+✅ Pages 0234,0235       |  56.6s |  6546 tokens
+✅ Pages 0238,0239       |  60.6s |  6608 tokens
+✅ Pages 0240,0241       |  58.3s |  6455 tokens
+✅ Pages 0236,0237       |  95.1s |  8523 tokens
+✅ Pages 0242,0243       |  72.1s |  7218 tokens
+✅ Pages 0246,0247       |  82.4s |  7742 tokens
+✅ Pages 0244,0245       | 121.0s | 10102 tokens
+✅ Pages 0248,0249       |  98.0s |  8862 tokens
+✅ Pages 0250,0251       |  91.5s |  8321 tokens
+✅ Pages 0252,0253       |  60.8s |  6332 tokens
+✅ Pages 0254,0255       |  62.2s |  6432 tokens
+✅ Pages 0258,0259       |  61.4s |  6751 tokens
+✅ Pages 0256,0257       |  79.4s |  7586 tokens
+✅ Pages 0260,0261       |  56.5s |  6384 tokens
+✅ Pages 0262,0263       |  73.5s |  7214 tokens
+✅ Pages 0264,0265       |  83.3s |  7945 tokens
+✅ Pages 0266,0267       |  71.4s |  7399 tokens
+✅ Pages 0270,0271       |  56.2s |  6045 tokens
+✅ Pages 0268,0269       |  82.8s |  8112 tokens
+✅ Pages 0272,0273       |  80.3s |  7844 tokens
+✅ Pages 0274,0275       |  48.8s |  5850 tokens
+✅ Pages 0276,0277       |  76.7s |  7710 tokens
+✅ Pages 0280,0281       | 138.3s | 10960 tokens
+✅ Pages 0278,0279       | 162.6s | 12641 tokens
+✅ Pages 0282,0283       | 147.4s | 11630 tokens
+✅ Pages 0284,0285       |  90.0s |  8416 tokens
+✅ Pages 0286,0287       |  93.4s |  8707 tokens
+✅ Pages 0288,0289       |  57.5s |  6337 tokens
+
+======================================================================
+✨ Extraction Complete!
+   Success: 290/290 pages (100%)
+   Failed: 0 pages
+   Time: 70.1 minutes
+   Tokens: 1,069,042
+   Rate: 4.1 pages/minute
+   Cost: $16.04
+======================================================================
+
+🧹 Removing watermarks...
+✅ Cleaned 0 files
+
+📖 Creating complete book file...
+✅ Created: The_Classroom_Behavior_Manua_-_Scott_Ervin_COMPLETE.md
+   Size: 0.63 MB
+   Words: 110,513
+   Pages: 290
+
+📚 Creating continuous reading version...
+✅ Created: The_Classroom_Behavior_Manua_-_Scott_Ervin_CONTINUOUS.md
+   Size: 0.62 MB
+   Words: 109,055
+
+📋 Summary saved to: PROCESSING_SUMMARY.md
+
+======================================================================
+🎉 PROCESSING COMPLETE!
+======================================================================
+
+📁 Output directory: /Users/cnowlin/Developer/pocket_musec/data/pdfs/The_Classroom_Behavior_Manua_-_Scott_Ervin/extracted
+
+⏸️  Pausing 30 seconds before next PDF...
+
+📖 Processing 8/8: Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon.pdf
+======================================================================
+======================================================================
+🚀 Processing: Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon (SLOW MODE)
+======================================================================
+📊 Total pages: 136
+
+📄 Converting PDF to PNGs...
+   PDF: Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon.pdf
+   Output: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon/extracted/pages_png
+✅ Created 136 PNG files
+
+📝 Extracting text from 136 pages...
+   Concurrency: 3 requests (SLOW mode)
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+   Found 0 already extracted, processing 136 remaining
+
+✅ Pages 0000,0001       |  12.1s |  4587 tokens
+✅ Pages 0002,0003       |  62.7s |  7995 tokens
+✅ Pages 0004,0005       |  66.4s |  8136 tokens
+✅ Pages 0006,0007       |  80.8s |  8996 tokens
+✅ Pages 0008,0009       |  30.5s |  5575 tokens
+✅ Pages 0010,0011       |  84.9s |  9225 tokens
+✅ Pages 0014,0015       |  68.5s |  7889 tokens
+✅ Pages 0012,0013       |  80.9s |  9014 tokens
+✅ Pages 0016,0017       |  42.6s |  6606 tokens
+✅ Pages 0020,0021       |  38.0s |  6213 tokens
+✅ Pages 0018,0019       |  56.3s |  7245 tokens
+✅ Pages 0024,0025       |   8.5s |  4419 tokens
+✅ Pages 0022,0023       |  59.5s |  7346 tokens
+✅ Pages 0028,0029       |  46.2s |  6712 tokens
+✅ Pages 0026,0027       |  61.4s |  7667 tokens
+✅ Pages 0032,0033       |  54.9s |  7334 tokens
+✅ Pages 0034,0035       |  59.7s |  7570 tokens
+✅ Pages 0030,0031       |  89.8s |  8102 tokens
+✅ Pages 0036,0037       |  35.2s |  6106 tokens
+✅ Pages 0040,0041       |  47.7s |  6939 tokens
+✅ Pages 0042,0043       |  40.0s |  6130 tokens
+✅ Pages 0038,0039       |  92.4s |  9477 tokens
+✅ Pages 0046,0047       |  52.4s |  6889 tokens
+✅ Pages 0044,0045       |  70.2s |  7514 tokens
+✅ Pages 0048,0049       |  35.1s |  6174 tokens
+✅ Pages 0054,0055       |  11.5s |  4715 tokens
+✅ Pages 0050,0051       |  60.8s |  7103 tokens
+✅ Pages 0052,0053       |  53.7s |  6837 tokens
+✅ Pages 0056,0057       |  39.3s |  6496 tokens
+✅ Pages 0062,0063       |  32.9s |  5908 tokens
+✅ Pages 0058,0059       |  49.5s |  7160 tokens
+✅ Pages 0060,0061       |  66.9s |  7928 tokens
+✅ Pages 0066,0067       |  28.2s |  5747 tokens
+✅ Pages 0070,0071       |  29.7s |  5753 tokens
+✅ Pages 0068,0069       |  48.7s |  6656 tokens
+✅ Pages 0072,0073       |  24.8s |  5531 tokens
+✅ Pages 0064,0065       | 112.2s | 10519 tokens
+✅ Pages 0074,0075       |  54.0s |  7154 tokens
+✅ Pages 0076,0077       |  71.7s |  8240 tokens
+✅ Pages 0078,0079       |  60.7s |  7684 tokens
+✅ Pages 0084,0085       |  25.3s |  5659 tokens
+✅ Pages 0080,0081       |  76.2s |  8701 tokens
+✅ Pages 0082,0083       |  63.5s |  7956 tokens
+✅ Pages 0088,0089       |  37.9s |  5691 tokens
+✅ Pages 0090,0091       |  35.6s |  5326 tokens
+✅ Pages 0092,0093       |  62.2s |  7129 tokens
+✅ Pages 0096,0097       |  11.3s |  4384 tokens
+✅ Pages 0094,0095       |  65.0s |  7538 tokens
+✅ Pages 0098,0099       |  11.3s |  4480 tokens
+✅ Pages 0102,0103       |  18.5s |  4909 tokens
+✅ Pages 0100,0101       |  31.4s |  5766 tokens
+✅ Pages 0104,0105       |  15.3s |  4649 tokens
+✅ Pages 0086,0087       | 170.4s |  9839 tokens
+✅ Pages 0106,0107       |  46.5s |  6604 tokens
+✅ Pages 0108,0109       |  71.2s |  7491 tokens
+✅ Pages 0110,0111       |  85.0s |  8206 tokens
+✅ Pages 0114,0115       |  29.3s |  5640 tokens
+✅ Pages 0116,0117       |  35.5s |  5593 tokens
+✅ Pages 0112,0113       | 110.5s | 10106 tokens
+✅ Pages 0118,0119       |  69.1s |  7561 tokens
+✅ Pages 0122,0123       |  33.8s |  5750 tokens
+✅ Pages 0126,0127       |  15.9s |  4907 tokens
+✅ Pages 0120,0121       |  82.5s |  8344 tokens
+✅ Pages 0130,0131       |  24.3s |  5279 tokens
+✅ Pages 0124,0125       |  60.9s |  7224 tokens
+✅ Pages 0128,0129       |  36.4s |  5983 tokens
+✅ Pages 0134,0135       |  36.0s |  5891 tokens
+✅ Pages 0132,0133       |  50.8s |  6633 tokens
+
+======================================================================
+✨ Extraction Complete!
+   Success: 136/136 pages (100%)
+   Failed: 0 pages
+   Time: 20.0 minutes
+   Tokens: 466,530
+   Rate: 6.8 pages/minute
+   Cost: $7.00
+======================================================================
+
+🧹 Removing watermarks...
+✅ Cleaned 0 files
+
+📖 Creating complete book file...
+✅ Created: Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon_COMPLETE.md
+   Size: 0.17 MB
+   Words: 29,791
+   Pages: 136
+
+📚 Creating continuous reading version...
+✅ Created: Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon_CONTINUOUS.md
+   Size: 0.17 MB
+   Words: 29,115
+
+📋 Summary saved to: PROCESSING_SUMMARY.md
+
+======================================================================
+🎉 PROCESSING COMPLETE!
+======================================================================
+
+📁 Output directory: /Users/cnowlin/Developer/pocket_musec/data/pdfs/Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon/extracted
+
+======================================================================
+🎉 BATCH PROCESSING COMPLETE!
+======================================================================
+
+📊 Summary:
+   Total PDFs: 8
+   Successful: 8
+   Failed: 0
+   Total time: 335.2 minutes (5.6 hours)
+
+✅ Successfully processed:
+   - Better_Than_Carrots_or_Sticks_Restorative_Practices_for_Positive_Classroom_Management_-_Dominique_Smith_Douglas_Fisher.pdf
+   - Classroom_Music_Games_and_Activities_-_Julie_Eisenhauer.pdf
+   - From_Lesson_Plans_to_Power_Struggles__Grades_6-12_-_June_Trop_Zuckerman.pdf
+   - Hacking_Classroom_Management_-_Mike_Roberts.pdf
+   - Mindsets_in_the_Classroom_-_Mary_Cay_Ricci.pdf
+   - School_Discipline_Classroom_Management_and_Student_Self-Management_-_Howard_M_Knoff.pdf
+   - The_Classroom_Behavior_Manua_-_Scott_Ervin.pdf
+   - Whats_Your_Procedure_For_That___A_Classro_-_Patrice_Cannon.pdf
