@@ -52,11 +52,11 @@ export default function DraftPreview({ draft, isLoading = false }: DraftPreviewP
   }
 
 
-  const lessonDocument = draft.metadata && 'lesson_document' in draft.metadata
-    ? draft.metadata.lesson_document
+  const lessonDocument = draft.metadata && 'lessonDocument' in draft.metadata
+    ? draft.metadata.lessonDocument
     : undefined;
 
-  const previewContent = lessonDocument?.content?.notes ?? draft.content;
+  const previewContent = (lessonDocument as any)?.content?.notes ?? draft.content;
 
   return (
     <div className="h-full flex flex-col bg-parchment-50 rounded-lg border border-ink-200">
