@@ -72,15 +72,16 @@ def test_db():
             )
         """)
 
-        # Run v9 migration to add selected_model column
-        conn.execute("ALTER TABLE sessions ADD COLUMN selected_model TEXT")
-
         conn.commit()
-    except Exception as e:
-        # Column might already exist, that's ok
+    except Exception:
+        # Table may already exist, ignore errors
         pass
     finally:
         conn.close()
+
+    # Run full migration suite to ensure remaining tables exist
+    migrator = MigrationManager(db_path)
+    migrator.migrate()
 
     # Update app to use test database
     from backend.config import config
