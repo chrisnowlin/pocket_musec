@@ -138,6 +138,7 @@ def _lesson_to_draft_response(lesson, session_repo: SessionRepository) -> DraftR
     consistent field conversion and camelCase responses.
     """
     from backend.repositories.lesson_repository import LessonRepository
+
     lesson_repo = LessonRepository()
 
     # Use the normalization helper from LessonRepository
@@ -173,10 +174,13 @@ async def list_drafts(
 
     # Get only draft lessons for the user
     lessons = lesson_repo.list_lessons_for_user(
-        current_user.id,
-        is_draft=True,
-        session_id=session_id,
+        user_id=current_user.id,
+        include_drafts=True,
     )
+
+    # Filter by session_id if provided
+    if session_id:
+        lessons = [l for l in lessons if l.session_id == session_id]
 
     return [_lesson_to_draft_response(lesson, session_repo) for lesson in lessons]
 

@@ -32,9 +32,7 @@ def _parse_includes(raw: Optional[str]) -> Set[str]:
         return set(DEFAULT_SECTIONS)
 
     includes = {
-        item.strip()
-        for item in raw.split(",")
-        if item.strip() in ALLOWED_SECTIONS
+        item.strip() for item in raw.split(",") if item.strip() in ALLOWED_SECTIONS
     }
     return includes or set(DEFAULT_SECTIONS)
 
@@ -48,10 +46,13 @@ def _serialize_sessions(user_id: str, limit: int = 10) -> Any:
 
 
 def _serialize_drafts(user_id: str, limit: int = 5) -> Dict[str, Any]:
-    total_drafts = _lesson_repo.count_lessons_for_user(user_id, is_draft=True)
-    draft_lessons = _lesson_repo.list_lessons_for_user(
-        user_id, limit=limit, is_draft=True
-    )
+    # Get all lessons including drafts, then filter to only drafts
+    all_lessons = _lesson_repo.list_lessons_for_user(user_id, include_drafts=True)
+    draft_lessons = [l for l in all_lessons if l.is_draft]
+    total_drafts = len(draft_lessons)
+
+    # Limit to requested number
+    draft_lessons = draft_lessons[:limit]
 
     draft_items = [
         _lesson_to_draft_response(lesson, _session_repo).model_dump(by_alias=True)
