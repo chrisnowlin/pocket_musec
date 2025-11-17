@@ -110,6 +110,26 @@ class LessonRepository:
         finally:
             conn.close()
 
+    def count_lessons_for_user(
+        self, user_id: str, is_draft: Optional[bool] = None
+    ) -> int:
+        """Count lessons for a user, optionally filtering drafts."""
+
+        conn = self.db_manager.get_connection()
+        try:
+            query = "SELECT COUNT(*) as count FROM lessons WHERE user_id = ?"
+            params: List[object] = [user_id]
+
+            if is_draft is not None:
+                query += " AND is_draft = ?"
+                params.append(1 if is_draft else 0)
+
+            cursor = conn.execute(query, tuple(params))
+            row = cursor.fetchone()
+            return int(row["count"] if row else 0)
+        finally:
+            conn.close()
+
     def update_lesson(
         self,
         lesson_id: str,
@@ -185,3 +205,81 @@ class LessonRepository:
             if row["updated_at"]
             else None,
         )
+
+    # Field normalization helpers for REST standardization
+    def parse_metadata(self, lesson: Lesson) -> dict:
+        """Parse lesson metadata JSON safely"""
+        import json
+        if not lesson.metadata:
+            return {}
+
+        try:
+            return json.loads(lesson.metadata)
+        except (json.JSONDecodeError, TypeError):
+            return {}
+
+    def normalize_lesson_for_response(self, lesson, session_repo=None) -> dict:
+        """Convert lesson database model to normalized response format"""
+        metadata = self.parse_metadata(lesson)
+
+        # Get session information for fallbacks
+        session = None
+        if session_repo and lesson.session_id:
+            session = session_repo.get_session(lesson.session_id)
+
+        # Normalize dates to ISO format strings
+        created_at_iso = lesson.created_at.isoformat() if lesson.created_at else None
+        updated_at_iso = lesson.updated_at.isoformat() if lesson.updated_at else None
+
+        # Extract and normalize session-related fields
+        raw_grade = metadata.get("grade_level") or (session.grade_level if session else None)
+        strand = metadata.get("strand_code") or (session.strand_code if session else None)
+        standard = metadata.get("standard_id")
+
+        # Format the grade for frontend display
+        from backend.utils.standards import format_grade_display
+        grade = format_grade_display(raw_grade) or "Unknown Grade"
+
+        # Handle standards array normalization if present in metadata
+        selected_standards = None
+        if "selected_standards" in metadata:
+            # Could be string or array in metadata
+            standards_data = metadata["selected_standards"]
+            if isinstance(standards_data, str):
+                # Parse comma-separated string
+                selected_standards = [
+                    s.strip() for s in standards_data.split(',') if s.strip()
+                ]
+            elif isinstance(standards_data, list):
+                selected_standards = standards_data
+
+        # Handle objectives array normalization if present in metadata
+        selected_objectives = None
+        if "selected_objectives" in metadata:
+            # Could be string or array in metadata
+            objectives_data = metadata["selected_objectives"]
+            if isinstance(objectives_data, str):
+                # Parse comma-separated string
+                selected_objectives = [
+                    o.strip() for o in objectives_data.split(',') if o.strip()
+                ]
+            elif isinstance(objectives_data, list):
+                selected_objectives = objectives_data
+
+        return {
+            "id": lesson.id,
+            "title": lesson.title,
+            "content": lesson.content,
+            "metadata": metadata,
+            "grade": grade,
+            "strand": strand,
+            "standard": standard,
+            "selectedStandards": selected_standards,
+            "selectedObjectives": selected_objectives,
+            "createdAt": created_at_iso,
+            "updatedAt": updated_at_iso,
+            "processingMode": lesson.processing_mode,
+            "isDraft": lesson.is_draft,
+            "sessionId": lesson.session_id,
+            "userId": lesson.user_id,
+        }

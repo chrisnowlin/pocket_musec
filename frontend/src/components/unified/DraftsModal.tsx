@@ -281,12 +281,12 @@ ${exportingDraft.content}`;
     const nextStatuses: Record<string, PresentationStatus> = {};
     const nextIds: Record<string, string> = {};
     drafts.forEach((draft) => {
-      if (draft.presentation_status?.status) {
-        nextStatuses[draft.id] = draft.presentation_status.status;
+      if (draft.presentationStatus?.status) {
+        nextStatuses[draft.id] = draft.presentationStatus.status;
       }
       const existingId =
-        draft.presentation_status?.presentation_id ||
-        draft.presentation_status?.id;
+        draft.presentationStatus?.presentationId ||
+        draft.presentationStatus?.id;
       if (existingId) {
         nextIds[draft.id] = existingId;
       }
@@ -310,7 +310,7 @@ ${exportingDraft.content}`;
     if (!job) return;
 
     setPresentationStatuses((prev) => ({ ...prev, [draft.id]: 'pending' }));
-    const latest = await waitForJobCompletion(job.job_id, draft.id);
+    const latest = await waitForJobCompletion(job.jobId, draft.id);
     if (latest) {
       setPresentationStatuses((prev) => ({ ...prev, [draft.id]: latest.status }));
       setPresentationIds((prev) => ({ ...prev, [draft.id]: latest.id }));
@@ -325,7 +325,7 @@ ${exportingDraft.content}`;
   // Handle view presentation
   const handleViewPresentation = useCallback(async (draft: DraftItem) => {
     // Use presentation_id from draft metadata if available, otherwise from our state
-    const presentationId = draft.presentation_status?.presentation_id || presentationIds[draft.id];
+    const presentationId = draft.presentationStatus?.presentationId || presentationIds[draft.id];
     if (presentationId) {
       const presentation = await getPresentation(presentationId);
       if (presentation) {
@@ -599,8 +599,8 @@ ${exportingDraft.content}`;
                           <div className="flex items-center gap-2">
                             <PresentationCTA
                               lessonId={draft.id}
-                              presentationStatus={draft.presentation_status?.status || presentationStatuses[draft.id]}
-                              presentationId={draft.presentation_status?.presentation_id || presentationIds[draft.id]}
+                              presentationStatus={draft.presentationStatus?.status || presentationStatuses[draft.id]}
+                              presentationId={draft.presentationStatus?.presentationId || presentationIds[draft.id]}
                               onGenerate={() => handleGeneratePresentation(draft)}
                               onView={() => handleViewPresentation(draft)}
                               disabled={isGenerating}

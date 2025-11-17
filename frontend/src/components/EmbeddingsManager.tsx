@@ -37,8 +37,8 @@ export default function EmbeddingsManager({ className = '' }: EmbeddingsManagerP
   const [usageStats, setUsageStats] = useState<UsageStats | null>(null);
   const [searchRequest, setSearchRequest] = useState<SemanticSearchRequest>({
     query: '',
-    grade_level: '',
-    strand_code: '',
+    gradeLevel: '',
+    strandCode: '',
     limit: 50, // Increased limit for virtual scrolling
     threshold: 0.5,
     offset: 0
@@ -591,8 +591,8 @@ export default function EmbeddingsManager({ className = '' }: EmbeddingsManagerP
               <input
                 id="grade-level"
                 type="text"
-                value={searchRequest.grade_level || ''}
-                onChange={(e) => setSearchRequest({ ...searchRequest, grade_level: e.target.value })}
+                value={searchRequest.gradeLevel || ''}
+                onChange={(e) => setSearchRequest({ ...searchRequest, gradeLevel: e.target.value })}
                 placeholder="e.g., Kindergarten, Grade 1"
                 className="w-full px-3 py-2 border border-ink-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ink-500"
                 aria-describedby="grade-level-help"
@@ -609,8 +609,8 @@ export default function EmbeddingsManager({ className = '' }: EmbeddingsManagerP
               <input
                 id="strand-code"
                 type="text"
-                value={searchRequest.strand_code || ''}
-                onChange={(e) => setSearchRequest({ ...searchRequest, strand_code: e.target.value })}
+                value={searchRequest.strandCode || ''}
+                onChange={(e) => setSearchRequest({ ...searchRequest, strandCode: e.target.value })}
                 placeholder="e.g., M, MH, MR"
                 className="w-full px-3 py-2 border border-ink-300 rounded-md focus:outline-none focus:ring-2 focus:ring-ink-500"
                 aria-describedby="strand-code-help"
@@ -763,12 +763,12 @@ export default function EmbeddingsManager({ className = '' }: EmbeddingsManagerP
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-ink-700" aria-label={`Grade level: ${result.grade_level}`}>
-                          {result.grade_level}
+                        <span className="text-sm font-medium text-ink-700" aria-label={`Grade level: ${result.gradeLevel}`}>
+                          {result.gradeLevel}
                         </span>
                         <span className="text-sm text-ink-500" aria-hidden="true">•</span>
-                        <span className="text-sm text-ink-700" aria-label={`Strand: ${result.strand_code} - ${result.strand_name}`}>
-                          {result.strand_code} - {result.strand_name}
+                        <span className="text-sm text-ink-700" aria-label={`Strand: ${result.strandCode} - ${result.strandName}`}>
+                          {result.strandCode} - {result.strandName}
                         </span>
                       </div>
                       <div className="text-sm font-medium text-ink-800 mb-2" aria-label={`Standard ID: ${result.standard_id}`}>
@@ -816,12 +816,12 @@ export default function EmbeddingsManager({ className = '' }: EmbeddingsManagerP
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-medium text-ink-700" aria-label={`Grade level: ${result.grade_level}`}>
-                          {result.grade_level}
+                        <span className="text-sm font-medium text-ink-700" aria-label={`Grade level: ${result.gradeLevel}`}>
+                          {result.gradeLevel}
                         </span>
                         <span className="text-sm text-ink-500" aria-hidden="true">•</span>
-                        <span className="text-sm text-ink-700" aria-label={`Strand: ${result.strand_code} - ${result.strand_name}`}>
-                          {result.strand_code} - {result.strand_name}
+                        <span className="text-sm text-ink-700" aria-label={`Strand: ${result.strandCode} - ${result.strandName}`}>
+                          {result.strandCode} - {result.strandName}
                         </span>
                       </div>
                       <div className="text-sm font-medium text-ink-800 mb-2" aria-label={`Standard ID: ${result.standard_id}`}>

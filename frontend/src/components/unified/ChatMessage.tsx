@@ -256,13 +256,13 @@ export default function ChatMessage({
                 </button>
                 
                 {/* Download all button */}
-                {showCitations && citationsToShow.some(c => c.is_file_available && c.can_download) && (
+                {showCitations && citationsToShow.some(c => c.isFileAvailable && c.canDownload) && (
                   <button
                     onClick={() => {
-                      const downloadableCitations = citationsToShow.filter(c => c.is_file_available && c.can_download);
+                      const downloadableCitations = citationsToShow.filter(c => c.isFileAvailable && c.canDownload);
                       downloadableCitations.forEach(citation => {
-                        if (citation.file_metadata) {
-                          downloadFile(citation.file_metadata.file_id, citation.file_metadata.original_filename);
+                        if (citation.fileMetadata) {
+                          downloadFile(citation.fileMetadata.fileId, citation.fileMetadata.originalFilename);
                         }
                       });
                     }}

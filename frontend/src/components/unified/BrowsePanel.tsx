@@ -40,7 +40,7 @@ export default function BrowsePanel({
       
       const matchesStrand = selectedStrand === 'All Strands' || !selectedStrand
         ? true
-        : standard.strand_code === frontendToBackendStrand(selectedStrand);
+        : standard.strandCode === frontendToBackendStrand(selectedStrand);
       
       const matchesSearch = browseQuery
         ? standard.title.toLowerCase().includes(browseQuery.toLowerCase()) ||
@@ -159,7 +159,7 @@ export default function BrowsePanel({
                       <span className="text-xs font-mono font-semibold text-ink-700 bg-parchment-200 px-2 py-1 rounded">
                         {standard.code}
                       </span>
-                      <span className="text-xs text-ink-600">{standard.strand_name} Strand</span>
+                      <span className="text-xs text-ink-600">{standard.strandName} Strand</span>
                     </div>
                     <h3 className="font-medium text-ink-800 mb-2">{standard.title}</h3>
                     <div className="flex items-center gap-4 text-sm text-ink-600">
@@ -193,7 +193,7 @@ export default function BrowsePanel({
                             d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                           />
                         </svg>
-                        {standard.last_used ?? 'Recently used'}
+                        {standard.lastUsed ?? 'Recently used'}
                       </span>
                     </div>
                   </div>

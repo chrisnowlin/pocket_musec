@@ -7,7 +7,7 @@ from backend.repositories.standards_repository import StandardsRepository
 from ..models import StandardResponse
 from ..dependencies import get_current_user
 from backend.auth import User
-from backend.utils.standards import format_grade_display
+from backend.utils.standards import format_grade_display, format_grade_for_storage
 
 router = APIRouter(prefix="/api/standards", tags=["standards"])
 
@@ -67,8 +67,14 @@ async def list_standards(
 ) -> List[StandardResponse]:
     """List standards filtered by grade or strand"""
     repo = StandardsRepository()
+
+    # Convert grade level from display format to storage format for database query
+    storage_grade_level = None
+    if grade_level:
+        storage_grade_level = format_grade_for_storage(grade_level)
+
     standards = repo.list_standards(
-        grade_level=grade_level, strand_code=strand_code, limit=limit
+        grade_level=storage_grade_level, strand_code=strand_code, limit=limit
     )
     return [_standard_to_response(std, repo) for std in standards]
 

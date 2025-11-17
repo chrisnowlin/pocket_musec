@@ -8,7 +8,7 @@ from backend.api.routes.sessions import (
     _standard_to_response,
     _session_to_response,
 )
-from backend.auth.models import User, ProcessingMode
+from backend.auth.models import ProcessingMode, Session, User
 from backend.pocketflow.lesson_agent import LessonAgent
 from backend.pocketflow.flow import Flow
 from backend.pocketflow.store import Store
@@ -48,7 +48,9 @@ class TestSessionHelpers:
         session.grade_level = "Grade 3"
         session.strand_code = "CN"
         session.selected_standards = None
+        session.selected_standards_list = []
         session.selected_objectives = None
+        session.selected_objectives_list = []
         session.selected_model = None
         session.conversation_history = None
         session.additional_context = "Test context"
@@ -64,6 +66,45 @@ class TestSessionHelpers:
         assert response.grade_level == "Grade 3"
         assert response.strand_code == "CN"
         assert response.selected_standards == []
+
+    def test_session_to_response_with_multiple_standards(self):
+        """Session responses use parsed standard/objective lists."""
+
+        from backend.repositories.models import Standard
+
+        session = Session(
+            id="session-456",
+            user_id="user-1",
+            grade_level="Grade 5",
+            strand_code="CR",
+            selected_standards="5.CR.1,5.CR.2",
+            selected_objectives="5.CR.1.1,5.CR.1.2",
+            additional_context="context",
+        )
+
+        mock_repo = Mock()
+        mock_repo.get_standard_by_id.side_effect = lambda sid: Standard(
+            standard_id=sid,
+            grade_level="Grade 5",
+            strand_code="CR",
+            strand_name="Create",
+            standard_text="text",
+            strand_description="desc",
+        )
+        mock_repo.get_objectives_for_standard.return_value = []
+
+        response = _session_to_response(session, mock_repo)
+
+        assert [standard.code for standard in response.selected_standards] == [
+            "5.CR.1",
+            "5.CR.2",
+        ]
+        assert response.selected_objectives == ["5.CR.1.1", "5.CR.1.2"]
+
+        dumped = response.model_dump(by_alias=True)
+        assert "gradeLevel" in dumped
+        assert "selectedStandards" in dumped
+        assert "grade_level" not in dumped
 
     def test_create_lesson_agent(self):
         """Test creation of lesson agent from session"""

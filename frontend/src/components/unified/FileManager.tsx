@@ -50,11 +50,11 @@ export default function FileManager({
   };
 
   const statusOptions = [
-    { value: 'all', label: 'All Files', count: fileStats?.total_files || 0 },
-    { value: 'completed', label: 'Completed', count: fileStats?.completed_files || 0 },
-    { value: 'processing', label: 'Processing', count: fileStats?.processing_files || 0 },
-    { value: 'uploaded', label: 'Uploaded', count: fileStats?.uploaded_files || 0 },
-    { value: 'error', label: 'Errors', count: fileStats?.error_files || 0 },
+    { value: 'all', label: 'All Files', count: fileStats?.totalFiles || 0 },
+    { value: 'completed', label: 'Completed', count: fileStats?.completedFiles || 0 },
+    { value: 'processing', label: 'Processing', count: fileStats?.processingFiles || 0 },
+    { value: 'uploaded', label: 'Uploaded', count: fileStats?.uploadedFiles || 0 },
+    { value: 'error', label: 'Errors', count: fileStats?.errorFiles || 0 },
   ];
 
   return (
@@ -101,29 +101,29 @@ export default function FileManager({
           <h3 className="text-lg font-semibold text-ink-800 mb-4">Storage Overview</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-ink-700">{fileStats.total_files}</div>
+              <div className="text-2xl font-bold text-ink-700">{fileStats.totalFiles}</div>
               <div className="text-sm text-ink-600">Total Files</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-ink-700">{formatFileSize(fileStats.total_bytes)}</div>
+              <div className="text-2xl font-bold text-ink-700">{formatFileSize(fileStats.totalBytes)}</div>
               <div className="text-sm text-ink-600">Storage Used</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-700">{fileStats.completed_files}</div>
+              <div className="text-2xl font-bold text-green-700">{fileStats.completedFiles}</div>
               <div className="text-sm text-ink-600">Completed</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-700">{fileStats.processing_files}</div>
+              <div className="text-2xl font-bold text-blue-700">{fileStats.processingFiles}</div>
               <div className="text-sm text-ink-600">Processing</div>
             </div>
           </div>
           
           {/* File Types */}
-          {Object.keys(fileStats.files_by_type).length > 0 && (
+          {Object.keys(fileStats.filesByType).length > 0 && (
             <div className="mt-6 pt-6 border-t border-ink-200">
               <h4 className="text-sm font-semibold text-ink-800 mb-3">Files by Type</h4>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
-                {Object.entries(fileStats.files_by_type).map(([type, count]) => (
+                {Object.entries(fileStats.filesByType).map(([type, count]) => (
                   <div key={type} className="flex items-center justify-between">
                     <span className="text-ink-600">{type}</span>
                     <span className="font-medium text-ink-800">{count}</span>
@@ -180,43 +180,43 @@ export default function FileManager({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-3 mb-2">
                       <span className="text-2xl">
-                        {file.document_type ? DOCUMENT_TYPE_ICONS[file.document_type as keyof typeof DOCUMENT_TYPE_ICONS] || '📄' : '📄'}
+                        {file.documentType ? DOCUMENT_TYPE_ICONS[file.documentType as keyof typeof DOCUMENT_TYPE_ICONS] || '📄' : '📄'}
                       </span>
                       <div className="flex-1 min-w-0">
                         <h4 className="text-sm font-medium text-ink-800 truncate">
-                          {file.original_filename}
+                          {file.originalFilename}
                         </h4>
                         <p className="text-xs text-ink-600">
-                          {file.document_type ? DOCUMENT_TYPE_LABELS[file.document_type as keyof typeof DOCUMENT_TYPE_LABELS] || 'Unknown Document' : 'Unknown Document'}
+                          {file.documentType ? DOCUMENT_TYPE_LABELS[file.documentType as keyof typeof DOCUMENT_TYPE_LABELS] || 'Unknown Document' : 'Unknown Document'}
                         </p>
                       </div>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${FILE_STATUS_COLORS[file.ingestion_status]}`}>
-                        {FILE_STATUS_LABELS[file.ingestion_status]}
+                      <span className={`px-2 py-1 text-xs font-medium rounded-full border ${FILE_STATUS_COLORS[file.ingestionStatus]}`}>
+                        {FILE_STATUS_LABELS[file.ingestionStatus]}
                       </span>
                     </div>
                     
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-ink-600 mb-3">
                       <div>
                         <span className="block font-medium">Size</span>
-                        {formatFileSize(file.file_size)}
+                        {formatFileSize(file.fileSize)}
                       </div>
                       <div>
                         <span className="block font-medium">Uploaded</span>
-                        {formatDateTime(file.created_at)}
+                        {formatDateTime(file.createdAt)}
                       </div>
                       <div>
                         <span className="block font-medium">File ID</span>
-                        <code className="text-xs">{file.file_id.substring(0, 8)}...</code>
+                        <code className="text-xs">{file.fileId.substring(0, 8)}...</code>
                       </div>
                       <div>
                         <span className="block font-medium">Last Updated</span>
-                        {getRelativeTime(file.updated_at)}
+                        {getRelativeTime(file.updatedAt)}
                       </div>
                     </div>
                     
-                    {file.error_message && (
+                    {file.errorMessage && (
                       <div className="bg-red-50 border border-red-200 rounded-md p-2 mb-3">
-                        <p className="text-xs text-red-800">{file.error_message}</p>
+                        <p className="text-xs text-red-800">{file.errorMessage}</p>
                       </div>
                     )}
                     
@@ -231,9 +231,9 @@ export default function FileManager({
                   </div>
                   
                   <div className="flex flex-col gap-2 ml-4">
-                    {file.ingestion_status === 'completed' && (
+                    {file.ingestionStatus === 'completed' && (
                       <button
-                        onClick={() => handleDownloadFile(file.file_id, file.original_filename)}
+                        onClick={() => handleDownloadFile(file.fileId, file.originalFilename)}
                         className="px-3 py-1 text-xs bg-ink-600 text-parchment-100 rounded hover:bg-ink-700"
                       >
                         Download

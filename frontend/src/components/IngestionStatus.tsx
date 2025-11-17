@@ -146,9 +146,9 @@ const IngestionStatus = forwardRef<IngestionStatusRef>((props, ref) => {
                 <p className="font-semibold text-ink-800">{item.id}</p>
                 <p className="text-sm text-ink-600 mt-1">{item.text}</p>
                 <div className="flex gap-2 mt-2 text-xs text-ink-500">
-                  <span>Grade: {item.grade_level}</span>
+                  <span>Grade: {item.gradeLevel}</span>
                   <span>•</span>
-                  <span>{item.strand_code} - {item.strand_name}</span>
+                  <span>{item.strandCode} - {item.strandName}</span>
                 </div>
               </div>
             </div>
@@ -167,8 +167,8 @@ const IngestionStatus = forwardRef<IngestionStatusRef>((props, ref) => {
           <div key={item.id} className="p-3 bg-ink-50 rounded-lg mb-2">
             <p className="text-sm text-ink-600">{item.text}</p>
             <div className="flex gap-2 mt-2 text-xs text-ink-500">
-              <span>Grade: {item.grade_level}</span>
-              {item.strand_code && <><span>•</span><span>Strand: {item.strand_code}</span></>}
+              <span>Grade: {item.gradeLevel}</span>
+              {item.strandCode && <><span>•</span><span>Strand: {item.strandCode}</span></>}
             </div>
           </div>
         );
@@ -177,8 +177,8 @@ const IngestionStatus = forwardRef<IngestionStatusRef>((props, ref) => {
           <div key={item.id} className="p-3 bg-ink-50 rounded-lg mb-2">
             <p className="text-sm text-ink-600">{item.text}</p>
             <div className="flex gap-2 mt-2 text-xs text-ink-500">
-              <span>Grade: {item.grade_level}</span>
-              {item.strand_code && <><span>•</span><span>Strand: {item.strand_code}</span></>}
+              <span>Grade: {item.gradeLevel}</span>
+              {item.strandCode && <><span>•</span><span>Strand: {item.strandCode}</span></>}
             </div>
           </div>
         );
@@ -202,7 +202,7 @@ const IngestionStatus = forwardRef<IngestionStatusRef>((props, ref) => {
               <p className="text-sm text-ink-600 mt-1">{item.progression_notes}</p>
             )}
             <div className="flex gap-2 mt-2 text-xs text-ink-500">
-              <span>Grades: {item.grade_levels?.join(', ') || 'N/A'}</span>
+              <span>Grades: {item.gradeLevels?.join(', ') || 'N/A'}</span>
             </div>
           </div>
         );

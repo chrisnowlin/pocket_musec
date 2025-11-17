@@ -12,11 +12,11 @@ interface ImageData {
 }
 
 interface StorageInfo {
-  total_images: number;
-  total_size_bytes: number;
-  total_size_mb: number;
-  quota_mb: number;
-  used_percentage: number;
+  totalImages: number;
+  totalSizeBytes: number;
+  totalSizeMb: number;
+  quotaMb: number;
+  usedPercentage: number;
 }
 
 interface ImagesResponse {
@@ -69,11 +69,11 @@ export default function ImagesPage() {
       if (result.ok) {
         const data = result.data as StorageInfoResponse;
         setStorageInfo({
-          total_images: data.imageCount,
-          total_size_bytes: data.usage_mb * 1024 * 1024,
-          total_size_mb: data.usage_mb,
-          quota_mb: data.limit_mb,
-          used_percentage: data.percentage,
+          totalImages: data.imageCount,
+          totalSizeBytes: data.usage_mb * 1024 * 1024,
+          totalSizeMb: data.usage_mb,
+          quotaMb: data.limit_mb,
+          usedPercentage: data.percentage,
         });
       }
     } catch (err) {
@@ -205,24 +205,24 @@ export default function ImagesPage() {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Images:</span>
-              <span className="font-medium">{storageInfo.total_images}</span>
+              <span className="font-medium">{storageInfo.totalImages}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Storage:</span>
               <span className="font-medium">
-                {storageInfo.total_size_mb.toFixed(2)} MB / {storageInfo.quota_mb} MB
+                {storageInfo.totalSizeMb.toFixed(2)} MB / {storageInfo.quotaMb} MB
               </span>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2.5">
               <div
                 className={`h-2.5 rounded-full ${
-                  storageInfo.used_percentage > 90
+                  storageInfo.usedPercentage > 90
                     ? 'bg-red-600'
-                    : storageInfo.used_percentage > 70
+                    : storageInfo.usedPercentage > 70
                     ? 'bg-yellow-600'
                     : 'bg-blue-600'
                 }`}
-                style={{ width: `${Math.min(storageInfo.used_percentage, 100)}%` }}
+                style={{ width: `${Math.min(storageInfo.usedPercentage, 100)}%` }}
               ></div>
             </div>
           </div>

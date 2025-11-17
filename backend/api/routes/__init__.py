@@ -10,6 +10,8 @@ from . import (
     citations,
     lessons,
     presentations,
+    styles,
+    workspace,
 )
 
 __all__ = [
@@ -22,4 +24,6 @@ __all__ = [
     "citations",
     "lessons",
     "presentations",
+    "styles",
+    "workspace",
 ]

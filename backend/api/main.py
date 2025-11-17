@@ -17,6 +17,8 @@ from .routes import (
     citations,
     lessons,
     presentations,
+    styles,
+    workspace,
 )
 from .middleware import (
     RateLimitMiddleware,
@@ -71,6 +73,8 @@ app.include_router(embeddings.router)
 app.include_router(citations.router)
 app.include_router(lessons.router)
 app.include_router(presentations.router)
+app.include_router(styles.router)
+app.include_router(workspace.router)
 
 
 # Exception handlers

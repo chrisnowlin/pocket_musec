@@ -10,8 +10,8 @@ interface RightPanelProps {
   width: number;
   selectedGrade: string;
   selectedStrand: string;
-  selectedStandards: StandardRecord[];
-  selectedObjectives: string[];
+  selectedStandards?: StandardRecord[];
+  selectedObjectives?: string[];
   lessonContext: string;
   lessonDuration: string;
   classSize: string;
@@ -44,8 +44,8 @@ function RightPanel({
   width,
   selectedGrade,
   selectedStrand,
-  selectedStandards,
-  selectedObjectives,
+  selectedStandards = [],
+  selectedObjectives = [],
   lessonContext,
   lessonDuration,
   classSize,
@@ -92,13 +92,20 @@ function RightPanel({
   const transformStandard = (standard: any): StandardRecord => {
     const transformed = {
       ...standard,
+      // Convert snake_case to camelCase
+      strandCode: standard.strandCode || standard.strandCode,
+      strandName: standard.strand_name || standard.strandName,
       learningObjectives: standard.learning_objectives || standard.learningObjectives || [],
+      lastUsed: standard.last_used || standard.lastUsed,
+      fileId: standard.fileId || standard.fileId,
     };
     
     // Debug logging for first few standards
     if (standard.code && standard.code.startsWith('K.CN')) {
       console.log('Transforming standard:', {
         code: standard.code,
+        strandCode: transformed.strandCode,
+        strandName: transformed.strandName,
         hasLearningObjectives: !!standard.learning_objectives,
         objectivesCount: standard.learning_objectives?.length || 0,
         objectives: standard.learning_objectives
@@ -143,11 +150,11 @@ function RightPanel({
     
     // Filter by selected strand (if not "All Strands")
     if (selectedStrand && selectedStrand !== 'All Strands') {
-      filtered = filtered.filter(standard => standard.strand_name === selectedStrand);
+      filtered = filtered.filter(standard => standard.strandName === selectedStrand);
     }
     
     // Exclude already selected standards
-    const available = filtered.filter(standard => 
+    const available = filtered.filter(standard =>
       !selectedStandards.find(selected => selected.id === standard.id)
     );
     
@@ -433,7 +440,7 @@ function RightPanel({
               </button>
             </div>
             <div className="mt-2 text-xs text-ink-600 leading-tight">
-              <span>{storageInfo?.image_count ?? 0} images</span>
+              <span>{storageInfo?.imageCount ?? 0} images</span>
               <span className="mx-1">•</span>
               <span>Demo mode</span>
             </div>
