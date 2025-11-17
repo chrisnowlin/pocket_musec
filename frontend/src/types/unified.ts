@@ -92,12 +92,12 @@ export interface DraftItem {
   standard?: string;
   createdAt: string;
   updatedAt: string;
-  presentation_status?: {
+  presentationStatus?: {
     id?: string;
-    presentation_id?: string;
+    presentationId?: string;
     status: PresentationStatus;
-    lesson_revision?: number;
-    updated_at?: string;
+    lessonRevision?: number;
+    updatedAt?: string;
   };
 }
 
@@ -125,6 +125,21 @@ export interface DraftsModalProps {
 }
 
 export type ExportFormat = 'markdown' | 'pdf' | 'docx';
+
+// Presentation preview types
+export interface SlidePreview {
+  title: string;
+  key_points: string[];
+  estimated_duration_seconds: number;
+}
+
+export interface PresentationPreview {
+  presentation_id: string;
+  generated_at: string; // ISO timestamp
+  slides: SlidePreview[];
+  total_estimated_duration_seconds: number;
+  style_id?: string;
+}
 
 export interface ExportModalProps {
   isOpen: boolean;
@@ -179,12 +194,13 @@ export interface ChatModel {
   capabilities: string[];
   available: boolean;
   recommended?: boolean;
+  is_default?: boolean;
 }
 
 export interface ModelAvailability {
-  available_models: ChatModel[];
-  current_model: string | null;
-  processing_mode: string;
+  availableModels: ChatModel[];
+  currentModel: string | null;
+  processingMode: string;
 }
 
 export interface UnifiedPageState {
