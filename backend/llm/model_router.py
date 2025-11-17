@@ -29,7 +29,7 @@ class ModelRouter:
     AVAILABLE_CLOUD_MODELS = [
         {
             "id": "moonshotai/Kimi-K2-Thinking",
-            "name": "Kimi K2 Thinking (Default)",
+            "name": "Kimi K2 Thinking",
             "description": "Advanced reasoning model with step-by-step thinking - produces comprehensive, detailed lesson plans with enhanced pedagogical depth",
             "capabilities": ["text", "reasoning", "detailed-planning"],
             "recommended": True,
@@ -193,9 +193,17 @@ class ModelRouter:
         if not self.is_cloud_available():
             return []
 
-        # For now, return all configured models as available
-        # In a real implementation, you might want to check availability via API
-        return [{**model, "available": True} for model in self.AVAILABLE_CLOUD_MODELS]
+        # Mark the default model
+        default_model_id = config.llm.default_model
+        models = []
+        for model in self.AVAILABLE_CLOUD_MODELS:
+            model_dict = {**model, "available": True}
+            # Mark if this is the default model
+            if model["id"] == default_model_id:
+                model_dict["is_default"] = True
+            models.append(model_dict)
+        
+        return models
 
     def get_available_modes(self) -> List[Dict[str, Any]]:
         """

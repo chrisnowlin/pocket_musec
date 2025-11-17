@@ -26,59 +26,11 @@ class DatabaseManager:
 
     def initialize_database(self) -> None:
         """Create database tables if they don't exist"""
-        conn = self.get_connection()
-        try:
-            conn.executescript("""
-                -- Core standards storage
-                CREATE TABLE IF NOT EXISTS standards (
-                    standard_id TEXT PRIMARY KEY,
-                    grade_level TEXT NOT NULL,
-                    strand_code TEXT NOT NULL,
-                    strand_name TEXT NOT NULL,
-                    strand_description TEXT NOT NULL,
-                    standard_text TEXT NOT NULL,
-                    source_document TEXT,
-                    ingestion_date TEXT,
-                    version TEXT
-                );
+        from .migrations import MigrationManager
 
-                CREATE TABLE IF NOT EXISTS objectives (
-                    objective_id TEXT PRIMARY KEY,
-                    standard_id TEXT NOT NULL,
-                    objective_text TEXT NOT NULL,
-                    FOREIGN KEY (standard_id) REFERENCES standards(standard_id)
-                );
-
-                -- Sessions table for lesson generation conversations
-                CREATE TABLE IF NOT EXISTS sessions (
-                    id TEXT PRIMARY KEY,
-                    user_id TEXT NOT NULL,
-                    grade_level TEXT,
-                    strand_code TEXT,
-                    selected_standards TEXT,  -- Primary standard
-                    selected_objectives TEXT,  -- Primary objectives
-                    additional_standards TEXT,  -- Additional standards for inclusion
-                    additional_objectives TEXT,  -- Additional objectives for inclusion
-                    additional_context TEXT,
-                    lesson_duration TEXT,
-                    class_size INTEGER,
-                    agent_state TEXT,
-                    conversation_history TEXT,
-                    current_state TEXT DEFAULT 'welcome',
-                    created_at TEXT NOT NULL,
-                    updated_at TEXT NOT NULL
-                );
-
-                -- Indexes for common queries
-                CREATE INDEX IF NOT EXISTS idx_grade_level ON standards(grade_level);
-                CREATE INDEX IF NOT EXISTS idx_strand_code ON standards(strand_code);
-                CREATE INDEX IF NOT EXISTS idx_standard_objectives ON objectives(standard_id);
-                CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
-                CREATE INDEX IF NOT EXISTS idx_sessions_updated ON sessions(updated_at);
-            """)
-            conn.commit()
-        finally:
-            conn.close()
+        # Run migrations to ensure all tables exist
+        migrator = MigrationManager(str(self.db_path))
+        migrator.migrate()
 
     def database_exists(self) -> bool:
         """Check if database file exists"""

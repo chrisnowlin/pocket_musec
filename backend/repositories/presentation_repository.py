@@ -6,6 +6,13 @@ import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
+# Custom JSON encoder to handle datetime objects
+class DateTimeEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        return super().default(obj)
+
 from .database import DatabaseManager
 from backend.lessons.presentation_schema import (
     PresentationDocument,
@@ -54,9 +61,10 @@ class PresentationRepository:
                     presentation.version,
                     presentation.status.value,
                     presentation.style,
-                    json.dumps([slide.model_dump() for slide in presentation.slides]),
+                    json.dumps([slide.model_dump() for slide in presentation.slides], cls=DateTimeEncoder),
                     json.dumps(
-                        [asset.model_dump() for asset in presentation.export_assets]
+                        [self._serialize_export_asset(asset) for asset in presentation.export_assets],
+                        cls=DateTimeEncoder
                     ),
                     presentation.error_code,
                     presentation.error_message,
@@ -136,6 +144,28 @@ class PresentationRepository:
         finally:
             conn.close()
 
+    def list_recent_for_user(
+        self, user_id: str, limit: int = 5
+    ) -> List[PresentationDocument]:
+        """List recent presentations for a user across all lessons."""
+
+        conn = self.db_manager.get_connection()
+        try:
+            cursor = conn.execute(
+                """
+                SELECT p.*
+                FROM presentations p
+                INNER JOIN lessons l ON p.lesson_id = l.id
+                WHERE l.user_id = ?
+                ORDER BY p.updated_at DESC
+                LIMIT ?
+                """,
+                (user_id, limit),
+            )
+            return [self._row_to_presentation(row) for row in cursor.fetchall()]
+        finally:
+            conn.close()
+
     def update_presentation_status(
         self,
         presentation_id: str,
@@ -180,7 +210,7 @@ class PresentationRepository:
                 WHERE id = ?
                 """,
                 (
-                    json.dumps([slide.model_dump() for slide in slides]),
+                    json.dumps([slide.model_dump() for slide in slides], cls=DateTimeEncoder),
                     datetime.utcnow().isoformat(),
                     presentation_id,
                 ),
@@ -233,7 +263,8 @@ class PresentationRepository:
                 """,
                 (
                     json.dumps(
-                        [asset.model_dump() for asset in presentation.export_assets]
+                        [self._serialize_export_asset(asset) for asset in presentation.export_assets],
+                        cls=DateTimeEncoder
                     ),
                     datetime.utcnow().isoformat(),
                     presentation_id,
@@ -278,3 +309,50 @@ class PresentationRepository:
             created_at=datetime.fromisoformat(row["created_at"]),
             updated_at=datetime.fromisoformat(row["updated_at"]),
         )
+
+    def _serialize_export_asset(self, asset: PresentationExport) -> dict:
+        """Serialize an export asset to JSON-compatible dict, handling all datetime objects properly."""
+        asset_data = {
+            "format": asset.format,
+            "url_or_path": asset.url_or_path,
+            "file_size_bytes": asset.file_size_bytes,
+        }
+
+        # Handle generated_at field - ensure it's always a string for JSON serialization
+        if hasattr(asset, 'generated_at') and asset.generated_at is not None:
+            if isinstance(asset.generated_at, datetime):
+                asset_data["generated_at"] = asset.generated_at.isoformat()
+            else:
+                # It might already be a string from previous serialization
+                asset_data["generated_at"] = str(asset.generated_at)
+        else:
+            # Fallback for safety
+            asset_data["generated_at"] = datetime.utcnow().isoformat()
+
+        return asset_data
+
+    def clear_export_assets(self, presentation_id: str) -> Optional[PresentationDocument]:
+        """Clear all export assets from a presentation (for fixing corrupted data)"""
+        presentation = self.get_presentation(presentation_id)
+        if not presentation:
+            return None
+
+        presentation.export_assets = []
+        conn = self.db_manager.get_connection()
+        try:
+            conn.execute(
+                """
+                UPDATE presentations
+                SET export_assets = ?, updated_at = ?
+                WHERE id = ?
+                """,
+                (
+                    json.dumps([]),
+                    datetime.utcnow().isoformat(),
+                    presentation_id,
+                ),
+            )
+            conn.commit()
+            return self.get_presentation(presentation_id)
+        finally:
+            conn.close()

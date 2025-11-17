@@ -12,9 +12,12 @@ from typing import List, Optional
 
 from backend.repositories.preview_repository import PreviewRepository
 from backend.repositories.lesson_repository import LessonRepository
-from backend.services.presentation_service import PresentationService
 from backend.services.presentation_errors import PresentationError, PresentationErrorCode, create_error_from_exception
 from backend.models.preview_schema import PresentationPreview, SlidePreview
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from backend.services.presentation_service import PresentationService
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +34,7 @@ class PreviewService:
         self,
         preview_repo: Optional[PreviewRepository] = None,
         lesson_repo: Optional[LessonRepository] = None,
-        presentation_service: Optional[PresentationService] = None,
+        presentation_service: Optional["PresentationService"] = None,
     ) -> None:
         """Initialize the service with optional repository and service instances.
 
@@ -49,7 +52,8 @@ class PreviewService:
         """
         self.preview_repo = preview_repo or PreviewRepository()
         self.lesson_repo = lesson_repo or LessonRepository()
-        self.presentation_service = presentation_service or PresentationService()
+        # Don't instantiate PresentationService by default to avoid circular dependency
+        self.presentation_service = presentation_service
 
     def _fetch_lesson(self, lesson_id: str):
         """Retrieve a lesson document or raise a ``PresentationError``.

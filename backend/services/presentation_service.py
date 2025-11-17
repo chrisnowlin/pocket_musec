@@ -43,6 +43,8 @@ from backend.models.preview_schema import PresentationPreview
 from pydantic import ValidationError
 from typing import TYPE_CHECKING
 
+from backend.utils.casing import camelize
+
 if TYPE_CHECKING:
     from backend.services.preview_service import PreviewService
 
@@ -222,6 +224,13 @@ class PresentationService:
         if not presentation:
             return None
 
+        return self.serialize_presentation_summary(presentation)
+
+    def serialize_presentation_summary(
+        self, presentation: PresentationDocument
+    ) -> Dict[str, Any]:
+        """Convert a PresentationDocument into a camelCase summary payload."""
+
         metadata = self._build_presentation_metadata(presentation)
 
         status_payload = {
@@ -240,7 +249,7 @@ class PresentationService:
             "error_message": presentation.error_message,
             **metadata,
         }
-        return status_payload
+        return camelize(status_payload)
 
     def get_presentation(
         self, presentation_id: str, user_id: str
