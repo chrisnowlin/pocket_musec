@@ -1,0 +1,290 @@
+🚀 Processing pages 276 to 892
+   Concurrent: 50 requests
+   Pages per request: 2
+   Model: Qwen/Qwen3-VL-235B-A22B-Thinking
+
+📄 Found 617 PNG files
+
+📦 Created 309 groups
+
+✅ Pages 344,345      | 104.1s |  6310 tokens
+✅ Pages 298,299      | 105.9s |  5740 tokens
+✅ Pages 316,317      | 108.2s |  6409 tokens
+✅ Pages 318,319      | 112.1s |  6591 tokens
+✅ Pages 322,323      | 122.5s |  6895 tokens
+✅ Pages 288,289      | 124.5s |  6925 tokens
+✅ Pages 346,347      | 128.8s |  6380 tokens
+✅ Pages 350,351      | 136.7s |  6597 tokens
+✅ Pages 330,331      | 145.7s |  6823 tokens
+✅ Pages 362,363      | 146.5s |  6848 tokens
+✅ Pages 300,301      | 148.8s |  7637 tokens
+✅ Pages 360,361      | 152.8s |  6737 tokens
+✅ Pages 284,285      | 157.2s |  7030 tokens
+✅ Pages 374,375      | 160.8s |  6512 tokens
+✅ Pages 324,325      | 161.2s |  7170 tokens
+✅ Pages 352,353      | 164.4s |  7245 tokens
+✅ Pages 368,369      | 164.7s |  8066 tokens
+✅ Pages 294,295      | 166.7s |  8148 tokens
+✅ Pages 366,367      | 176.2s |  8309 tokens
+✅ Pages 320,321      | 178.0s |  7461 tokens
+✅ Pages 332,333      | 179.6s |  7515 tokens
+✅ Pages 314,315      | 180.7s |  7548 tokens
+✅ Pages 356,357      | 182.4s |  8518 tokens
+✅ Pages 348,349      | 182.5s |  7586 tokens
+✅ Pages 334,335      | 182.9s |  7622 tokens
+✅ Pages 302,303      | 185.8s |  8609 tokens
+✅ Pages 306,307      | 186.8s |  8621 tokens
+✅ Pages 280,281      | 187.6s |  8637 tokens
+✅ Pages 296,297      | 194.4s |  8734 tokens
+✅ Pages 312,313      | 196.0s |  7682 tokens
+✅ Pages 326,327      | 196.9s |  7714 tokens
+✅ Pages 304,305      | 202.1s |  8953 tokens
+✅ Pages 286,287      | 208.3s |  7915 tokens
+✅ Pages 342,343      | 213.4s |  8075 tokens
+✅ Pages 358,359      | 213.6s |  8080 tokens
+✅ Pages 310,311      | 218.2s |  9359 tokens
+✅ Pages 370,371      | 219.3s |  9395 tokens
+✅ Pages 426,427      |  43.7s |  5255 tokens
+✅ Pages 292,293      | 232.4s |  8495 tokens
+✅ Pages 276,277      | 232.6s |  9821 tokens
+✅ Pages 278,279      | 241.9s |  8647 tokens
+✅ Pages 290,291      | 244.0s | 10205 tokens
+✅ Pages 372,373      | 248.4s |  8803 tokens
+✅ Pages 400,401      |  92.9s |  6493 tokens
+✅ Pages 328,329      | 250.5s | 10304 tokens
+✅ Pages 382,383      | 146.0s |  8002 tokens
+✅ Pages 354,355      | 260.0s |  8994 tokens
+✅ Pages 376,377      | 158.4s |  7970 tokens
+✅ Pages 408,409      | 106.4s |  6940 tokens
+✅ Pages 388,389      | 142.9s |  7495 tokens
+✅ Pages 308,309      | 272.7s | 11028 tokens
+✅ Pages 338,339      | 275.7s |  9336 tokens
+✅ Pages 424,425      |  95.3s |  6010 tokens
+✅ Pages 340,341      | 283.8s | 11291 tokens
+✅ Pages 406,407      | 120.1s |  6488 tokens
+✅ Pages 438,439      |  87.8s |  6520 tokens
+✅ Pages 440,441      |  83.9s |  6426 tokens
+✅ Pages 392,393      | 154.1s |  7202 tokens
+❌ Pages 282,283      | Error: 
+✅ Pages 378,379      | 194.2s |  8260 tokens
+❌ Pages 364,365      | Error: 
+❌ Pages 336,337      | Error: 
+✅ Pages 380,381      | 197.7s |  8710 tokens
+✅ Pages 396,397      | 157.6s |  7741 tokens
+✅ Pages 414,415      | 138.1s |  7532 tokens
+✅ Pages 422,423      | 135.4s |  6865 tokens
+✅ Pages 402,403      | 158.0s |  7238 tokens
+✅ Pages 446,447      | 100.7s |  6597 tokens
+✅ Pages 428,429      | 133.1s |  7459 tokens
+✅ Pages 398,399      | 179.8s |  8361 tokens
+✅ Pages 448,449      | 117.9s |  6501 tokens
+✅ Pages 420,421      | 159.0s |  7462 tokens
+❌ Pages 518,519      | Error: [Errno 54] Connection reset by peer
+✅ Pages 412,413      | 179.3s |  8664 tokens
+✅ Pages 490,491      |  57.8s |  5528 tokens
+✅ Pages 506,507      |  45.5s |  5507 tokens
+✅ Pages 384,385      | 244.5s | 10727 tokens
+✅ Pages 474,475      |  98.3s |  6652 tokens
+✅ Pages 496,497      |  72.0s |  5873 tokens
+✅ Pages 436,437      | 176.5s |  8109 tokens
+✅ Pages 386,387      | 253.3s | 10494 tokens
+✅ Pages 450,451      | 150.5s |  7850 tokens
+✅ Pages 464,465      | 130.8s |  7130 tokens
+✅ Pages 492,493      |  90.9s |  6254 tokens
+✅ Pages 480,481      | 114.5s |  6834 tokens
+✅ Pages 470,471      | 130.3s |  7267 tokens
+✅ Pages 394,395      | 258.0s |  9606 tokens
+✅ Pages 432,433      | 215.4s |  9391 tokens
+✅ Pages 466,467      | 153.5s |  7323 tokens
+✅ Pages 494,495      | 117.2s |  7044 tokens
+✅ Pages 484,485      | 133.7s |  7139 tokens
+✅ Pages 488,489      | 126.6s |  7055 tokens
+✅ Pages 390,391      | 282.6s | 10054 tokens
+✅ Pages 454,455      | 188.1s |  8240 tokens
+✅ Pages 478,479      | 148.5s |  7705 tokens
+✅ Pages 410,411      | 265.2s |  7796 tokens
+✅ Pages 444,445      | 222.4s |  8943 tokens
+✅ Pages 460,461      | 189.5s |  8329 tokens
+✅ Pages 430,431      | 250.7s | 10619 tokens
+✅ Pages 472,473      | 182.1s |  7991 tokens
+✅ Pages 434,435      | 258.1s |  9682 tokens
+✅ Pages 468,469      | 196.2s |  8437 tokens
+✅ Pages 442,443      | 244.9s |  9435 tokens
+✅ Pages 458,459      | 216.3s |  8831 tokens
+✅ Pages 456,457      | 218.4s |  8830 tokens
+❌ Pages 404,405      | Error: 
+✅ Pages 512,513      | 144.5s |  6070 tokens
+✅ Pages 418,419      | 296.1s | 10142 tokens
+❌ Pages 416,417      | Error: 
+✅ Pages 486,487      | 194.6s |  9048 tokens
+✅ Pages 452,453      | 252.5s |  9360 tokens
+✅ Pages 476,477      | 214.8s |  9144 tokens
+✅ Pages 500,501      | 183.4s |  8906 tokens
+✅ Pages 504,505      | 175.3s |  8700 tokens
+✅ Pages 508,509      | 173.1s |  7607 tokens
+✅ Pages 462,463      | 241.9s | 10314 tokens
+✅ Pages 482,483      | 215.7s |  9138 tokens
+✅ Pages 524,525      | 155.3s |  7107 tokens
+✅ Pages 510,511      | 196.0s |  8255 tokens
+✅ Pages 538,539      | 139.0s |  7472 tokens
+✅ Pages 502,503      | 224.8s |  7816 tokens
+✅ Pages 556,557      | 115.2s |  7117 tokens
+✅ Pages 522,523      | 178.0s |  8110 tokens
+✅ Pages 526,527      | 172.7s |  7644 tokens
+✅ Pages 516,517      | 210.3s |  9349 tokens
+✅ Pages 546,547      | 158.9s |  7379 tokens
+✅ Pages 528,529      | 190.1s |  8732 tokens
+✅ Pages 530,531      | 195.8s |  8695 tokens
+✅ Pages 498,499      | 271.4s | 10987 tokens
+✅ Pages 580,581      | 114.3s |  6713 tokens
+✅ Pages 562,563      | 159.8s |  8332 tokens
+✅ Pages 534,535      | 207.9s |  8506 tokens
+✅ Pages 532,533      | 212.6s |  9263 tokens
+✅ Pages 568,569      | 153.2s |  7471 tokens
+✅ Pages 564,565      | 166.8s |  7771 tokens
+✅ Pages 540,541      | 211.4s |  8574 tokens
+❌ Pages 592,593      | HTTP 429
+❌ Pages 582,583      | HTTP 429
+❌ Pages 544,545      | HTTP 429
+❌ Pages 642,643      | HTTP 429
+❌ Pages 548,549      | HTTP 429
+❌ Pages 542,543      | HTTP 429
+❌ Pages 558,559      | HTTP 429
+❌ Pages 632,633      | HTTP 429
+❌ Pages 578,579      | HTTP 429
+❌ Pages 584,585      | HTTP 429
+❌ Pages 606,607      | HTTP 429
+❌ Pages 622,623      | HTTP 429
+❌ Pages 590,591      | HTTP 429
+❌ Pages 610,611      | HTTP 429
+❌ Pages 560,561      | HTTP 429
+❌ Pages 626,627      | HTTP 429
+❌ Pages 668,669      | HTTP 429
+❌ Pages 648,649      | HTTP 429
+❌ Pages 670,671      | HTTP 429
+❌ Pages 658,659      | HTTP 429
+❌ Pages 666,667      | HTTP 429
+❌ Pages 656,657      | HTTP 429
+❌ Pages 678,679      | HTTP 429
+❌ Pages 672,673      | HTTP 429
+❌ Pages 680,681      | HTTP 429
+❌ Pages 674,675      | HTTP 429
+❌ Pages 694,695      | HTTP 429
+❌ Pages 690,691      | HTTP 429
+❌ Pages 676,677      | HTTP 429
+❌ Pages 688,689      | HTTP 429
+❌ Pages 686,687      | HTTP 429
+❌ Pages 692,693      | HTTP 429
+❌ Pages 702,703      | HTTP 429
+❌ Pages 706,707      | HTTP 429
+❌ Pages 700,701      | HTTP 429
+❌ Pages 708,709      | HTTP 429
+❌ Pages 698,699      | HTTP 429
+❌ Pages 704,705      | HTTP 429
+❌ Pages 696,697      | HTTP 429
+❌ Pages 684,685      | HTTP 429
+❌ Pages 718,719      | HTTP 429
+❌ Pages 710,711      | HTTP 429
+❌ Pages 714,715      | HTTP 429
+❌ Pages 712,713      | HTTP 429
+❌ Pages 722,723      | HTTP 429
+❌ Pages 716,717      | HTTP 429
+❌ Pages 724,725      | HTTP 429
+❌ Pages 726,727      | HTTP 429
+❌ Pages 732,733      | HTTP 429
+❌ Pages 730,731      | HTTP 429
+❌ Pages 720,721      | HTTP 429
+❌ Pages 728,729      | HTTP 429
+❌ Pages 740,741      | HTTP 429
+❌ Pages 738,739      | HTTP 429
+❌ Pages 742,743      | HTTP 429
+❌ Pages 746,747      | HTTP 429
+❌ Pages 734,735      | HTTP 429
+❌ Pages 744,745      | HTTP 429
+❌ Pages 750,751      | HTTP 429
+❌ Pages 748,749      | HTTP 429
+❌ Pages 752,753      | HTTP 429
+❌ Pages 736,737      | HTTP 429
+❌ Pages 758,759      | HTTP 429
+❌ Pages 760,761      | HTTP 429
+❌ Pages 756,757      | HTTP 429
+❌ Pages 768,769      | HTTP 429
+❌ Pages 766,767      | HTTP 429
+❌ Pages 770,771      | HTTP 429
+❌ Pages 762,763      | HTTP 429
+❌ Pages 764,765      | HTTP 429
+❌ Pages 774,775      | HTTP 429
+❌ Pages 776,777      | HTTP 429
+❌ Pages 786,787      | HTTP 429
+❌ Pages 782,783      | HTTP 429
+❌ Pages 778,779      | HTTP 429
+❌ Pages 784,785      | HTTP 429
+❌ Pages 788,789      | HTTP 429
+❌ Pages 790,791      | HTTP 429
+❌ Pages 792,793      | HTTP 429
+❌ Pages 798,799      | HTTP 429
+❌ Pages 754,755      | HTTP 429
+❌ Pages 794,795      | HTTP 429
+❌ Pages 796,797      | HTTP 429
+❌ Pages 800,801      | HTTP 429
+❌ Pages 804,805      | HTTP 429
+❌ Pages 810,811      | HTTP 429
+❌ Pages 812,813      | HTTP 429
+❌ Pages 806,807      | HTTP 429
+❌ Pages 808,809      | HTTP 429
+❌ Pages 802,803      | HTTP 429
+❌ Pages 818,819      | HTTP 429
+❌ Pages 814,815      | HTTP 429
+❌ Pages 820,821      | HTTP 429
+❌ Pages 826,827      | HTTP 429
+❌ Pages 822,823      | HTTP 429
+❌ Pages 824,825      | HTTP 429
+❌ Pages 780,781      | HTTP 429
+❌ Pages 772,773      | HTTP 429
+❌ Pages 828,829      | HTTP 429
+❌ Pages 830,831      | HTTP 429
+❌ Pages 836,837      | HTTP 429
+❌ Pages 832,833      | HTTP 429
+❌ Pages 834,835      | HTTP 429
+❌ Pages 840,841      | HTTP 429
+❌ Pages 838,839      | HTTP 429
+❌ Pages 842,843      | HTTP 429
+❌ Pages 816,817      | HTTP 429
+❌ Pages 846,847      | HTTP 429
+❌ Pages 848,849      | HTTP 429
+❌ Pages 850,851      | HTTP 429
+❌ Pages 854,855      | HTTP 429
+❌ Pages 852,853      | HTTP 429
+❌ Pages 856,857      | HTTP 429
+❌ Pages 866,867      | HTTP 429
+❌ Pages 860,861      | HTTP 429
+❌ Pages 862,863      | HTTP 429
+❌ Pages 864,865      | HTTP 429
+❌ Pages 868,869      | HTTP 429
+❌ Pages 870,871      | HTTP 429
+❌ Pages 844,845      | HTTP 429
+❌ Pages 872,873      | HTTP 429
+❌ Pages 876,877      | HTTP 429
+❌ Pages 874,875      | HTTP 429
+❌ Pages 880,881      | HTTP 429
+❌ Pages 882,883      | HTTP 429
+❌ Pages 878,879      | HTTP 429
+❌ Pages 886,887      | HTTP 429
+❌ Pages 892          | HTTP 429
+❌ Pages 888,889      | HTTP 429
+❌ Pages 890,891      | HTTP 429
+❌ Pages 884,885      | HTTP 429
+✅ Pages 536,537      | 235.7s |  9681 tokens
+✅ Pages 520,521      | 276.1s | 10881 tokens
+✅ Pages 588,589      | 160.5s |  8046 tokens
+✅ Pages 550,551      | 218.3s |  9524 tokens
+✅ Pages 514,515      | 295.9s | 10095 tokens
+✅ Pages 576,577      | 175.5s |  8464 tokens
+✅ Pages 572,573      | 194.5s |  8985 tokens
+❌ Pages 654,655      | HTTP 429
+❌ Pages 662,663      | HTTP 429
+❌ Pages 660,661      | HTTP 429
+✅ Pages 596,597      | 150.0s |  7747 tokens
+✅ Pages 566,567      | 203.8s |  9223 tokens
+✅ Pages 616,617      | 126.2s |  7080 tokens
+✅ Pages 554,555      | 249.0s | 10184 tokens
