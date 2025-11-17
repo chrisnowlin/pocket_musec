@@ -1,0 +1,45 @@
+{
+  "strategy": "disabled",
+  "enabled": false,
+  "percentage": 0,
+  "user_groups": {
+    "camelcase_enabled": [],
+    "snakecase_default": true,
+    "early_adopters": [],
+    "beta_testers": [],
+    "internal_team": []
+  },
+  "internal_users": [
+    "admin_001",
+    "dev_001",
+    "test_001"
+  ],
+  "excluded_users": [
+    "integration_service",
+    "api_client_legacy",
+    "third_party_bot"
+  ],
+  "auto_rollout": {
+    "enabled": false,
+    "start_percentage": 1,
+    "max_percentage": 100,
+    "increment": 5,
+    "interval_hours": 24,
+    "error_threshold": 0.01,
+    "performance_threshold": 1.1,
+    "last_increment": null
+  },
+  "monitoring": {
+    "track_usage": true,
+    "track_performance": true,
+    "track_errors": true,
+    "sample_rate": 1.0,
+    "metrics_retention_days": 30
+  },
+  "metadata": {
+    "created_at": "2025-11-17T10:00:00Z",
+    "updated_at": "2025-11-17T10:00:00Z",
+    "version": "1.0",
+    "description": "PocketMuseC camelCase migration rollout configuration"
+  }
+}
