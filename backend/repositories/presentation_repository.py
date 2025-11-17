@@ -6,12 +6,14 @@ import uuid
 from datetime import datetime
 from typing import Optional, List, Dict, Any
 
+
 # Custom JSON encoder to handle datetime objects
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, datetime):
             return obj.isoformat()
         return super().default(obj)
+
 
 from .database import DatabaseManager
 from backend.lessons.presentation_schema import (
@@ -61,10 +63,16 @@ class PresentationRepository:
                     presentation.version,
                     presentation.status.value,
                     presentation.style,
-                    json.dumps([slide.model_dump() for slide in presentation.slides], cls=DateTimeEncoder),
                     json.dumps(
-                        [self._serialize_export_asset(asset) for asset in presentation.export_assets],
-                        cls=DateTimeEncoder
+                        [slide.model_dump() for slide in presentation.slides],
+                        cls=DateTimeEncoder,
+                    ),
+                    json.dumps(
+                        [
+                            self._serialize_export_asset(asset)
+                            for asset in presentation.export_assets
+                        ],
+                        cls=DateTimeEncoder,
                     ),
                     presentation.error_code,
                     presentation.error_message,
@@ -210,7 +218,9 @@ class PresentationRepository:
                 WHERE id = ?
                 """,
                 (
-                    json.dumps([slide.model_dump() for slide in slides], cls=DateTimeEncoder),
+                    json.dumps(
+                        [slide.model_dump() for slide in slides], cls=DateTimeEncoder
+                    ),
                     datetime.utcnow().isoformat(),
                     presentation_id,
                 ),
@@ -263,8 +273,11 @@ class PresentationRepository:
                 """,
                 (
                     json.dumps(
-                        [self._serialize_export_asset(asset) for asset in presentation.export_assets],
-                        cls=DateTimeEncoder
+                        [
+                            self._serialize_export_asset(asset)
+                            for asset in presentation.export_assets
+                        ],
+                        cls=DateTimeEncoder,
                     ),
                     datetime.utcnow().isoformat(),
                     presentation_id,
@@ -276,7 +289,29 @@ class PresentationRepository:
             conn.close()
 
     def delete_presentation(self, presentation_id: str) -> bool:
-        """Delete a presentation"""
+        """Delete a presentation and its associated export files"""
+        import os
+        import logging
+
+        logger = logging.getLogger(__name__)
+
+        # First, get the presentation to access export assets
+        presentation = self.get_presentation(presentation_id)
+        if not presentation:
+            return False
+
+        # Clean up export files from filesystem
+        for export_asset in presentation.export_assets:
+            if export_asset.url_or_path and os.path.exists(export_asset.url_or_path):
+                try:
+                    os.remove(export_asset.url_or_path)
+                    logger.info(f"Deleted export file: {export_asset.url_or_path}")
+                except OSError as e:
+                    logger.warning(
+                        f"Failed to delete export file {export_asset.url_or_path}: {e}"
+                    )
+
+        # Delete from database
         conn = self.db_manager.get_connection()
         try:
             cursor = conn.execute(
@@ -319,7 +354,7 @@ class PresentationRepository:
         }
 
         # Handle generated_at field - ensure it's always a string for JSON serialization
-        if hasattr(asset, 'generated_at') and asset.generated_at is not None:
+        if hasattr(asset, "generated_at") and asset.generated_at is not None:
             if isinstance(asset.generated_at, datetime):
                 asset_data["generated_at"] = asset.generated_at.isoformat()
             else:
@@ -331,7 +366,9 @@ class PresentationRepository:
 
         return asset_data
 
-    def clear_export_assets(self, presentation_id: str) -> Optional[PresentationDocument]:
+    def clear_export_assets(
+        self, presentation_id: str
+    ) -> Optional[PresentationDocument]:
         """Clear all export assets from a presentation (for fixing corrupted data)"""
         presentation = self.get_presentation(presentation_id)
         if not presentation:

@@ -415,6 +415,28 @@ export class PresentationApiClient {
       throw { structuredError: this.errorHandler.handleError(error) };
     }
   }
+
+  /**
+   * Delete a presentation permanently
+   */
+  async deletePresentation(presentationId: string): Promise<void> {
+    try {
+      await this.client.delete(`/${presentationId}`);
+    } catch (error: any) {
+      throw { structuredError: this.errorHandler.handleError(error) };
+    }
+  }
+
+  /**
+   * Delete a job permanently (only completed, failed, or cancelled jobs)
+   */
+  async deleteJob(jobId: string): Promise<void> {
+    try {
+      await this.client.delete(`/jobs/${jobId}/permanent`);
+    } catch (error: any) {
+      throw { structuredError: this.errorHandler.handleError(error) };
+    }
+  }
 }
 
 // Create singleton instance

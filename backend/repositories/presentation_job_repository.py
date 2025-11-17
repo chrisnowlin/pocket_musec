@@ -58,12 +58,24 @@ class PresentationJobRepository:
             """)
 
             # Create indexes separately (SQLite doesn't support inline INDEX in CREATE TABLE)
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_status ON presentation_jobs(status)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_user_status ON presentation_jobs(user_id, status)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_created ON presentation_jobs(created_at)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_priority_status ON presentation_jobs(priority, status)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_lesson ON presentation_jobs(lesson_id)")
-            conn.execute("CREATE INDEX IF NOT EXISTS idx_jobs_worker ON presentation_jobs(worker_id)")
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_status ON presentation_jobs(status)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_user_status ON presentation_jobs(user_id, status)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_created ON presentation_jobs(created_at)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_priority_status ON presentation_jobs(priority, status)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_lesson ON presentation_jobs(lesson_id)"
+            )
+            conn.execute(
+                "CREATE INDEX IF NOT EXISTS idx_jobs_worker ON presentation_jobs(worker_id)"
+            )
 
             conn.commit()
         except sqlite3.Error as e:
@@ -105,7 +117,7 @@ class PresentationJobRepository:
 
             conn.execute(
                 f"INSERT INTO presentation_jobs ({', '.join(columns)}) VALUES ({placeholders})",
-                values
+                values,
             )
             conn.commit()
 
@@ -144,8 +156,7 @@ class PresentationJobRepository:
             values = list(data.values()) + [job.id]
 
             cursor = conn.execute(
-                f"UPDATE presentation_jobs SET {set_clause} WHERE id = ?",
-                values
+                f"UPDATE presentation_jobs SET {set_clause} WHERE id = ?", values
             )
             conn.commit()
 
@@ -174,7 +185,9 @@ class PresentationJobRepository:
             params = [user_id]
 
             if not include_finished:
-                query += " AND status NOT IN ('completed', 'failed', 'cancelled', 'timeout')"
+                query += (
+                    " AND status NOT IN ('completed', 'failed', 'cancelled', 'timeout')"
+                )
 
             if status:
                 query += " AND status = ?"
@@ -231,7 +244,9 @@ class PresentationJobRepository:
         finally:
             conn.close()
 
-    def get_running_jobs(self, worker_id: Optional[str] = None) -> List[PresentationJob]:
+    def get_running_jobs(
+        self, worker_id: Optional[str] = None
+    ) -> List[PresentationJob]:
         """Get currently running jobs"""
         conn = self.db_manager.get_connection()
         try:
@@ -265,7 +280,7 @@ class PresentationJobRepository:
                 if job.queue_position != position:
                     cursor = conn.execute(
                         "UPDATE presentation_jobs SET queue_position = ? WHERE id = ?",
-                        (position, job.id)
+                        (position, job.id),
                     )
                     updated_count += cursor.rowcount
                     job.queue_position = position
@@ -288,8 +303,13 @@ class PresentationJobRepository:
         job.cancel(reason)
         return self.update_job(job)
 
-    def fail_job(self, job_id: str, error_code: str, error_message: str,
-                 error_details: Optional[Dict[str, Any]] = None) -> bool:
+    def fail_job(
+        self,
+        job_id: str,
+        error_code: str,
+        error_message: str,
+        error_details: Optional[Dict[str, Any]] = None,
+    ) -> bool:
         """Mark a job as failed with error details"""
         job = self.get_job(job_id)
         if not job:
@@ -298,8 +318,13 @@ class PresentationJobRepository:
         job.fail(error_code, error_message, error_details)
         return self.update_job(job)
 
-    def complete_job(self, job_id: str, presentation_id: str, slide_count: int,
-                     result_data: Optional[Dict[str, Any]] = None) -> bool:
+    def complete_job(
+        self,
+        job_id: str,
+        presentation_id: str,
+        slide_count: int,
+        result_data: Optional[Dict[str, Any]] = None,
+    ) -> bool:
         """Mark a job as completed"""
         job = self.get_job(job_id)
         if not job:
@@ -316,8 +341,11 @@ class PresentationJobRepository:
 
         return self.update_job(job)
 
-    def cleanup_old_jobs(self, max_age_hours: int = 24,
-                         exclude_statuses: Optional[List[JobStatus]] = None) -> int:
+    def cleanup_old_jobs(
+        self,
+        max_age_hours: int = 24,
+        exclude_statuses: Optional[List[JobStatus]] = None,
+    ) -> int:
         """Clean up old finished jobs"""
         exclude_statuses = exclude_statuses or [JobStatus.RUNNING, JobStatus.PENDING]
         cutoff_time = datetime.utcnow() - timedelta(hours=max_age_hours)
@@ -334,7 +362,7 @@ class PresentationJobRepository:
                 AND completed_at < ?
                 AND status NOT IN ({status_placeholders})
                 """,
-                [cutoff_time.isoformat()] + status_values
+                [cutoff_time.isoformat()] + status_values,
             )
             conn.commit()
             deleted_count = cursor.rowcount
@@ -357,7 +385,8 @@ class PresentationJobRepository:
         conn = self.db_manager.get_connection()
         try:
             # Total counts
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT
                     COUNT(*) as total,
                     COUNT(CASE WHEN status = 'pending' THEN 1 END) as pending,
@@ -369,44 +398,56 @@ class PresentationJobRepository:
                     AVG(CASE WHEN processing_time_seconds IS NOT NULL THEN processing_time_seconds END) as avg_processing_time
                 FROM presentation_jobs
                 WHERE created_at >= ?
-            """, (since.isoformat(),))
+            """,
+                (since.isoformat(),),
+            )
 
             row = cursor.fetchone()
             stats = dict(row) if row else {}
 
             # Recent jobs (last hour)
             recent_since = datetime.utcnow() - timedelta(hours=1)
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT
                     COUNT(*) as recent_total,
                     COUNT(CASE WHEN status = 'completed' THEN 1 END) as recent_completed,
                     COUNT(CASE WHEN status = 'failed' THEN 1 END) as recent_failed
                 FROM presentation_jobs
                 WHERE created_at >= ?
-            """, (recent_since.isoformat(),))
+            """,
+                (recent_since.isoformat(),),
+            )
 
             recent_row = cursor.fetchone()
             if recent_row:
-                stats['recent_total'] = recent_row['recent_total']
-                stats['recent_completed'] = recent_row['recent_completed']
-                stats['recent_failed'] = recent_row['recent_failed']
+                stats["recent_total"] = recent_row["recent_total"]
+                stats["recent_completed"] = recent_row["recent_completed"]
+                stats["recent_failed"] = recent_row["recent_failed"]
 
                 # Calculate failure rates
-                if stats['total'] > 0:
-                    stats['failure_rate'] = (stats['failed'] / stats['total']) * 100
-                if stats['recent_total'] > 0:
-                    stats['recent_failure_rate'] = (stats['recent_failed'] / stats['recent_total']) * 100
+                if stats["total"] > 0:
+                    stats["failure_rate"] = (stats["failed"] / stats["total"]) * 100
+                if stats["recent_total"] > 0:
+                    stats["recent_failure_rate"] = (
+                        stats["recent_failed"] / stats["recent_total"]
+                    ) * 100
 
             # Priority distribution
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 SELECT priority, COUNT(*) as count
                 FROM presentation_jobs
                 WHERE created_at >= ? AND status IN ('pending', 'running')
                 GROUP BY priority
-            """, (since.isoformat(),))
+            """,
+                (since.isoformat(),),
+            )
 
-            priority_stats = {row['priority']: row['count'] for row in cursor.fetchall()}
-            stats['priority_distribution'] = priority_stats
+            priority_stats = {
+                row["priority"]: row["count"] for row in cursor.fetchall()
+            }
+            stats["priority_distribution"] = priority_stats
 
             # Oldest pending job
             cursor = conn.execute("""
@@ -418,9 +459,12 @@ class PresentationJobRepository:
             """)
             oldest_row = cursor.fetchone()
             if oldest_row:
-                oldest_job = self._row_to_job(oldest_row)
-                stats['oldest_pending_job_age_minutes'] = oldest_job.get_age_minutes()
-                stats['oldest_pending_job_id'] = oldest_job.id
+                oldest_job_id = oldest_row["id"]
+                created_at_str = oldest_row["created_at"]
+                created_at = datetime.fromisoformat(created_at_str)
+                age_minutes = (datetime.utcnow() - created_at).total_seconds() / 60.0
+                stats["oldest_pending_job_age_minutes"] = age_minutes
+                stats["oldest_pending_job_id"] = oldest_job_id
 
             return stats
 
@@ -436,20 +480,25 @@ class PresentationJobRepository:
 
         conn = self.db_manager.get_connection()
         try:
-            cursor = conn.execute("""
+            cursor = conn.execute(
+                """
                 UPDATE presentation_jobs
                 SET status = 'failed',
                     error_code = 'ORPHANED',
                     error_message = 'Job was orphaned during system restart',
                     completed_at = ?
                 WHERE status = 'running' AND started_at < ?
-            """, (datetime.utcnow().isoformat(), timeout_since.isoformat()))
+            """,
+                (datetime.utcnow().isoformat(), timeout_since.isoformat()),
+            )
 
             conn.commit()
             recovered_count = cursor.rowcount
 
             if recovered_count > 0:
-                logger.warning(f"Recovered {recovered_count} orphaned presentation jobs")
+                logger.warning(
+                    f"Recovered {recovered_count} orphaned presentation jobs"
+                )
 
             return recovered_count
 
@@ -473,7 +522,7 @@ class PresentationJobRepository:
                 SET status = ?, completed_at = ?
                 WHERE id IN ({placeholders})
                 """,
-                [new_status.value, datetime.utcnow().isoformat()] + job_ids
+                [new_status.value, datetime.utcnow().isoformat()] + job_ids,
             )
             conn.commit()
             return cursor.rowcount

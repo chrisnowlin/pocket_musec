@@ -361,7 +361,7 @@ async def generate_presentation(
     try:
         # Validate request parameters
         if not request.lesson_id or not isinstance(request.lesson_id, str):
-            raise PresentationError.validation_failed("lesson_id", request.lesson_id)
+            raise PresentationError.validationFailed("lesson_id", request.lesson_id)
 
         # Validate style using style service
         try:
@@ -370,20 +370,20 @@ async def generate_presentation(
             style_service = StyleService()
             style_service.validate_and_apply_style(request.style, current_user.id)
         except Exception as style_error:
-            raise PresentationError.invalid_style(str(style_error))
+            raise PresentationError.invalidStyle(str(style_error))
 
         if (
             not isinstance(request.timeout_seconds, int)
             or request.timeout_seconds < 1
             or request.timeout_seconds > 300
         ):
-            raise PresentationError.validation_failed(
+            raise PresentationError.validationFailed(
                 "timeout_seconds", request.timeout_seconds
             )
 
         # Validate priority
         if request.priority not in [p.value for p in JobPriority]:
-            raise PresentationError.validation_failed("priority", request.priority)
+            raise PresentationError.validationFailed("priority", request.priority)
 
         # Validate max_retries
         if (
@@ -391,16 +391,14 @@ async def generate_presentation(
             or request.max_retries < 0
             or request.max_retries > 10
         ):
-            raise PresentationError.validation_failed(
-                "max_retries", request.max_retries
-            )
+            raise PresentationError.validationFailed("max_retries", request.max_retries)
 
         # Verify user has access to the lesson
         lesson_repo = LessonRepository()
         try:
             lesson = lesson_repo.get_lesson(request.lesson_id)
             if not lesson:
-                raise PresentationError.lesson_not_found(request.lesson_id)
+                raise PresentationError.lessonNotFound(request.lesson_id)
 
             if lesson.user_id != current_user.id:
                 logger.warning(
@@ -408,7 +406,7 @@ async def generate_presentation(
                     getattr(lesson, "user_id", None),
                     current_user.id,
                 )
-                raise PresentationError.lesson_access_denied(request.lesson_id)
+                raise PresentationError.lessonAccessDenied(request.lesson_id)
 
         except PresentationError:
             raise
@@ -478,6 +476,220 @@ async def generate_presentation(
         raise _handle_presentation_error(error)
 
 
+@router.delete("/jobs/cleanup")
+async def cleanup_old_jobs(
+    max_age_hours: int = Query(
+        default=24, ge=1, le=168, description="Maximum age in hours"
+    ),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Clean up old completed/failed jobs (admin only or user's own jobs)."""
+
+    job_manager = get_job_manager()
+
+    # For now, allow users to cleanup their own jobs
+    # In a production system, this might be admin-only
+    try:
+        # Note: This cleans up all old jobs, not just the user's jobs
+        # For user-specific cleanup, we'd need to modify the repository
+        deleted_count = job_manager.cleanup_old_jobs(max_age_hours=max_age_hours)
+
+        return {
+            "message": "Job cleanup completed",
+            "deleted_jobs": deleted_count,
+            "max_age_hours": max_age_hours,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to cleanup old jobs: {str(e)}",
+        )
+
+
+@router.post("/jobs/bulk-cancel")
+async def bulk_cancel_jobs(
+    request: JobBulkRequest,
+    reason: str = Query(
+        default="Bulk cancellation", description="Reason for cancellation"
+    ),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Cancel multiple jobs at once."""
+
+    job_manager = get_job_manager()
+    cancelled_jobs = []
+    failed_jobs = []
+
+    for job_id in request.job_ids:
+        try:
+            # Verify job ownership
+            job = job_manager.get_job(job_id)
+            if not job:
+                failed_jobs.append({"job_id": job_id, "error": "Job not found"})
+                continue
+
+            if job.user_id != current_user.id:
+                failed_jobs.append({"job_id": job_id, "error": "Access denied"})
+                continue
+
+            success = job_manager.cancel_job(job_id, reason)
+            if success:
+                cancelled_jobs.append(job_id)
+            else:
+                failed_jobs.append(
+                    {"job_id": job_id, "error": "Job cannot be cancelled"}
+                )
+        except Exception as e:
+            failed_jobs.append({"job_id": job_id, "error": str(e)})
+
+    return {
+        "message": f"Bulk cancellation completed",
+        "cancelled_jobs": cancelled_jobs,
+        "failed_jobs": failed_jobs,
+        "total_requested": len(request.job_ids),
+        "total_cancelled": len(cancelled_jobs),
+    }
+
+
+# Job monitoring and health endpoints
+@router.get("/jobs/health")
+async def get_job_health_metrics(
+    hours: int = Query(
+        default=24, ge=1, le=168, description="Time window in hours for statistics"
+    ),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Get health metrics and statistics for the presentation job system."""
+
+    try:
+        job_manager = get_job_manager()
+        metrics = job_manager.get_job_health_metrics()
+
+        # Get user-specific metrics
+        user_jobs = job_manager.get_user_jobs(current_user.id, limit=1000)
+        user_stats = {
+            "total_user_jobs": len(user_jobs),
+            "user_pending_jobs": len(
+                [j for j in user_jobs if j.status == JobStatus.PENDING]
+            ),
+            "user_running_jobs": len(
+                [j for j in user_jobs if j.status == JobStatus.RUNNING]
+            ),
+            "user_completed_jobs": len(
+                [j for j in user_jobs if j.status == JobStatus.COMPLETED]
+            ),
+            "user_failed_jobs": len(
+                [j for j in user_jobs if j.status == JobStatus.FAILED]
+            ),
+        }
+
+        # Calculate user-specific rates
+        if user_stats["total_user_jobs"] > 0:
+            user_stats["user_success_rate"] = (
+                user_stats["user_completed_jobs"] / user_stats["total_user_jobs"]
+            ) * 100
+            user_stats["user_failure_rate"] = (
+                user_stats["user_failed_jobs"] / user_stats["total_user_jobs"]
+            ) * 100
+        else:
+            user_stats["user_success_rate"] = 0
+            user_stats["user_failure_rate"] = 0
+
+        metrics.update(user_stats)
+
+        return metrics
+
+    except Exception as e:
+        logger.error(f"Failed to get job health metrics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve job health metrics: {str(e)}",
+        )
+
+
+@router.get("/jobs/statistics")
+async def get_job_statistics(
+    hours: int = Query(
+        default=24, ge=1, le=168, description="Time window in hours for statistics"
+    ),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Get detailed job statistics for monitoring and analytics."""
+
+    try:
+        job_manager = get_job_manager()
+        repository = job_manager.job_repository
+
+        # Get comprehensive statistics
+        stats = repository.get_job_statistics(hours=hours)
+
+        # Add performance insights
+        if stats.get("avg_processing_time"):
+            if stats["avg_processing_time"] > 300:  # > 5 minutes
+                stats["performance_warning"] = "Average processing time is high"
+            elif stats["avg_processing_time"] > 120:  # > 2 minutes
+                stats["performance_warning"] = "Average processing time is elevated"
+
+        # Add queue health indicators
+        if stats.get("oldest_pending_job_age_minutes"):
+            if stats["oldest_pending_job_age_minutes"] > 30:
+                stats["queue_warning"] = "Oldest pending job is very old"
+            elif stats["oldest_pending_job_age_minutes"] > 10:
+                stats["queue_warning"] = "Oldest pending job is getting old"
+
+        # Add failure rate alerts
+        if stats.get("failure_rate", 0) > 20:
+            stats["failure_alert"] = "High failure rate detected"
+        elif stats.get("failure_rate", 0) > 10:
+            stats["failure_alert"] = "Elevated failure rate detected"
+
+        return stats
+
+    except Exception as e:
+        logger.error(f"Failed to get job statistics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to retrieve job statistics: {str(e)}",
+        )
+
+
+@router.post("/jobs/system/recovery")
+async def trigger_job_recovery(
+    timeout_minutes: int = Query(
+        default=30,
+        ge=5,
+        le=120,
+        description="Timeout in minutes for orphaned job detection",
+    ),
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, Any]:
+    """Trigger recovery of orphaned jobs (admin or system operation)."""
+
+    # For now, allow any authenticated user to trigger recovery
+    # in production, this might be admin-only
+    try:
+        job_manager = get_job_manager()
+        repository = job_manager.job_repository
+
+        recovered_count = repository.recover_orphaned_jobs(
+            timeout_minutes=timeout_minutes
+        )
+
+        return {
+            "message": "Job recovery completed",
+            "recovered_jobs": recovered_count,
+            "timeout_minutes": timeout_minutes,
+            "timestamp": datetime.utcnow().isoformat(),
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to trigger job recovery: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Job recovery failed: {str(e)}",
+        )
+
+
 @router.get(
     "/jobs/{job_id}",
     response_model=JobStatusEnvelope,
@@ -526,13 +738,13 @@ async def get_job_status(
     try:
         # Validate job_id
         if not job_id or not isinstance(job_id, str):
-            raise PresentationError.validation_failed("job_id", job_id)
+            raise PresentationError.validationFailed("job_id", job_id)
 
         # Get job status
         try:
             job_status = get_presentation_job_status(job_id)
             if not job_status:
-                raise PresentationError.job_not_found(job_id)
+                raise PresentationError.jobNotFound(job_id)
         except PresentationError:
             raise
         except Exception as e:
@@ -547,7 +759,7 @@ async def get_job_status(
             job = job_manager.get_job(job_id)
 
             if not job or job.user_id != current_user.id:
-                raise PresentationError.job_access_denied(job_id)
+                raise PresentationError.jobAccessDenied(job_id)
 
         except PresentationError:
             raise
@@ -730,81 +942,6 @@ async def retry_job(
         )
 
     return {"message": "Job queued for retry", "job_id": job_id}
-
-
-@router.delete("/jobs/cleanup")
-async def cleanup_old_jobs(
-    max_age_hours: int = Query(
-        default=24, ge=1, le=168, description="Maximum age in hours"
-    ),
-    current_user: User = Depends(get_current_user),
-) -> Dict[str, Any]:
-    """Clean up old completed/failed jobs (admin only or user's own jobs)."""
-
-    job_manager = get_job_manager()
-
-    # For now, allow users to cleanup their own jobs
-    # In a production system, this might be admin-only
-    try:
-        # Note: This cleans up all old jobs, not just the user's jobs
-        # For user-specific cleanup, we'd need to modify the repository
-        deleted_count = job_manager.cleanup_old_jobs(max_age_hours=max_age_hours)
-
-        return {
-            "message": "Job cleanup completed",
-            "deleted_jobs": deleted_count,
-            "max_age_hours": max_age_hours,
-        }
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to cleanup old jobs: {str(e)}",
-        )
-
-
-@router.post("/jobs/bulk-cancel")
-async def bulk_cancel_jobs(
-    request: JobBulkRequest,
-    reason: str = Query(
-        default="Bulk cancellation", description="Reason for cancellation"
-    ),
-    current_user: User = Depends(get_current_user),
-) -> Dict[str, Any]:
-    """Cancel multiple jobs at once."""
-
-    job_manager = get_job_manager()
-    cancelled_jobs = []
-    failed_jobs = []
-
-    for job_id in request.job_ids:
-        try:
-            # Verify job ownership
-            job = job_manager.get_job(job_id)
-            if not job:
-                failed_jobs.append({"job_id": job_id, "error": "Job not found"})
-                continue
-
-            if job.user_id != current_user.id:
-                failed_jobs.append({"job_id": job_id, "error": "Access denied"})
-                continue
-
-            success = job_manager.cancel_job(job_id, reason)
-            if success:
-                cancelled_jobs.append(job_id)
-            else:
-                failed_jobs.append(
-                    {"job_id": job_id, "error": "Job cannot be cancelled"}
-                )
-        except Exception as e:
-            failed_jobs.append({"job_id": job_id, "error": str(e)})
-
-    return {
-        "message": f"Bulk cancellation completed",
-        "cancelled_jobs": cancelled_jobs,
-        "failed_jobs": failed_jobs,
-        "total_requested": len(request.job_ids),
-        "total_cancelled": len(cancelled_jobs),
-    }
 
 
 # Lesson-specific presentation endpoints
@@ -1141,9 +1278,7 @@ async def get_presentation_export_jobs(
     try:
         # Validate presentation_id
         if not presentation_id or not isinstance(presentation_id, str):
-            raise PresentationError.validation_failed(
-                "presentation_id", presentation_id
-            )
+            raise PresentationError.validationFailed("presentation_id", presentation_id)
 
         # Verify user has access to the presentation
         presentation_service = PresentationService()
@@ -1152,7 +1287,7 @@ async def get_presentation_export_jobs(
         )
 
         if not presentation:
-            raise PresentationError.lesson_not_found(presentation_id)
+            raise PresentationError.lessonNotFound(presentation_id)
 
         # Get export jobs for the presentation
         try:
@@ -1217,13 +1352,13 @@ async def get_export_job_status(
     try:
         # Validate job_id
         if not job_id or not isinstance(job_id, str):
-            raise PresentationError.validation_failed("job_id", job_id)
+            raise PresentationError.validationFailed("job_id", job_id)
 
         # Get export job status
         try:
             export_job = export_status_service.get_job_status(job_id)
             if not export_job:
-                raise PresentationError.job_not_found(job_id)
+                raise PresentationError.jobNotFound(job_id)
         except PresentationError:
             raise
         except Exception as e:
@@ -1240,7 +1375,7 @@ async def get_export_job_status(
         )
 
         if not presentation:
-            raise PresentationError.lesson_access_denied(export_job.presentation_id)
+            raise PresentationError.lessonAccessDenied(export_job.presentation_id)
 
         return ExportJobResponse(
             job_id=export_job.job_id,
@@ -1288,13 +1423,13 @@ async def cancel_export_job(
     try:
         # Validate job_id
         if not job_id or not isinstance(job_id, str):
-            raise PresentationError.validation_failed("job_id", job_id)
+            raise PresentationError.validationFailed("job_id", job_id)
 
         # First get the job to verify access
         try:
             export_job = export_status_service.get_job_status(job_id)
             if not export_job:
-                raise PresentationError.job_not_found(job_id)
+                raise PresentationError.jobNotFound(job_id)
         except PresentationError:
             raise
         except Exception as e:
@@ -1311,7 +1446,7 @@ async def cancel_export_job(
         )
 
         if not presentation:
-            raise PresentationError.lesson_access_denied(export_job.presentation_id)
+            raise PresentationError.lessonAccessDenied(export_job.presentation_id)
 
         # Cancel the job
         try:
@@ -1380,145 +1515,6 @@ async def get_export_statistics(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error",
-        )
-
-
-# Job monitoring and health endpoints
-@router.get("/jobs/health")
-async def get_job_health_metrics(
-    hours: int = Query(
-        default=24, ge=1, le=168, description="Time window in hours for statistics"
-    ),
-    current_user: User = Depends(get_current_user),
-) -> Dict[str, Any]:
-    """Get health metrics and statistics for the presentation job system."""
-
-    try:
-        job_manager = get_job_manager()
-        metrics = job_manager.get_job_health_metrics()
-
-        # Get user-specific metrics
-        user_jobs = job_manager.get_user_jobs(current_user.id, limit=1000)
-        user_stats = {
-            "total_user_jobs": len(user_jobs),
-            "user_pending_jobs": len(
-                [j for j in user_jobs if j.status == JobStatus.PENDING]
-            ),
-            "user_running_jobs": len(
-                [j for j in user_jobs if j.status == JobStatus.RUNNING]
-            ),
-            "user_completed_jobs": len(
-                [j for j in user_jobs if j.status == JobStatus.COMPLETED]
-            ),
-            "user_failed_jobs": len(
-                [j for j in user_jobs if j.status == JobStatus.FAILED]
-            ),
-        }
-
-        # Calculate user-specific rates
-        if user_stats["total_user_jobs"] > 0:
-            user_stats["user_success_rate"] = (
-                user_stats["user_completed_jobs"] / user_stats["total_user_jobs"]
-            ) * 100
-            user_stats["user_failure_rate"] = (
-                user_stats["user_failed_jobs"] / user_stats["total_user_jobs"]
-            ) * 100
-        else:
-            user_stats["user_success_rate"] = 0
-            user_stats["user_failure_rate"] = 0
-
-        metrics.update(user_stats)
-
-        return metrics
-
-    except Exception as e:
-        logger.error(f"Failed to get job health metrics: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve job health metrics: {str(e)}",
-        )
-
-
-@router.get("/jobs/statistics")
-async def get_job_statistics(
-    hours: int = Query(
-        default=24, ge=1, le=168, description="Time window in hours for statistics"
-    ),
-    current_user: User = Depends(get_current_user),
-) -> Dict[str, Any]:
-    """Get detailed job statistics for monitoring and analytics."""
-
-    try:
-        job_manager = get_job_manager()
-        repository = job_manager.job_repository
-
-        # Get comprehensive statistics
-        stats = repository.get_job_statistics(hours=hours)
-
-        # Add performance insights
-        if stats.get("avg_processing_time"):
-            if stats["avg_processing_time"] > 300:  # > 5 minutes
-                stats["performance_warning"] = "Average processing time is high"
-            elif stats["avg_processing_time"] > 120:  # > 2 minutes
-                stats["performance_warning"] = "Average processing time is elevated"
-
-        # Add queue health indicators
-        if stats.get("oldest_pending_job_age_minutes"):
-            if stats["oldest_pending_job_age_minutes"] > 30:
-                stats["queue_warning"] = "Oldest pending job is very old"
-            elif stats["oldest_pending_job_age_minutes"] > 10:
-                stats["queue_warning"] = "Oldest pending job is getting old"
-
-        # Add failure rate alerts
-        if stats.get("failure_rate", 0) > 20:
-            stats["failure_alert"] = "High failure rate detected"
-        elif stats.get("failure_rate", 0) > 10:
-            stats["failure_alert"] = "Elevated failure rate detected"
-
-        return stats
-
-    except Exception as e:
-        logger.error(f"Failed to get job statistics: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve job statistics: {str(e)}",
-        )
-
-
-@router.post("/jobs/system/recovery")
-async def trigger_job_recovery(
-    timeout_minutes: int = Query(
-        default=30,
-        ge=5,
-        le=120,
-        description="Timeout in minutes for orphaned job detection",
-    ),
-    current_user: User = Depends(get_current_user),
-) -> Dict[str, Any]:
-    """Trigger recovery of orphaned jobs (admin or system operation)."""
-
-    # For now, allow any authenticated user to trigger recovery
-    # in production, this might be admin-only
-    try:
-        job_manager = get_job_manager()
-        repository = job_manager.job_repository
-
-        recovered_count = repository.recover_orphaned_jobs(
-            timeout_minutes=timeout_minutes
-        )
-
-        return {
-            "message": "Job recovery completed",
-            "recovered_jobs": recovered_count,
-            "timeout_minutes": timeout_minutes,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-
-    except Exception as e:
-        logger.error(f"Failed to trigger job recovery: {e}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Job recovery failed: {str(e)}",
         )
 
 
@@ -1726,4 +1722,128 @@ async def cleanup_connections(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to cleanup connections",
+        )
+
+
+@router.delete("/{presentation_id}")
+async def delete_presentation(
+    presentation_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, str]:
+    """Delete a presentation and its associated resources."""
+    try:
+        # Validate presentation_id
+        if not presentation_id or not isinstance(presentation_id, str):
+            raise PresentationError.validationFailed("presentation_id", presentation_id)
+
+        # Get the presentation to verify ownership
+        presentation_service = PresentationService()
+        presentation = presentation_service.get_presentation(
+            presentation_id, current_user.id
+        )
+
+        if not presentation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Presentation not found"
+            )
+
+        # Verify user has access to the lesson
+        lesson_repo = LessonRepository()
+        lesson = lesson_repo.get_lesson(presentation.lesson_id)
+
+        if lesson and lesson.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+            )
+
+        # Delete the presentation
+        success = presentation_service.presentation_repo.delete_presentation(
+            presentation_id
+        )
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete presentation",
+            )
+
+        logger.info(f"Presentation {presentation_id} deleted by user {current_user.id}")
+        return {
+            "message": "Presentation deleted successfully",
+            "presentation_id": presentation_id,
+        }
+
+    except HTTPException:
+        raise
+    except PresentationError as e:
+        _log_api_error(
+            e, "delete_presentation", current_user.id, presentation_id=presentation_id
+        )
+        raise _handle_presentation_error(e)
+    except Exception as e:
+        logger.error(f"Unexpected error in delete_presentation: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
+        )
+
+
+@router.delete("/jobs/{job_id}/permanent")
+async def delete_job_permanently(
+    job_id: str,
+    current_user: User = Depends(get_current_user),
+) -> Dict[str, str]:
+    """Permanently delete a presentation generation job.
+
+    This is different from canceling a job - it removes the job record entirely.
+    Only completed, failed, or cancelled jobs can be permanently deleted.
+    """
+    try:
+        # Validate job_id
+        if not job_id or not isinstance(job_id, str):
+            raise PresentationError.validationFailed("job_id", job_id)
+
+        job_manager = get_job_manager()
+        job = job_manager.get_job(job_id)
+
+        if not job:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Job not found"
+            )
+
+        # Verify ownership
+        if job.user_id != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN, detail="Access denied"
+            )
+
+        # Only allow deletion of finished jobs
+        if job.status.value not in ["completed", "failed", "cancelled", "timeout"]:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Only finished jobs (completed, failed, cancelled, timeout) can be permanently deleted",
+            )
+
+        # Delete the job
+        success = job_manager.job_repository.delete_job(job_id)
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Failed to delete job",
+            )
+
+        logger.info(f"Job {job_id} permanently deleted by user {current_user.id}")
+        return {"message": "Job deleted successfully", "job_id": job_id}
+
+    except HTTPException:
+        raise
+    except PresentationError as e:
+        _log_api_error(e, "delete_job_permanently", current_user.id, job_id=job_id)
+        raise _handle_presentation_error(e)
+    except Exception as e:
+        logger.error(f"Unexpected error in delete_job_permanently: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error",
         )

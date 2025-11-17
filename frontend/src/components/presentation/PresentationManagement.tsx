@@ -79,13 +79,19 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
   // Load data on component mount
   useEffect(() => {
     loadJobs();
-    loadPresentations();
     loadHealthMetrics();
 
-    // Set up polling for jobs
-    const interval = setInterval(loadJobs, 5000); // Poll every 5 seconds
+    // Set up polling for jobs - increased to 30 seconds to avoid rate limiting
+    const interval = setInterval(loadJobs, 30000); // Poll every 30 seconds
     return () => clearInterval(interval);
   }, []);
+
+  // Load presentations when jobs change - but only on the Presentations tab
+  useEffect(() => {
+    if (jobs.length > 0 && activeTab === 'presentations') {
+      loadPresentations();
+    }
+  }, [jobs, activeTab]);
 
   const loadJobs = async () => {
     try {
@@ -94,7 +100,12 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
       setError(null);
     } catch (err: any) {
       console.error('Failed to load jobs:', err);
-      setError(err.message || 'Failed to load jobs');
+      // Check if it's a rate limit error
+      if (err.message && err.message.includes('429')) {
+        setError('Rate limit exceeded. Please wait a moment and refresh.');
+      } else {
+        setError(err.message || 'Failed to load jobs');
+      }
     } finally {
       setLoading(false);
     }
@@ -102,9 +113,32 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
 
   const loadPresentations = async () => {
     try {
-      // We'll need to implement this API call
-      // For now, use empty array
-      setPresentations([]);
+      // Get all completed jobs with presentations
+      const completedJobs = jobs.filter(j => j.status === 'completed' && j.presentationId);
+      
+      // Get unique presentation IDs to avoid duplicate fetches
+      const uniquePresentationIds = [...new Set(completedJobs.map(j => j.presentationId))];
+      
+      // Fetch presentation details for each unique ID
+      const presentationPromises = uniquePresentationIds.map(async (presentationId) => {
+        try {
+          const response = await fetch(`/api/presentations/${presentationId}`, {
+            credentials: 'include'
+          });
+          if (response.ok) {
+            return await response.json();
+          }
+          if (response.status === 429) {
+            console.warn('Rate limit reached when fetching presentations');
+          }
+        } catch (err) {
+          console.error(`Failed to fetch presentation ${presentationId}:`, err);
+        }
+        return null;
+      });
+      
+      const presentationDetails = await Promise.all(presentationPromises);
+      setPresentations(presentationDetails.filter(p => p !== null) as Presentation[]);
     } catch (err: any) {
       console.error('Failed to load presentations:', err);
     }
@@ -161,6 +195,51 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
       }
     } catch (err: any) {
       setError(err.message || 'Failed to retry job');
+    }
+  };
+
+  const deleteJob = async (jobId: string) => {
+    if (!confirm('Are you sure you want to permanently delete this job? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/presentations/jobs/${jobId}/permanent`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        loadJobs(); // Refresh jobs list
+      } else {
+        const error = await response.json();
+        setError(error.detail || 'Failed to delete job');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete job');
+    }
+  };
+
+  const deletePresentation = async (presentationId: string) => {
+    if (!confirm('Are you sure you want to delete this presentation? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/presentations/${presentationId}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      });
+
+      if (response.ok) {
+        loadPresentations(); // Refresh presentations list
+        loadJobs(); // Also refresh jobs in case a job pointed to this presentation
+      } else {
+        const error = await response.json();
+        setError(error.detail || 'Failed to delete presentation');
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete presentation');
     }
   };
 
@@ -392,6 +471,19 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
                               </svg>
                             </button>
                           )}
+
+                          {/* Delete button - only show for finished jobs */}
+                          {(job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled') && (
+                            <button
+                              onClick={() => deleteJob(job.jobId)}
+                              className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
+                              title="Delete job"
+                            >
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -406,13 +498,85 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
       {/* Presentations Tab */}
       {activeTab === 'presentations' && (
         <div>
-          <div className="text-center py-12">
-            <svg className="mx-auto h-12 w-12 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-            </svg>
-            <h3 className="mt-4 text-lg font-medium text-ink-800">Presentations Interface</h3>
-            <p className="mt-2 text-ink-600">Presentation viewing and management will be implemented here.</p>
-          </div>
+          {presentations.length === 0 ? (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+              <h3 className="mt-4 text-lg font-medium text-ink-800">No presentations yet</h3>
+              <p className="mt-2 text-ink-600">Generate presentations from your lessons to see them here.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {presentations.map((presentation) => (
+                <div key={presentation.id} className="workspace-card shadow rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                  <div className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="text-lg font-semibold text-ink-800 truncate">
+                          {presentation.title || 'Untitled Presentation'}
+                        </h3>
+                        <p className="text-sm text-ink-600 mt-1">
+                          {presentation.slideCount} slides • {presentation.totalDurationMinutes || 0} min
+                        </p>
+                      </div>
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        presentation.status === 'complete' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {presentation.status}
+                      </span>
+                    </div>
+                    
+                    {presentation.description && (
+                      <p className="text-sm text-ink-600 mb-4 line-clamp-2">{presentation.description}</p>
+                    )}
+                    
+                    <div className="flex items-center justify-between text-xs text-ink-500 mb-4">
+                      <span>Lesson: {presentation.lessonId.substring(0, 8)}...</span>
+                      <span>v{presentation.version}</span>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          if (onViewPresentation) {
+                            onViewPresentation(presentation.id);
+                          } else {
+                            window.location.href = `/presentations/${presentation.id}`;
+                          }
+                        }}
+                        className="flex-1 px-4 py-2 bg-ink-600 text-parchment-100 rounded hover:bg-ink-700 transition-colors text-sm font-medium"
+                      >
+                        View
+                      </button>
+                      {presentation.hasExports && (
+                        <button
+                          onClick={() => window.open(`/api/presentations/${presentation.id}/export?format=pptx`, '_blank')}
+                          className="px-4 py-2 border border-ink-300 text-ink-700 rounded hover:bg-ink-50 transition-colors text-sm font-medium"
+                          title="Download PPTX"
+                        >
+                          ⬇️
+                        </button>
+                      )}
+                      <button
+                        onClick={() => deletePresentation(presentation.id)}
+                        className="px-4 py-2 border border-red-300 text-red-700 rounded hover:bg-red-50 transition-colors text-sm font-medium"
+                        title="Delete presentation"
+                      >
+                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    <div className="mt-4 pt-4 border-t border-ink-200 text-xs text-ink-500">
+                      Created {new Date(presentation.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
