@@ -235,3 +235,42 @@ class DraftResponse(CamelModel):
 
     class Config:
         from_attributes = True
+
+
+# Dashboard Aggregation Models
+class DashboardDraftSection(CamelModel):
+    """Draft section in dashboard response"""
+
+    total: int
+    items: List[DraftResponse] = Field(default_factory=list)
+    latest: Optional[DraftResponse] = None
+
+
+class DashboardPresentationSummary(CamelModel):
+    """Presentation summary for dashboard"""
+
+    id: str
+    lesson_id: str
+    status: str
+    created_at: str
+    updated_at: Optional[str] = None
+
+
+class DashboardStats(CamelModel):
+    """Quick statistics for dashboard"""
+
+    lessons_created: int = 0
+    active_drafts: int = 0
+    total_presentations: int = 0
+    total_sessions: int = 0
+
+
+class WorkspaceDashboardResponse(CamelModel):
+    """Consolidated workspace dashboard response"""
+
+    generated_at: str
+    includes: List[str] = Field(default_factory=list)
+    sessions: Optional[List[SessionResponse]] = None
+    drafts: Optional[DashboardDraftSection] = None
+    presentations: Optional[List[DashboardPresentationSummary]] = None
+    stats: Optional[DashboardStats] = None

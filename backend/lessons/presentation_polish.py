@@ -86,8 +86,16 @@ class PresentationPolishService:
                 )
 
                 # Parse and validate the response
+                # Handle both ChatResponse object and dictionary (defensive coding)
+                response_content = (
+                    response.content
+                    if hasattr(response, "content")
+                    else response.get("content", "")
+                    if isinstance(response, dict)
+                    else str(response)
+                )
                 polished_slides = self._parse_llm_response(
-                    response.content, scaffold_slides
+                    response_content, scaffold_slides
                 )
 
                 if polished_slides:

@@ -1330,7 +1330,13 @@ Refined Lesson Plan:"""
                     max_tokens=6000,  # Use same high limit as lesson generation
                 )
 
-                refined_lesson = response.content.strip()
+                # Handle both ChatResponse object and dictionary (defensive coding)
+                if hasattr(response, "content"):
+                    refined_lesson = response.content.strip()
+                elif isinstance(response, dict):
+                    refined_lesson = response.get("content", "").strip()
+                else:
+                    refined_lesson = str(response).strip()
 
                 # Update stored lesson
                 self.lesson_requirements["generated_lesson"] = refined_lesson
