@@ -63,3 +63,12 @@ temp/
 frontend/node_modules/.vite/
 frontend/.vite/
 frontend/dist/
+frontend/node_modules/@types/
+frontend/node_modules/fsevents/
+frontend/node_modules/undici-types/
+
+# Generated presentation files
+presentation_*.pdf
+presentation_*.pptx
+backend/presentation_*.pdf
+backend/presentation_*.pptx
