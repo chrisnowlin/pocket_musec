@@ -18,8 +18,8 @@ export interface EmbeddingGenerateResponse {
 
 export interface SemanticSearchRequest {
   query: string;
-  grade_level?: string;
-  strand_code?: string;
+  gradeLevel?: string;
+  strandCode?: string;
   limit?: number;
   threshold?: number;
   offset?: number;
@@ -27,9 +27,9 @@ export interface SemanticSearchRequest {
 
 export interface SemanticSearchResult {
   standard_id: string;
-  grade_level: string;
-  strand_code: string;
-  strand_name: string;
+  gradeLevel: string;
+  strandCode: string;
+  strandName: string;
   standard_text: string;
   similarity: number;
 }
@@ -222,8 +222,8 @@ class EmbeddingsService {
         },
         body: JSON.stringify({
           query: request.query,
-          grade_level: request.grade_level,
-          strand_code: request.strand_code,
+          grade_level: request.gradeLevel,
+          strand_code: request.strandCode,
           limit: request.limit || 10,
           threshold: request.threshold || 0.5,
           offset: request.offset || 0,

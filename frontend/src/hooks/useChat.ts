@@ -3,6 +3,7 @@ import api from '../lib/api';
 import type { ChatMessage, ChatSender } from '../types/unified';
 import type { SessionResponsePayload, ChatResponsePayload } from '../lib/types';
 import { useConversationStore, buildWelcomeMessage } from '../stores/conversationStore';
+import { parseEventStream } from '../lib/streaming';
 
 interface UseChatProps {
   session: SessionResponsePayload | null;
@@ -85,51 +86,34 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
           throw new Error('Streaming is unavailable.');
         }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let buffer = '';
         let isPersisted = false;
 
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
-          buffer += decoder.decode(value, { stream: true });
-
-          let boundary = buffer.indexOf('\n\n');
-          while (boundary !== -1) {
-            const chunk = buffer.slice(0, boundary);
-            buffer = buffer.slice(boundary + 2);
-            if (chunk.startsWith('data:')) {
-              const payload = chunk.replace(/^data:\s*/, '');
-              if (payload && payload !== '[DONE]') {
-                try {
-                  const event = JSON.parse(payload);
-                  if (event.type === 'persisted') {
-                    // Backend confirmed conversation was saved
-                    isPersisted = event.session_updated;
-                    if (!isPersisted) {
-                      console.warn('Conversation save had issues:', event.message);
-                    }
-                  } else if (event.type === 'delta' && event.text) {
-                    updateMessageText(aiMessageId, (current) => `${current} ${event.text}`.trim());
-                  } else if (event.type === 'status' && event.message) {
-                    updateMessageText(aiMessageId, () => event.message);
-                  } else if (event.type === 'complete') {
-                    const payloadData = event.payload as ChatResponsePayload;
-                    updateMessageText(aiMessageId, () => payloadData.response);
-                    
-                    if (onComplete) {
-                      onComplete(payloadData.session);
-                    }
-                  }
-                } catch (err) {
-                  console.error('Failed to parse stream event', err);
-                }
-              }
+        await parseEventStream(response, {
+          onDelta: (text: string) => {
+            updateMessageText(aiMessageId, (current) => `${current} ${text}`.trim());
+          },
+          onStatus: (message: string) => {
+            updateMessageText(aiMessageId, () => message);
+          },
+          onPersisted: (sessionUpdated: boolean, message: string) => {
+            isPersisted = sessionUpdated;
+            if (!sessionUpdated) {
+              console.warn('Conversation save had issues:', message);
             }
-            boundary = buffer.indexOf('\n\n');
+          },
+          onComplete: (payload: any) => {
+            updateMessageText(aiMessageId, () => payload.response);
+
+            if (onComplete) {
+              onComplete(payload.session);
+            }
+          },
+          onError: (errorMessage: string, errorCode?: string, retryRecommended?: boolean) => {
+            console.error('Streaming error:', errorMessage, 'Code:', errorCode);
+            setChatError(errorMessage);
+            updateMessageText(aiMessageId, () => 'Sorry, I could not generate a response.');
           }
-        }
+        });
 
         // If we never got a persisted confirmation, mark as error
         if (!isPersisted) {
@@ -183,11 +167,11 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
 
   const loadConversationMessages = useCallback(async (sessionData: SessionResponsePayload) => {
     // Skip if same session was already loaded
-    if (lastLoadedSessionRef.current === sessionData.id && messages.length > 1) {
+    if (lastLoadedSessionRef.current === sessionData.id && (messages?.length || 0) > 1) {
       return;
     }
 
-    if (!sessionData.conversation_history) {
+    if (!sessionData.conversationHistory) {
       resetMessages();
       lastLoadedSessionRef.current = sessionData.id;
       return;
@@ -195,7 +179,7 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
 
     setIsLoadingConversation(true);
     try {
-      const conversationHistory = JSON.parse(sessionData.conversation_history);
+      const conversationHistory = JSON.parse(sessionData.conversationHistory);
       
       // Start with welcome message
       const restoredMessages: ChatMessage[] = [buildWelcomeMessage()];
@@ -241,7 +225,7 @@ export function useChat({ session, lessonDuration, classSize }: UseChatProps) {
     } finally {
       setIsLoadingConversation(false);
     }
-  }, [resetMessages, generateMessageId, messages.length]);
+  }, [resetMessages, generateMessageId, messages?.length || 0]);
 
   // Load conversation messages when session changes
   useEffect(() => {

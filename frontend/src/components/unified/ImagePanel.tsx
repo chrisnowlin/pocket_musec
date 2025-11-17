@@ -59,7 +59,7 @@ export default function ImagePanel({
 
   const educationLevels = useMemo(() => {
     const levels = [...new Set(images
-      .map(img => img.classification?.education_level)
+      .map(img => img.classification?.educationLevel)
       .filter(Boolean)
     )];
     return levels.sort();
@@ -67,7 +67,7 @@ export default function ImagePanel({
 
   const difficultyLevels = useMemo(() => {
     const levels = [...new Set(images
-      .map(img => img.classification?.difficulty_level)
+      .map(img => img.classification?.difficultyLevel)
       .filter(Boolean)
     )];
     return levels.sort();
@@ -154,12 +154,12 @@ export default function ImagePanel({
             <div className="space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-ink-600">Images:</span>
-                <span className="font-medium text-ink-800">{storageInfo.image_count}</span>
+                <span className="font-medium text-ink-800">{storageInfo.imageCount}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-ink-600">Storage:</span>
                 <span className="font-medium text-ink-800">
-                  {storageInfo.usage_mb.toFixed(2)} MB / {storageInfo.limit_mb} MB
+                  {storageInfo.usageMb.toFixed(2)} MB / {storageInfo.limitMb} MB
                 </span>
               </div>
               <div className="w-full bg-parchment-200 rounded-full h-2.5">
@@ -272,10 +272,10 @@ export default function ImagePanel({
                       </button>
                     </div>
                     <p className="text-sm text-ink-600">
-                      {new Date(image.uploaded_at).toLocaleDateString()}
+                      {new Date(image.uploadedAt).toLocaleDateString()}
                     </p>
-                    {image.ocr_text && (
-                      <p className="text-sm text-ink-700 mt-2 line-clamp-2">{image.ocr_text}</p>
+                    {image.ocrText && (
+                      <p className="text-sm text-ink-700 mt-2 line-clamp-2">{image.ocrText}</p>
                     )}
                     {image.classification && (
                       <div className="mt-3">

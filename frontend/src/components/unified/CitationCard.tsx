@@ -26,8 +26,8 @@ export default function CitationCard({
   const [isExpanded, setIsExpanded] = useState(false);
   
   const handleDownload = () => {
-    if (onDownload && citation.file_metadata && citation.can_download) {
-      onDownload(citation.file_metadata.file_id, citation.file_metadata.original_filename);
+    if (onDownload && citation.fileMetadata && citation.canDownload) {
+      onDownload(citation.fileMetadata.fileId, citation.fileMetadata.originalFilename);
     }
   };
 
@@ -43,12 +43,12 @@ export default function CitationCard({
     return (
       <div className="inline-flex items-center gap-1 px-2 py-1 bg-ink-100 rounded-md text-xs">
         <span>{icon}</span>
-        <span className="font-medium text-ink-700">[{citation.citation_number}]</span>
-        <span className="text-ink-600">{citation.source_title}</span>
-        {citation.file_metadata && (
+        <span className="font-medium text-ink-700">[{citation.citationNumber}]</span>
+        <span className="text-ink-600">{citation.sourceTitle}</span>
+        {citation.fileMetadata && (
           <button
             onClick={handleDownload}
-            disabled={!citation.can_download || isDownloading}
+            disabled={!citation.canDownload || isDownloading}
             className="ml-1 text-ink-500 hover:text-ink-700 disabled:opacity-50 disabled:cursor-not-allowed"
             title="Download source file"
           >
@@ -69,18 +69,18 @@ export default function CitationCard({
           <span className="text-lg">{icon}</span>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-ink-800">[{citation.citation_number}]</span>
+              <span className="font-semibold text-ink-800">[{citation.citationNumber}]</span>
               <span className="text-sm text-ink-600 bg-ink-100 px-2 py-0.5 rounded">
                 {typeLabel}
               </span>
             </div>
-            <h4 className="font-medium text-ink-900 mt-1">{citation.source_title}</h4>
+            <h4 className="font-medium text-ink-900 mt-1">{citation.sourceTitle}</h4>
           </div>
         </div>
         
         {/* Actions */}
         <div className="flex items-center gap-1">
-          {citation.file_metadata && citation.can_download && (
+          {citation.fileMetadata && citation.canDownload && (
             <button
               onClick={handleDownload}
               disabled={isDownloading}
@@ -99,7 +99,7 @@ export default function CitationCard({
             </button>
           )}
           
-          {(citation.page_number || citation.excerpt || citation.file_metadata) && (
+          {(citation.pageNumber || citation.excerpt || citation.fileMetadata) && (
             <button
               onClick={handleToggleExpand}
               className="p-1.5 text-ink-600 hover:text-ink-800 hover:bg-ink-100 rounded transition-colors"
@@ -114,29 +114,29 @@ export default function CitationCard({
       </div>
 
       {/* Citation text */}
-      {citation.citation_text && (
-        <p className="text-sm text-ink-700 mb-2 italic">{citation.citation_text}</p>
+      {citation.citationText && (
+        <p className="text-sm text-ink-700 mb-2 italic">{citation.citationText}</p>
       )}
 
       {/* Expanded details */}
       {isExpanded && (
         <div className="space-y-2 pt-2 border-t border-ink-200">
           {/* File information */}
-          {citation.file_metadata && (
+          {citation.fileMetadata && (
             <div className="text-sm">
               <div className="font-medium text-ink-800 mb-1">Source File:</div>
               <div className="grid grid-cols-1 gap-1 text-ink-600">
-                <div>• Filename: {citation.file_metadata.original_filename}</div>
-                <div>• Size: {formatFileSize(citation.file_metadata.file_size)}</div>
-                <div>• Type: {citation.file_metadata.mime_type}</div>
-                {citation.file_metadata.document_type && (
-                  <div>• Document Type: {citation.file_metadata.document_type}</div>
+                <div>• Filename: {citation.fileMetadata.originalFilename}</div>
+                <div>• Size: {formatFileSize(citation.fileMetadata.fileSize)}</div>
+                <div>• Type: {citation.fileMetadata.mimeType}</div>
+                {citation.fileMetadata.documentType && (
+                  <div>• Document Type: {citation.fileMetadata.documentType}</div>
                 )}
-                <div>• Uploaded: {formatDate(citation.file_metadata.created_at)}</div>
-                {citation.relative_time && (
-                  <div>• {citation.relative_time}</div>
+                <div>• Uploaded: {formatDate(citation.fileMetadata.createdAt)}</div>
+                {citation.relativeTime && (
+                  <div>• {citation.relativeTime}</div>
                 )}
-                {!citation.is_file_available && (
+                {!citation.isFileAvailable && (
                   <div className="text-orange-600">• File unavailable for download</div>
                 )}
               </div>
@@ -144,10 +144,10 @@ export default function CitationCard({
           )}
 
           {/* Page number */}
-          {citation.page_number && (
+          {citation.pageNumber && (
             <div className="text-sm">
               <span className="font-medium text-ink-800">Page:</span>
-              <span className="text-ink-600 ml-1">{citation.page_number}</span>
+              <span className="text-ink-600 ml-1">{citation.pageNumber}</span>
             </div>
           )}
 
@@ -162,7 +162,7 @@ export default function CitationCard({
           )}
 
           {/* Availability status */}
-          {!citation.file_metadata && (
+          {!citation.fileMetadata && (
             <div className="text-sm text-ink-500 italic">
               Source file information not available
             </div>
@@ -172,8 +172,8 @@ export default function CitationCard({
 
       {/* Status indicators */}
       <div className="flex items-center gap-2 mt-2">
-        {citation.file_metadata ? (
-          citation.is_file_available ? (
+        {citation.fileMetadata ? (
+          citation.isFileAvailable ? (
             <span className="inline-flex items-center gap-1 text-xs text-green-700">
               <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

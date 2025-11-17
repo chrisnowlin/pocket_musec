@@ -53,21 +53,21 @@ export default function ClassificationBadge({ classification }: ClassificationBa
       </div>
 
       {/* Education Level */}
-      {classification.education_level && (
+      {classification.educationLevel && (
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-ink-600">Level:</span>
-          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getEducationColor(classification.education_level)}`}>
-            {classification.education_level.replace('_', ' ')}
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getEducationColor(classification.educationLevel)}`}>
+            {classification.educationLevel.replace('_', ' ')}
           </span>
         </div>
       )}
 
       {/* Difficulty Level */}
-      {classification.difficulty_level && (
+      {classification.difficultyLevel && (
         <div className="flex items-center gap-2">
           <span className="text-xs font-medium text-ink-600">Difficulty:</span>
-          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(classification.difficulty_level)}`}>
-            {classification.difficulty_level}
+          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getDifficultyColor(classification.difficultyLevel)}`}>
+            {classification.difficultyLevel}
           </span>
         </div>
       )}
@@ -91,19 +91,19 @@ export default function ClassificationBadge({ classification }: ClassificationBa
       )}
 
       {/* Musical Metadata */}
-      {classification.musical_metadata && (
+      {classification.musicalMetadata && (
         <div className="text-xs text-ink-600 space-y-1">
-          {classification.musical_metadata.key_signature && (
-            <div>Key: {classification.musical_metadata.key_signature}</div>
+          {classification.musicalMetadata.keySignature && (
+            <div>Key: {classification.musicalMetadata.keySignature}</div>
           )}
-          {classification.musical_metadata.time_signature && (
-            <div>Time: {classification.musical_metadata.time_signature}</div>
+          {classification.musicalMetadata.timeSignature && (
+            <div>Time: {classification.musicalMetadata.timeSignature}</div>
           )}
-          {classification.musical_metadata.tempo && (
-            <div>Tempo: {classification.musical_metadata.tempo}</div>
+          {classification.musicalMetadata.tempo && (
+            <div>Tempo: {classification.musicalMetadata.tempo}</div>
           )}
-          {classification.musical_metadata.instruments && classification.musical_metadata.instruments.length > 0 && (
-            <div>Instruments: {classification.musical_metadata.instruments.join(', ')}</div>
+          {classification.musicalMetadata.instruments && classification.musicalMetadata.instruments.length > 0 && (
+            <div>Instruments: {classification.musicalMetadata.instruments.join(', ')}</div>
           )}
         </div>
       )}

@@ -74,8 +74,7 @@ export function usePresentations() {
       setIsGenerating(true);
       setError(null);
       try {
-        const payload = {
-          lesson_id: lessonId,
+        const payload = { lessonId: lessonId,
           style: options?.style ?? 'default',
           use_llm_polish: options?.use_llm_polish ?? true,
           timeout_seconds: options?.timeout_seconds ?? 30,

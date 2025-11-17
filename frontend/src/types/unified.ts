@@ -18,12 +18,12 @@ export interface ChatMessage {
 export interface ImageClassification {
   category: string;
   confidence: number;
-  education_level?: string;
-  difficulty_level?: string;
+  educationLevel?: string;
+  difficultyLevel?: string;
   tags?: string[];
-  musical_metadata?: {
-    key_signature?: string;
-    time_signature?: string;
+  musicalMetadata?: {
+    keySignature?: string;
+    timeSignature?: string;
     tempo?: string;
     instruments?: string[];
     elements?: string[];
@@ -33,19 +33,19 @@ export interface ImageClassification {
 export interface ImageData {
   id: string;
   filename: string;
-  uploaded_at: string;
-  ocr_text?: string | null;
-  vision_analysis?: string | null;
-  file_size: number;
-  mime_type: string;
+  uploadedAt: string;
+  ocrText?: string | null;
+  visionAnalysis?: string | null;
+  fileSize: number;
+  mimeType: string;
   classification?: ImageClassification | null;
 }
 
 export interface StorageInfo {
-  image_count: number;
-  usage_mb: number;
-  limit_mb: number;
-  available_mb: number;
+  imageCount: number;
+  usageMb: number;
+  limitMb: number;
+  availableMb: number;
   percentage: number;
 }
 
@@ -84,7 +84,7 @@ export interface DraftItem {
   content: string;
   originalContent?: string;
   metadata?: {
-    lesson_document?: LessonDocumentM2;
+    lessonDocument?: LessonDocumentM2;
     [key: string]: unknown;
   };
   grade?: string;
@@ -129,16 +129,16 @@ export type ExportFormat = 'markdown' | 'pdf' | 'docx';
 // Presentation preview types
 export interface SlidePreview {
   title: string;
-  key_points: string[];
-  estimated_duration_seconds: number;
+  keyPoints: string[];
+  estimatedDurationSeconds: number;
 }
 
 export interface PresentationPreview {
-  presentation_id: string;
-  generated_at: string; // ISO timestamp
+  presentationId: string;
+  generatedAt: string; // ISO timestamp
   slides: SlidePreview[];
-  total_estimated_duration_seconds: number;
-  style_id?: string;
+  totalEstimatedDurationSeconds: number;
+  styleId?: string;
 }
 
 export interface ExportModalProps {

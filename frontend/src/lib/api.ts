@@ -59,6 +59,26 @@ export interface ChatMessagePayload {
   class_size?: string
 }
 
+export interface DashboardDraftSection {
+  total: number
+  items: DraftItem[]
+  latest?: DraftItem | null
+}
+
+export interface DashboardStats {
+  lessonsCreated: number
+  activeDrafts: number
+}
+
+export interface WorkspaceDashboardPayload {
+  generatedAt: string
+  includes: string[]
+  sessions?: SessionResponsePayload[]
+  drafts?: DashboardDraftSection
+  presentations?: Record<string, any>[]
+  stats?: DashboardStats
+}
+
 export const API_BASE_URL = (window as any).API_BASE_URL || (import.meta.env?.VITE_API_BASE_URL as string) || DEFAULT_API_BASE
 
 const createApiClient = (): AxiosInstance => {
@@ -225,7 +245,7 @@ const api = {
     return apiClient.get(url);
   },
   getPresentation: (presentationId: string) => apiClient.get(`/presentations/${presentationId}`),
-  generatePresentation: (payload: { lesson_id: string; options?: any }) =>
+  generatePresentation: (payload: { lessonId: string; options?: any }) =>
     apiClient.post('/presentations/generate', payload),
   getPresentationStatus: (presentationId: string) => 
     apiClient.get(`/presentations/${presentationId}/status`),
@@ -235,6 +255,10 @@ const api = {
     apiClient.post(`/presentations/${presentationId}/export`, { format }),
   refreshPresentation: (presentationId: string) =>
     apiClient.post(`/presentations/${presentationId}/refresh`),
+  getWorkspaceDashboard: (sections?: string[]) => {
+    const params = sections && sections.length > 0 ? { include: sections.join(',') } : undefined;
+    return apiClient.get<WorkspaceDashboardPayload>('/workspace/dashboard', { params });
+  },
 }
 
 export default api

@@ -6,32 +6,6 @@ import type { ConversationGroup, ConversationItem } from '../types/unified';
 import { frontendToBackendGrade, frontendToBackendStrand } from '../lib/gradeUtils';
 import { useConversationStore } from '../stores/conversationStore';
 
-// Helper function to transform API response from snake_case to camelCase
-const transformStandard = (standard: any): StandardRecord => {
-  return {
-    ...standard,
-    learningObjectives: standard.learning_objectives || standard.learningObjectives || [],
-  };
-};
-
-// Helper function to transform session's selected_standards if present
-const transformSession = (session: any): SessionResponsePayload => {
-  if (session.selected_standards && Array.isArray(session.selected_standards)) {
-    session.selected_standards = session.selected_standards.map(transformStandard);
-  }
-  // Handle backward compatibility for old single standard format
-  else if (session.selected_standard) {
-    session.selected_standards = [transformStandard(session.selected_standard)];
-    delete session.selected_standard;
-  }
-  // Handle backward compatibility for old single objectives format
-  if (session.selected_objectives && typeof session.selected_objectives === 'string') {
-    // Convert comma-separated string to array
-    session.selected_objectives = session.selected_objectives.split(',').filter((obj: string) => obj.trim());
-  }
-  return session;
-};
-
 export function useSession() {
   const session = useConversationStore((state) => state.session);
   const setSession = useConversationStore((state) => state.setSession);
@@ -89,9 +63,7 @@ export function useSession() {
       const result = await api.listStandards(params);
 
       if (result.ok && requestId === standardsRequestRef.current) {
-        // Transform API response from snake_case to camelCase
-        const payload = result.data.map(transformStandard);
-        setStandards(payload);
+        setStandards(result.data);
       }
     } catch (err) {
       console.error('Failed to load standards', err);
@@ -111,9 +83,8 @@ export function useSession() {
       selectedModel?: string | null
     ) => {
       try {
-        const payload: any = {
-          grade_level: defaultGrade,
-          strand_code: defaultStrand,
+        const payload: any = { gradeLevel: frontendToBackendGrade(defaultGrade),
+          strand_code: frontendToBackendStrand(defaultStrand),
         };
         
         // Combine primary standard and additional standards into a single array
@@ -124,11 +95,11 @@ export function useSession() {
         }
         
         if (additionalContext) {
-          payload.additional_context = additionalContext;
+          payload.additionalContext = additionalContext;
         }
         
         if (selectedObjectives && selectedObjectives.length > 0) {
-          payload.selected_objectives = selectedObjectives;
+          payload.selectedObjectives = selectedObjectives;
         }
         
         if (additionalStandards && additionalStandards.length > 0) {
@@ -136,20 +107,20 @@ export function useSession() {
         }
         
         if (selectedModel) {
-          payload.selected_model = selectedModel;
+          payload.selectedModel = selectedModel;
         }
         
         const result = await api.createSession(payload);
 
         if (result.ok) {
-          const transformedSession = transformSession(result.data);
-          setSession(transformedSession);
+          const sessionPayload = result.data;
+          setSession(sessionPayload);
           setSessionError(null);
           await loadStandards(
-            transformedSession.grade_level ?? defaultGrade,
-            transformedSession.strand_code ?? defaultStrand
+            sessionPayload.gradeLevel ?? defaultGrade,
+            sessionPayload.strandCode ?? defaultStrand
           );
-          return transformedSession;
+          return sessionPayload;
         } else {
           setSessionError(result.message || 'Unable to start a session');
           return null;
@@ -170,22 +141,21 @@ export function useSession() {
       setRetryMessage('');
       
       try {
-        const result = await api.createSession({
-          grade_level: defaultGrade,
-          strand_code: defaultStrand,
+        const result = await api.createSession({ grade_level: frontendToBackendGrade(defaultGrade),
+          strand_code: frontendToBackendStrand(defaultStrand),
         });
 
         if (result.ok) {
-          const transformedSession = transformSession(result.data);
-          setSession(transformedSession);
+          const sessionPayload = result.data;
+          setSession(sessionPayload);
           setSessionError(null);
           setRetrySuccess(true);
           setRetryMessage('Session successfully re-established!');
           await loadStandards(
-            transformedSession.grade_level ?? defaultGrade,
-            transformedSession.strand_code ?? defaultStrand
+            sessionPayload.gradeLevel ?? defaultGrade,
+            sessionPayload.strandCode ?? defaultStrand
           );
-          return transformedSession;
+          return sessionPayload;
         } else {
           setSessionError(result.message || 'Unable to retry session');
           setRetrySuccess(false);
@@ -223,17 +193,16 @@ export function useSession() {
     try {
       const result = await api.getSession(sessionId);
       if (result.ok) {
-        // Transform selected_standard if present
-        const transformedSession = transformSession(result.data);
-        setSession(transformedSession);
+        const sessionPayload = result.data;
+        setSession(sessionPayload);
         setSessionError(null);
         
         // Load standards for the session's grade and strand
-        if (transformedSession.grade_level && transformedSession.strand_code) {
-          await loadStandards(transformedSession.grade_level, transformedSession.strand_code);
+        if (sessionPayload.gradeLevel && sessionPayload.strandCode) {
+          await loadStandards(sessionPayload.gradeLevel, sessionPayload.strandCode);
         }
         
-        return transformedSession;
+        return sessionPayload;
       } else {
         console.error('Failed to load conversation:', result.message);
         return null;
@@ -265,19 +234,19 @@ export function useSession() {
         return isNaN(date.getTime()) ? new Date() : date;
       };
       
-      let updatedDate = parseIsoDate(sessionItem.updated_at || '');
-      if (!sessionItem.updated_at) {
+      let updatedDate = parseIsoDate(sessionItem.updatedAt || '');
+      if (!sessionItem.updatedAt) {
         // If no updated_at, use created_at
-        updatedDate = parseIsoDate(sessionItem.created_at || '');
+        updatedDate = parseIsoDate(sessionItem.createdAt || '');
       }
       
-      let createdDate = parseIsoDate(sessionItem.created_at || '');
+      let createdDate = parseIsoDate(sessionItem.createdAt || '');
       
       // Count messages from conversation history if available
       let messageCount = 0;
-      if (sessionItem.conversation_history) {
+      if (sessionItem.conversationHistory) {
         try {
-          const history = JSON.parse(sessionItem.conversation_history);
+          const history = JSON.parse(sessionItem.conversationHistory);
           messageCount = history.length;
         } catch (e) {
           // If parsing fails, just show default
@@ -287,21 +256,21 @@ export function useSession() {
       // Generate a more descriptive title based on available context
       let title = 'New Conversation';
       
-      if (sessionItem.grade_level) {
-        if (sessionItem.strand_code && sessionItem.strand_code !== 'All Strands') {
-          title = `${sessionItem.grade_level} · ${sessionItem.strand_code}`;
+      if (sessionItem.gradeLevel) {
+        if (sessionItem.strandCode && sessionItem.strandCode !== 'All Strands') {
+          title = `${sessionItem.gradeLevel} · ${sessionItem.strandCode}`;
         } else {
-          title = sessionItem.grade_level;
+          title = sessionItem.gradeLevel;
         }
       }
       
       // Add standard info if available
-      if (sessionItem.selected_standards && sessionItem.selected_standards.length > 0) {
-        title += ` · ${sessionItem.selected_standards[0].code}`;
+      if (sessionItem.selectedStandards && sessionItem.selectedStandards.length > 0 && sessionItem.selectedStandards[0]) {
+        title += ` · ${sessionItem.selectedStandards[0].code}`;
       }
       
       // Add context indicator if there's additional context
-      if (sessionItem.additional_context && sessionItem.additional_context.trim()) {
+      if (sessionItem.additionalContext && sessionItem.additionalContext.trim()) {
         title += ' 📝';
       }
       
@@ -310,11 +279,11 @@ export function useSession() {
         title: title,
         hint: formatTimeAgo(updatedDate, messageCount),
         active: session?.id === sessionItem.id,
-        grade: sessionItem.grade_level || undefined,
-        strand: sessionItem.strand_code || undefined,
-        standard: sessionItem.selected_standards?.[0]?.code,
-        createdAt: sessionItem.created_at || undefined,
-        updatedAt: sessionItem.updated_at || undefined,
+        grade: sessionItem.gradeLevel || undefined,
+        strand: sessionItem.strandCode || undefined,
+        standard: sessionItem.selectedStandards?.[0]?.code,
+        createdAt: sessionItem.createdAt || undefined,
+        updatedAt: sessionItem.updatedAt || undefined,
       };
 
       if (createdDate.toDateString() === today) {
@@ -392,9 +361,8 @@ export function useSession() {
       try {
         // If we already have the updated session from the API response, use it directly
         if (updatedSession) {
-          const transformedSession = transformSession(updatedSession);
-          setSession(transformedSession);
-          return transformedSession;
+          setSession(updatedSession);
+          return updatedSession;
         }
 
         // Otherwise, make an API call to update and get the session
@@ -403,9 +371,8 @@ export function useSession() {
         });
 
         if (result.ok) {
-          const transformedSession = transformSession(result.data);
-          setSession(transformedSession);
-          return transformedSession;
+          setSession(result.data);
+          return result.data;
         } else {
           console.error('Failed to update model:', result.message);
           return null;

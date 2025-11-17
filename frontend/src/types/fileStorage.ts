@@ -1,16 +1,16 @@
 export interface FileMetadata {
   id: string;
-  file_id: string;
-  original_filename: string;
-  file_hash: string;
-  file_size: number;
-  mime_type: string;
-  document_type?: string;
+  fileId: string;
+  originalFilename: string;
+  fileHash: string;
+  fileSize: number;
+  mimeType: string;
+  documentType?: string;
   confidence?: number;
-  ingestion_status: 'uploaded' | 'processing' | 'completed' | 'error';
-  created_at: string;
-  updated_at: string;
-  error_message?: string;
+  ingestionStatus: 'uploaded' | 'processing' | 'completed' | 'error';
+  createdAt: string;
+  updatedAt: string;
+  errorMessage?: string;
   metadata?: Record<string, any>;
 }
 
@@ -26,42 +26,42 @@ export interface FileStorageResponse {
   };
   duplicate?: boolean;
   message?: string;
-  existing_file?: {
+  existingFile?: {
     id: string;
     filename: string;
-    upload_date: string;
+    uploadDate: string;
     status: string;
   };
   error?: string;
 }
 
 export interface FileStats {
-  total_files: number;
-  total_bytes: number;
-  total_mb: number;
-  completed_files: number;
-  processing_files: number;
-  error_files: number;
-  uploaded_files: number;
-  files_by_type: Record<string, number>;
+  totalFiles: number;
+  totalBytes: number;
+  totalMb: number;
+  completedFiles: number;
+  processingFiles: number;
+  errorFiles: number;
+  uploadedFiles: number;
+  filesByType: Record<string, number>;
 }
 
 export interface StorageStats {
-  total_files: number;
-  total_bytes: number;
-  total_bytes_mb: number;
-  file_counts_by_extension: Record<string, number>;
-  storage_root: string;
+  totalFiles: number;
+  totalBytes: number;
+  totalBytesMb: number;
+  fileCountsByExtension: Record<string, number>;
+  storageRoot: string;
   error?: string;
 }
 
 export interface DuplicateFileWarning {
   duplicate: boolean;
   message: string;
-  existing_file: {
+  existingFile: {
     id: string;
     filename: string;
-    upload_date: string;
+    uploadDate: string;
     status: string;
   };
 }
@@ -133,52 +133,52 @@ export function formatDate(dateString: string): string {
 // Citation-related types
 export interface Citation {
   id: string;
-  lesson_id: string;
-  source_type: 'standard' | 'objective' | 'document' | 'image';
-  source_id: string;
-  source_title: string;
-  page_number?: number;
+  lessonId: string;
+  sourceType: 'standard' | 'objective' | 'document' | 'image';
+  sourceId: string;
+  sourceTitle: string;
+  pageNumber?: number;
   excerpt?: string;
-  citation_text: string;
-  citation_number: number;
-  file_id?: string;
-  created_at?: string;
+  citationText: string;
+  citationNumber: number;
+  fileId?: string;
+  createdAt?: string;
 }
 
 export interface FileCitation {
   citation: Citation;
-  file_metadata?: FileMetadata;
-  is_file_available: boolean;
-  download_url?: string;
+  fileMetadata?: FileMetadata;
+  isFileAvailable: boolean;
+  downloadUrl?: string;
 }
 
 export interface EnhancedCitation {
   id: string;
-  citation_number: number;
-  source_title: string;
-  source_type: string;
-  file_metadata?: {
+  citationNumber: number;
+  sourceTitle: string;
+  sourceType: string;
+  fileMetadata?: {
     id: string;
-    file_id: string;
-    original_filename: string;
-    file_size: number;
-    mime_type: string;
-    created_at: string;
-    document_type?: string;
+    fileId: string;
+    originalFilename: string;
+    fileSize: number;
+    mimeType: string;
+    createdAt: string;
+    documentType?: string;
   };
-  page_number?: number;
+  pageNumber?: number;
   excerpt?: string;
-  citation_text: string;
-  is_file_available: boolean;
-  can_download: boolean;
-  formatted_date?: string;
-  relative_time?: string;
+  citationText: string;
+  isFileAvailable: boolean;
+  canDownload: boolean;
+  formattedDate?: string;
+  relativeTime?: string;
 }
 
 export interface CitationServiceResponse {
   success: boolean;
   citations?: Citation[];
-  enhanced_citations?: EnhancedCitation[];
+  enhancedCitations?: EnhancedCitation[];
   error?: string;
 }
 
@@ -186,52 +186,52 @@ export interface CitationServiceResponse {
 export function formatCitationFileInfo(citation: Citation, fileMetadata?: FileMetadata): Partial<EnhancedCitation> {
   if (!fileMetadata) {
     return {
-      is_file_available: false,
-      can_download: false,
+      isFileAvailable: false,
+      canDownload: false,
     };
   }
 
   return {
-    file_metadata: {
+    fileMetadata: {
       id: fileMetadata.id,
-      file_id: fileMetadata.file_id,
-      original_filename: fileMetadata.original_filename,
-      file_size: fileMetadata.file_size,
-      mime_type: fileMetadata.mime_type,
-      created_at: fileMetadata.created_at,
-      document_type: fileMetadata.document_type,
+      fileId: fileMetadata.fileId,
+      originalFilename: fileMetadata.originalFilename,
+      fileSize: fileMetadata.fileSize,
+      mimeType: fileMetadata.mimeType,
+      createdAt: fileMetadata.createdAt,
+      documentType: fileMetadata.documentType,
     },
-    is_file_available: true,
-    can_download: fileMetadata.ingestion_status === 'completed',
-    formatted_date: formatDate(fileMetadata.created_at),
-    relative_time: getRelativeTime(fileMetadata.created_at),
+    isFileAvailable: true,
+    canDownload: fileMetadata.ingestionStatus === 'completed',
+    formattedDate: formatDate(fileMetadata.createdAt),
+    relativeTime: getRelativeTime(fileMetadata.createdAt),
   };
 }
 
 export function getCitationDisplayText(citation: EnhancedCitation): string {
   const parts = [];
   
-  if (citation.citation_text) {
-    parts.push(citation.citation_text);
+  if (citation.citationText) {
+    parts.push(citation.citationText);
   }
   
-  if (citation.file_metadata) {
-    parts.push(`Source: ${citation.file_metadata.original_filename}`);
+  if (citation.fileMetadata) {
+    parts.push(`Source: ${citation.fileMetadata.originalFilename}`);
   }
   
-  if (citation.page_number) {
-    parts.push(`Page ${citation.page_number}`);
+  if (citation.pageNumber) {
+    parts.push(`Page ${citation.pageNumber}`);
   }
   
   return parts.join(' • ');
 }
 
 export function getCitationIcon(citation: EnhancedCitation): string {
-  if (citation.file_metadata?.document_type) {
-    return DOCUMENT_TYPE_ICONS[citation.file_metadata.document_type as keyof typeof DOCUMENT_TYPE_ICONS] || '📄';
+  if (citation.fileMetadata?.documentType) {
+    return DOCUMENT_TYPE_ICONS[citation.fileMetadata.documentType as keyof typeof DOCUMENT_TYPE_ICONS] || '📄';
   }
   
-  switch (citation.source_type) {
+  switch (citation.sourceType) {
     case 'standard':
       return '📋';
     case 'objective':
@@ -246,11 +246,11 @@ export function getCitationIcon(citation: EnhancedCitation): string {
 }
 
 export function getCitationTypeLabel(citation: EnhancedCitation): string {
-  if (citation.file_metadata?.document_type) {
-    return DOCUMENT_TYPE_LABELS[citation.file_metadata.document_type as keyof typeof DOCUMENT_TYPE_LABELS] || 'Document';
+  if (citation.fileMetadata?.documentType) {
+    return DOCUMENT_TYPE_LABELS[citation.fileMetadata.documentType as keyof typeof DOCUMENT_TYPE_LABELS] || 'Document';
   }
   
-  switch (citation.source_type) {
+  switch (citation.sourceType) {
     case 'standard':
       return 'Music Standard';
     case 'objective':

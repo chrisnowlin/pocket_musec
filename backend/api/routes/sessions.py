@@ -14,8 +14,18 @@ from backend.repositories.standards_repository import StandardsRepository
 from backend.pocketflow.lesson_agent import LessonAgent
 from backend.pocketflow.flow import Flow
 from backend.pocketflow.store import Store
-from backend.utils.standards import format_grade_display
+from backend.utils.standards import format_grade_display, format_grade_for_storage
 from backend.llm.model_router import ModelRouter
+from backend.config import config
+from backend.models.streaming_schema import (
+    StreamingEvent,
+    create_delta_event,
+    create_status_event,
+    create_persisted_event,
+    create_complete_event,
+    create_error_event,
+    emit_stream_event
+)
 from ..models import (
     SessionCreateRequest,
     SessionUpdateRequest,
@@ -35,58 +45,65 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api/sessions", tags=["sessions"])
 
 
-def _standard_to_response(standard, repo: StandardsRepository) -> StandardResponse:
-    objectives = repo.get_objectives_for_standard(standard.standard_id)
-    # Include objective codes in the format "code - text" to match standards display
-    learning_objectives = [
-        f"{obj.objective_id} - {obj.objective_text}" for obj in objectives
-    ][:3]
-    # Convert database grade format to frontend display format
-    # Database stores: "0", "1", "2", "3", etc.
-    # Frontend expects: "Kindergarten", "Grade 1", "Grade 2", "Grade 3", etc.
-    grade_display = format_grade_display(standard.grade_level) or "Unknown Grade"
-    return StandardResponse(
-        id=standard.standard_id,
-        code=standard.standard_id,
-        grade=grade_display,
-        strand_code=standard.strand_code,
-        strand_name=standard.strand_name,
-        title=standard.standard_text,
-        description=standard.standard_text,  # Use standard-specific text instead of strand description
-        objectives=len(objectives),
-        learning_objectives=learning_objectives,
-    )
-
-
-def _session_to_response(session, repo: StandardsRepository) -> SessionResponse:
-    """Convert session database model to API response"""
-    # Resolve all selected standards from database format
+def _manual_normalize_standards(session, repo: StandardsRepository):
+    """Fallback manual normalization for standards"""
     selected_standards_resp = []
 
-    # Handle new unified array format (stored as comma-separated in database)
+    # Import the grade formatting utility
+    from backend.utils.standards import format_grade_display, format_grade_for_storage
+
+    # Handle comma-separated standards
     if session.selected_standards:
-        standard_ids = [
-            sid.strip() for sid in session.selected_standards.split(",") if sid.strip()
+        standards_list = [
+            standard.strip()
+            for standard in session.selected_standards.split(',')
+            if standard.strip()
         ]
-        for standard_id in standard_ids:
+
+        for standard_id in standards_list:
             standard = repo.get_standard_by_id(standard_id)
             if standard:
-                standard_response = _standard_to_response(standard, repo)
+                # Convert database grade format to frontend display format
+                grade_display = format_grade_display(standard.grade_level) or "Unknown Grade"
+
+                # Get objectives for this standard
+                objectives = repo.get_objectives_for_standard(standard.standard_id)
+                # Include objective codes in the format "code - text" to match standards display
+                learning_objectives = [
+                    f"{obj.objective_id} - {obj.objective_text}" for obj in objectives
+                ][:3]
+
+                standard_response = {
+                    "id": standard.standard_id,
+                    "code": standard.standard_id,
+                    "grade": grade_display,  # Use formatted grade display
+                    "strandCode": standard.strand_code,
+                    "strandName": standard.strand_name,
+                    "title": standard.standard_text,
+                    "description": standard.standard_text,
+                    "objectives": len(objectives),
+                    "learningObjectives": learning_objectives,
+                }
                 selected_standards_resp.append(standard_response)
 
-    # Handle backward compatibility - old single standard format
-    # Note: This is for legacy data that might have used a different field name
+    return selected_standards_resp
 
-    # Parse selected objectives from comma-separated string to array
-    selected_objectives_resp = []
-    if session.selected_objectives:
-        selected_objectives_resp = [
-            obj.strip() for obj in session.selected_objectives.split(",") if obj.strip()
-        ]
+
+def _session_to_response(session, repo: StandardsRepository, session_repo: SessionRepository = None) -> SessionResponse:
+    """Convert session database model to API response with field normalization"""
+
+    # Use repository helpers for field normalization if available
+    if session_repo:
+        selected_standards_resp = session_repo.normalize_standards_for_response(session, repo)
+        selected_objectives_resp = session_repo.normalize_objectives_for_response(session)
+    else:
+        # Fallback to manual parsing for backward compatibility
+        selected_standards_resp = _manual_normalize_standards(session, repo)
+        selected_objectives_resp = _manual_normalize_objectives(session)
 
     return SessionResponse(
         id=session.id,
-        grade_level=session.grade_level,
+        grade_level=format_grade_display(session.grade_level) or "Unknown Grade",
         strand_code=session.strand_code,
         selected_standards=selected_standards_resp,
         selected_objectives=selected_objectives_resp,
@@ -96,6 +113,18 @@ def _session_to_response(session, repo: StandardsRepository) -> SessionResponse:
         created_at=session.created_at,
         updated_at=session.updated_at,
     )
+
+
+def _manual_normalize_objectives(session):
+    """Fallback manual normalization for objectives"""
+    if not session.selected_objectives:
+        return []
+
+    return [
+        objective.strip()
+        for objective in session.selected_objectives.split(',')
+        if objective.strip()
+    ]
 
 
 def _lesson_to_summary(lesson, summary_text: str, metadata, citations) -> LessonSummary:
@@ -133,9 +162,12 @@ async def create_session(
     if standard_ids:
         standards_str = ",".join(standard_ids)
 
+    # Convert grade level from display format to storage format
+    storage_grade_level = format_grade_for_storage(request.grade_level)
+
     session = repo.create_session(
         user_id=current_user.id,
-        grade_level=request.grade_level,
+        grade_level=storage_grade_level,
         strand_code=request.strand_code,
         standard_id=standards_str,  # Use unified standards string
         additional_context=request.additional_context,
@@ -144,7 +176,7 @@ async def create_session(
         selected_objectives=objectives_str,
         selected_model=request.selected_model,
     )
-    return _session_to_response(session, standard_repo)
+    return _session_to_response(session, standard_repo, repo)
 
 
 @router.get("", response_model=List[SessionResponse])
@@ -154,7 +186,7 @@ async def list_sessions(
     repo = SessionRepository()
     standard_repo = StandardsRepository()
     sessions = repo.list_sessions(current_user.id)
-    return [_session_to_response(session, standard_repo) for session in sessions]
+    return [_session_to_response(session, standard_repo, repo) for session in sessions]
 
 
 @router.get("/{session_id}", response_model=SessionResponse)
@@ -168,7 +200,7 @@ async def get_session(
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Session not found")
 
     standard_repo = StandardsRepository()
-    return _session_to_response(session, standard_repo)
+    return _session_to_response(session, standard_repo, repo)
 
 
 @router.put("/{session_id}", response_model=SessionResponse)
@@ -198,9 +230,12 @@ async def update_session(
     if standard_ids:
         standards_str = ",".join(standard_ids)
 
+    # Convert grade level from display format to storage format
+    storage_grade_level = format_grade_for_storage(request.grade_level)
+
     updated = repo.update_session(
         session_id,
-        grade_level=request.grade_level,
+        grade_level=storage_grade_level,
         strand_code=request.strand_code,
         standard_id=standards_str,  # Use unified standards string
         additional_context=request.additional_context,
@@ -209,7 +244,7 @@ async def update_session(
         selected_objective=objectives_str,  # Use unified objectives string
     )
     standard_repo = StandardsRepository()
-    return _session_to_response(updated, standard_repo)
+    return _session_to_response(updated, standard_repo, repo)
 
 
 @router.delete("")
@@ -437,9 +472,22 @@ async def get_available_models(
     model_router = ModelRouter()
     available_models = model_router.get_available_cloud_models()
 
+    # Use default model if session has no selected model, or if selected model is the old default
+    default_model_id = config.llm.default_model
+    old_default_id = "Qwen/Qwen3-VL-235B-A22B-Instruct"
+    
+    # If session has old default selected, migrate to new default
+    if session.selected_model == old_default_id:
+        # Update session to use new default
+        session_repo.update_session(session_id, selected_model=default_model_id)
+        current_model = default_model_id
+    else:
+        # Use session's selected model or default
+        current_model = session.selected_model or default_model_id
+
     return ModelAvailabilityResponse(
         available_models=available_models,
-        current_model=session.selected_model,
+        current_model=current_model,
         processing_mode="cloud" if model_router.is_cloud_available() else "local",
     )
 
@@ -478,7 +526,7 @@ async def update_selected_model(
 
     # Convert to response format
     standard_repo = StandardsRepository()
-    session_response = _session_to_response(updated_session, standard_repo)
+    session_response = _session_to_response(updated_session, standard_repo, session_repo)
 
     return session_response
 
@@ -582,7 +630,7 @@ def _generate_draft_payload(
         citations=plan.get("citations", []),
     )
 
-    return lesson_summary, _session_to_response(updated_session, standard_repo)
+    return lesson_summary, _session_to_response(updated_session, standard_repo, session_repo)
 
 
 @router.post("/{session_id}/messages", response_model=ChatResponse)
@@ -646,8 +694,7 @@ async def send_message(
         )
 
 
-def _sse_event(payload: dict) -> str:
-    return f"data: {json.dumps(payload)}\n\n"
+# Old SSE event function removed - now using emit_stream_event from streaming_schema
 
 
 @router.post("/{session_id}/messages/stream")
@@ -706,17 +753,17 @@ async def stream_message(
 
         async def event_stream():
             # Send confirmation that conversation was persisted
-            yield _sse_event(
-                {
-                    "type": "persisted",
-                    "message": "Conversation saved successfully",
-                    "session_updated": final_session is not None,
-                }
+            yield emit_stream_event(
+                create_persisted_event(
+                    session_updated=final_session is not None,
+                    message="Conversation saved successfully"
+                )
             )
 
-            yield _sse_event(
-                {"type": "status", "message": "PocketMusec is generating a response..."}
+            yield emit_stream_event(
+                create_status_event("PocketMusec is generating a response...")
             )
+
             # Stream the agent's response in chunks
             sentences = [
                 segment.strip()
@@ -725,16 +772,17 @@ async def stream_message(
             ]
             for sentence in sentences:
                 text = sentence if sentence.endswith(".") else sentence + "."
-                yield _sse_event({"type": "delta", "text": text})
+                yield emit_stream_event(create_delta_event(text))
                 await asyncio.sleep(0.1)
 
-            payload = ChatResponse(
-                response=response_text,
-                lesson=lesson_summary,
-                session=session_payload,
-            )
-            yield _sse_event(
-                {"type": "complete", "payload": json.loads(payload.model_dump_json())}
+            payload_dict = {
+                "response": response_text,
+                "lesson": json.loads(lesson_summary.model_dump_json()),
+                "session": json.loads(session_payload.model_dump_json())
+            }
+
+            yield emit_stream_event(
+                create_complete_event(payload_dict)
             )
 
         return StreamingResponse(event_stream(), media_type="text/event-stream")

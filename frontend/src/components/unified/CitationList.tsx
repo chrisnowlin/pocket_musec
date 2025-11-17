@@ -60,13 +60,13 @@ export default function CitationList({
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            <span>{citations.filter(c => c.is_file_available).length} available</span>
+            <span>{citations.filter(c => c.isFileAvailable).length} available</span>
           </div>
           <div className="flex items-center gap-1 text-orange-700">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
-            <span>{citations.filter(c => !c.is_file_available).length} unavailable</span>
+            <span>{citations.filter(c => !c.isFileAvailable).length} unavailable</span>
           </div>
         </div>
       </div>
@@ -78,7 +78,7 @@ export default function CitationList({
             key={citation.id}
             citation={citation}
             onDownload={onDownload}
-            isDownloading={downloadingFileIds.includes(citation.file_metadata?.file_id || '')}
+            isDownloading={downloadingFileIds.includes(citation.fileMetadata?.fileId || '')}
             showFullDetails={showFullDetails}
             compact={compact}
           />
@@ -112,15 +112,15 @@ export default function CitationList({
       )}
 
       {/* Bulk download actions */}
-      {onDownload && !compact && citations.some(c => c.is_file_available && c.can_download) && (
+      {onDownload && !compact && citations.some(c => c.isFileAvailable && c.canDownload) && (
         <div className="pt-2 border-t border-ink-200">
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                const availableCitations = citations.filter(c => c.is_file_available && c.can_download && c.file_metadata);
+                const availableCitations = citations.filter(c => c.isFileAvailable && c.canDownload && c.fileMetadata);
                 availableCitations.forEach(citation => {
-                  if (citation.file_metadata) {
-                    onDownload(citation.file_metadata.file_id, citation.file_metadata.original_filename);
+                  if (citation.fileMetadata) {
+                    onDownload(citation.fileMetadata.fileId, citation.fileMetadata.originalFilename);
                   }
                 });
               }}
@@ -133,7 +133,7 @@ export default function CitationList({
             </button>
             
             <span className="text-xs text-ink-500">
-              {citations.filter(c => c.is_file_available && c.can_download).length} files ready for download
+              {citations.filter(c => c.isFileAvailable && c.canDownload).length} files ready for download
             </span>
           </div>
         </div>

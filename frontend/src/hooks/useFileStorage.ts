@@ -201,7 +201,7 @@ export function useFileStorage(options: UseFileStorageOptions = {}): UseFileStor
   const hasErrors = error.length > 0;
   const totalPages = Math.ceil(totalCount / pageSize);
   const recentlyUploaded = files
-    .filter(file => file.ingestion_status === 'completed')
+    .filter(file => file.ingestionStatus === 'completed')
     .slice(0, 3);
 
   return {

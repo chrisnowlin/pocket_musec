@@ -23,22 +23,22 @@ export default function ImageDetailModal({ image, onClose, onDelete }: ImageDeta
           </button>
         </div>
         <div className="space-y-4 text-sm text-ink-600">
-          <p>Uploaded: {new Date(image.uploaded_at).toLocaleString()}</p>
-          <p>Size: {(image.file_size / 1024).toFixed(2)} KB</p>
-          <p>Type: {image.mime_type}</p>
-          {image.ocr_text && (
+          <p>Uploaded: {new Date(image.uploadedAt).toLocaleString()}</p>
+          <p>Size: {(image.fileSize / 1024).toFixed(2)} KB</p>
+          <p>Type: {image.mimeType}</p>
+          {image.ocrText && (
             <div>
               <h4 className="font-semibold text-ink-800 mb-2">OCR Extracted Text</h4>
               <div className="bg-parchment-200 rounded p-4 text-sm text-ink-700 whitespace-pre-wrap">
-                {image.ocr_text}
+                {image.ocrText}
               </div>
             </div>
           )}
-          {image.vision_analysis && (
+          {image.visionAnalysis && (
             <div>
               <h4 className="font-semibold text-ink-800 mb-2">Vision Analysis</h4>
               <div className="bg-parchment-200 rounded p-4 text-sm text-ink-700 whitespace-pre-wrap">
-                {image.vision_analysis}
+                {image.visionAnalysis}
               </div>
             </div>
           )}

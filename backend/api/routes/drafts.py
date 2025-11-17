@@ -19,6 +19,7 @@ from backend.lessons.schema_m2 import build_m2_lesson_document
 from backend.services.presentation_service import PresentationService
 
 router = APIRouter(prefix="/api/drafts", tags=["drafts"])
+presentation_service = PresentationService()
 
 
 def _parse_metadata(raw_metadata: Optional[str]) -> Dict[str, Any]:
@@ -131,34 +132,33 @@ def _trigger_presentation_generation(lesson_id: str, user_id: str) -> None:
 
 
 def _lesson_to_draft_response(lesson, session_repo: SessionRepository) -> DraftResponse:
-    """Convert a lesson to a draft response format.
+    """Convert a lesson to a draft response format using normalized helpers.
 
-    This helper now assumes that any structured ``lesson_document`` has
-    already been validated and attached at write time (via
-    ``_validate_and_attach_m2_document``). It no longer performs any
-    on-read migration for legacy data; if a lesson lacks a
-    ``lesson_document`` in its metadata, the frontend will fall back to
-    the narrative ``content`` string instead.
+    This helper now uses the LessonRepository normalization helpers to ensure
+    consistent field conversion and camelCase responses.
     """
+    from backend.repositories.lesson_repository import LessonRepository
+    lesson_repo = LessonRepository()
 
-    # Get session information for metadata fallbacks
-    session = session_repo.get_session(lesson.session_id)
+    # Use the normalization helper from LessonRepository
+    normalized_data = lesson_repo.normalize_lesson_for_response(lesson, session_repo)
 
-    # Parse metadata if available, but do not mutate it with synthesized
-    # m2.0 documents.
-    metadata = _parse_metadata(lesson.metadata)
+    # Get presentation status
+    presentation_status = presentation_service.get_presentation_status(lesson.id)
 
     return DraftResponse(
-        id=lesson.id,
-        title=lesson.title,
-        content=lesson.content,
-        metadata=metadata,
-        grade=metadata.get("grade_level") or (session.grade_level if session else None),
-        strand=metadata.get("strand_code")
-        or (session.strand_code if session else None),
-        standard=metadata.get("standard_id"),
-        created_at=lesson.created_at.isoformat() if lesson.created_at else None,
-        updated_at=lesson.updated_at.isoformat() if lesson.updated_at else None,
+        id=normalized_data["id"],
+        title=normalized_data["title"],
+        content=normalized_data["content"],
+        metadata=normalized_data["metadata"],
+        grade=normalized_data["grade"],
+        strand=normalized_data["strand"],
+        standard=normalized_data["standard"],
+        selectedStandards=normalized_data["selectedStandards"],
+        selectedObjectives=normalized_data["selectedObjectives"],
+        created_at=normalized_data["createdAt"],
+        updated_at=normalized_data["updatedAt"],
+        presentation_status=presentation_status,
     )
 
 

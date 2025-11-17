@@ -77,24 +77,24 @@ export const useConversationStore = create<ConversationStoreState>((set, get) =>
 
     const updates: Partial<LessonSettings> = {};
 
-    if (session.grade_level) {
-      updates.selectedGrade = backendToFrontendGrade(session.grade_level);
+    if (session.gradeLevel) {
+      updates.selectedGrade = backendToFrontendGrade(session.gradeLevel);
     }
 
-    if (session.strand_code) {
-      updates.selectedStrand = backendToFrontendStrand(session.strand_code);
+    if (session.strandCode) {
+      updates.selectedStrand = backendToFrontendStrand(session.strandCode);
     }
 
-    if (session.selected_standards) {
-      updates.selectedStandards = session.selected_standards;
+    if (session.selectedStandards) {
+      updates.selectedStandards = session.selectedStandards;
     }
 
-    if (session.selected_objectives) {
-      updates.selectedObjectives = session.selected_objectives;
+    if (session.selectedObjectives) {
+      updates.selectedObjectives = session.selectedObjectives;
     }
 
-    if (session.additional_context !== undefined && session.additional_context !== null) {
-      updates.lessonContext = session.additional_context;
+    if (session.additionalContext !== undefined && session.additionalContext !== null) {
+      updates.lessonContext = session.additionalContext;
     }
 
     set((state) => ({

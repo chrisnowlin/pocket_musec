@@ -27,75 +27,75 @@ export type SlideType = 'title' | 'content' | 'activity' | 'assessment' | 'closu
 export interface PresentationSlide {
   id: string;
   order?: number;
-  slide_number?: number;
-  slide_type?: SlideType;
+  slideNumber?: number;
+  slideType?: SlideType;
   title: string;
   subtitle?: string | null;
   content?: string;
-  key_points?: string[];
-  teacher_script: string;
-  visual_prompt?: string | null;
-  duration_minutes?: number | null;
-  materials_needed?: string[];
-  source_section?: SourceSection;
-  activity_id?: string | null;
-  standard_codes?: string[];
+  keyPoints?: string[];
+  teacherScript: string;
+  visualPrompt?: string | null;
+  durationMinutes?: number | null;
+  materialsNeeded?: string[];
+  sourceSection?: SourceSection;
+  activityId?: string | null;
+  standardCodes?: string[];
 }
 
 export interface PresentationExport {
   format: 'json' | 'markdown' | 'pptx' | 'pdf';
-  url_or_path: string;
-  generated_at: string;
-  file_size_bytes?: number | null;
+  urlOrPath: string;
+  generatedAt: string;
+  fileSizeBytes?: number | null;
 }
 
 export interface PresentationSummary {
   id: string;
-  presentation_id?: string; // alias for convenience
-  lesson_id: string;
-  lesson_revision: number;
+  presentationId?: string; // alias for convenience
+  lessonId: string;
+  lessonRevision: number;
   version: string;
   status: PresentationStatus;
   style: string;
-  slide_count: number;
-  created_at: string;
-  updated_at: string;
-  has_exports: boolean;
-  error_code?: string | null;
-  error_message?: string | null;
+  slideCount: number;
+  createdAt: string;
+  updatedAt: string;
+  hasExports: boolean;
+  errorCode?: string | null;
+  errorMessage?: string | null;
   title?: string;
   description?: string;
-  total_slides?: number;
-  total_duration_minutes?: number;
-  is_stale?: boolean;
+  totalSlides?: number;
+  totalDurationMinutes?: number;
+  isStale?: boolean;
 }
 
 export interface PresentationDetail extends PresentationSummary {
   title?: string;
   description?: string;
   slides: PresentationSlide[];
-  export_assets: PresentationExport[];
-  total_slides?: number;
-  total_duration_minutes?: number;
-  is_stale?: boolean;
+  exportAssets: PresentationExport[];
+  totalSlides?: number;
+  totalDurationMinutes?: number;
+  isStale?: boolean;
 }
 
 export type PresentationDocument = PresentationDetail;
 
 export interface PresentationGenerateResponse {
-  job_id: string;
+  jobId: string;
   status: string;
   message: string;
 }
 
 export interface PresentationJobInfo {
-  job_id: string;
+  jobId: string;
   status: PresentationJobStatus;
-  lesson_id: string;
-  created_at: string;
-  started_at?: string | null;
-  completed_at?: string | null;
-  presentation_id?: string | null;
+  lessonId: string;
+  createdAt: string;
+  startedAt?: string | null;
+  completedAt?: string | null;
+  presentationId?: string | null;
   error?: string | null;
 }
 

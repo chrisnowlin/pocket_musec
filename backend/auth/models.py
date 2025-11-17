@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 from enum import Enum
 
 
@@ -59,6 +59,10 @@ class User:
         return data
 
 
+def _split_csv(value: Optional[str]) -> List[str]:
+    return [item.strip() for item in value.split(",") if item.strip()] if value else []
+
+
 @dataclass
 class Session:
     """Lesson generation session"""
@@ -80,6 +84,18 @@ class Session:
     current_state: Optional[str] = "welcome"  # Current conversation state
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
+
+    @property
+    def selected_standards_list(self) -> List[str]:
+        """Return selected standards as a list of IDs."""
+
+        return _split_csv(self.selected_standards)
+
+    @property
+    def selected_objectives_list(self) -> List[str]:
+        """Return selected objectives as a list of IDs."""
+
+        return _split_csv(self.selected_objectives)
 
 
 @dataclass

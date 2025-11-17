@@ -59,8 +59,8 @@ export default function CitationTooltip({
 
   const handleDownload = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (onDownload && citation.file_metadata && citation.can_download) {
-      onDownload(citation.file_metadata.file_id, citation.file_metadata.original_filename);
+    if (onDownload && citation.fileMetadata && citation.canDownload) {
+      onDownload(citation.fileMetadata.fileId, citation.fileMetadata.originalFilename);
     }
   };
 
@@ -94,56 +94,56 @@ export default function CitationTooltip({
               <span className="text-lg">{icon}</span>
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold text-ink-800 text-sm">[{citation.citation_number}]</span>
+                  <span className="font-semibold text-ink-800 text-sm">[{citation.citationNumber}]</span>
                   <span className="text-xs text-ink-600 bg-ink-100 px-1.5 py-0.5 rounded">
                     {typeLabel}
                   </span>
                 </div>
                 <h4 className="font-medium text-ink-900 text-sm mt-0.5 line-clamp-2">
-                  {citation.source_title}
+                  {citation.sourceTitle}
                 </h4>
               </div>
             </div>
           </div>
 
           {/* Citation text */}
-          {citation.citation_text && (
+          {citation.citationText && (
             <p className="text-xs text-ink-700 mb-3 italic line-clamp-3">
-              {citation.citation_text}
+              {citation.citationText}
             </p>
           )}
 
           {/* File information */}
-          {citation.file_metadata && (
+          {citation.fileMetadata && (
             <div className="space-y-2 mb-3 pb-3 border-b border-ink-200">
               <div className="text-xs">
                 <div className="font-medium text-ink-800 mb-1">Source File:</div>
                 <div className="grid grid-cols-1 gap-0.5 text-ink-600">
-                  <div className="truncate" title={citation.file_metadata.original_filename}>
-                    • {citation.file_metadata.original_filename}
+                  <div className="truncate" title={citation.fileMetadata.originalFilename}>
+                    • {citation.fileMetadata.originalFilename}
                   </div>
-                  <div>• Size: {formatFileSize(citation.file_metadata.file_size)}</div>
-                  {citation.file_metadata.document_type && (
-                    <div>• Type: {citation.file_metadata.document_type}</div>
+                  <div>• Size: {formatFileSize(citation.fileMetadata.fileSize)}</div>
+                  {citation.fileMetadata.documentType && (
+                    <div>• Type: {citation.fileMetadata.documentType}</div>
                   )}
                 </div>
               </div>
 
-              {citation.page_number && (
+              {citation.pageNumber && (
                 <div className="text-xs">
                   <span className="font-medium text-ink-800">Page:</span>
-                  <span className="text-ink-600 ml-1">{citation.page_number}</span>
+                  <span className="text-ink-600 ml-1">{citation.pageNumber}</span>
                 </div>
               )}
 
               {/* Status */}
               <div className="flex items-center gap-1">
-                {citation.is_file_available ? (
+                {citation.isFileAvailable ? (
                   <span className="inline-flex items-center gap-1 text-xs text-green-700">
                     <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
-                    {citation.can_download ? 'Available for download' : 'Processing'}
+                    {citation.canDownload ? 'Available for download' : 'Processing'}
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 text-xs text-orange-700">
@@ -169,7 +169,7 @@ export default function CitationTooltip({
 
           {/* Actions */}
           <div className="flex items-center justify-between">
-            {citation.file_metadata && citation.can_download && (
+            {citation.fileMetadata && citation.canDownload && (
               <button
                 onClick={handleDownload}
                 disabled={isDownloading}
@@ -193,7 +193,7 @@ export default function CitationTooltip({
               </button>
             )}
             
-            {!citation.file_metadata && (
+            {!citation.fileMetadata && (
               <span className="text-xs text-ink-500 italic">
                 No file linked to this citation
               </span>

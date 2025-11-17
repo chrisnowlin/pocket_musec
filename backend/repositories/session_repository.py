@@ -3,7 +3,7 @@
 import sqlite3
 import uuid
 from datetime import datetime
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from backend.repositories.database import DatabaseManager
 from backend.auth import Session
@@ -259,3 +259,89 @@ class SessionRepository:
             if row["updated_at"]
             else None,
         )
+
+    # Field normalization helpers for REST standardization
+    def parse_selected_standards_list(self, session: Session) -> List[str]:
+        """Convert comma-separated standards string to array"""
+        if not session.selected_standards:
+            return []
+
+        # Split by comma and filter out empty strings
+        standards = [
+            standard.strip()
+            for standard in session.selected_standards.split(',')
+            if standard.strip()
+        ]
+
+        return standards
+
+    def parse_selected_objectives_list(self, session: Session) -> List[str]:
+        """Convert comma-separated objectives string to array"""
+        if not session.selected_objectives:
+            return []
+
+        # Split by comma and filter out empty strings
+        objectives = [
+            objective.strip()
+            for objective in session.selected_objectives.split(',')
+            if objective.strip()
+        ]
+
+        return objectives
+
+    def normalize_standards_for_response(self, session: Session, standards_repo) -> List[dict]:
+        """Convert session standards to normalized array format for API responses"""
+        standards_list = self.parse_selected_standards_list(session)
+        normalized_standards = []
+
+        # Import the grade formatting utility
+        from backend.utils.standards import format_grade_display
+
+        for standard_id in standards_list:
+            standard = standards_repo.get_standard_by_id(standard_id)
+            if standard:
+                # Convert database grade format to frontend display format
+                # Database stores: "0", "1", "2", "3", etc.
+                # Frontend expects: "Kindergarten", "Grade 1", "Grade 2", "Grade 3", etc.
+                grade_display = format_grade_display(standard.grade_level) or "Unknown Grade"
+
+                # Get objectives for this standard
+                try:
+                    objectives = standards_repo.get_objectives_for_standard(standard.standard_id)
+                    # Include objective codes in the format "code - text" to match standards display
+                    learning_objectives = [
+                        f"{obj.objective_id} - {obj.objective_text}" for obj in objectives
+                    ][:3]
+                except (AttributeError, TypeError):
+                    # Fallback if repo method doesn't exist or returns unexpected format
+                    learning_objectives = []
+
+                normalized_standards.append({
+                    "id": standard.standard_id,
+                    "code": standard.standard_id,
+                    "grade": grade_display,
+                    "strandCode": standard.strand_code,
+                    "strandName": standard.strand_name,
+                    "title": standard.standard_text,
+                    "description": standard.standard_text,
+                    "objectives": len(objectives) if hasattr(objectives, '__len__') else 0,
+                    "learningObjectives": learning_objectives,
+                })
+
+        return normalized_standards
+
+    def normalize_objectives_for_response(self, session: Session) -> List[str]:
+        """Convert session objectives to normalized array format for API responses"""
+        return self.parse_selected_objectives_list(session)
+
+    def convert_standards_list_to_string(self, standards_list: List[str]) -> Optional[str]:
+        """Convert standards array back to comma-separated string for storage"""
+        if not standards_list:
+            return None
+        return ",".join(standards_list)
+
+    def convert_objectives_list_to_string(self, objectives_list: List[str]) -> Optional[str]:
+        """Convert objectives array back to comma-separated string for storage"""
+        if not objectives_list:
+            return None
+        return ",".join(objectives_list)

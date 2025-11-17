@@ -59,12 +59,12 @@ export function useCitations(options: UseCitationsOptions = {}): UseCitationsRet
       // Fetch from service
       const response: CitationServiceResponse = await citationService.getLessonCitations(lessonId);
       
-      if (response.success && response.enhanced_citations) {
-        setCitations(response.enhanced_citations);
+      if (response.success && response.enhancedCitations) {
+        setCitations(response.enhancedCitations);
         
         // Cache the results if enabled
         if (enableCache) {
-          citationService.cacheCitations(lessonId, response.enhanced_citations);
+          citationService.cacheCitations(lessonId, response.enhancedCitations);
         }
         
         setCurrentLessonId(lessonId);
@@ -105,7 +105,7 @@ export function useCitations(options: UseCitationsOptions = {}): UseCitationsRet
   }, []);
 
   const downloadAllFiles = useCallback(async () => {
-    const downloadableCitations = citations.filter(c => c.is_file_available && c.can_download);
+    const downloadableCitations = citations.filter(c => c.isFileAvailable && c.canDownload);
     
     if (downloadableCitations.length === 0) {
       setError('No files available for download');
@@ -113,7 +113,7 @@ export function useCitations(options: UseCitationsOptions = {}): UseCitationsRet
     }
 
     try {
-      const fileIds = downloadableCitations.map(c => c.file_metadata?.file_id).filter(Boolean) as string[];
+      const fileIds = downloadableCitations.map(c => c.fileMetadata?.fileId).filter(Boolean) as string[];
       setDownloadingFileIds(prev => [...prev, ...fileIds]);
       
       await citationService.downloadMultipleCitationFiles(downloadableCitations);
@@ -145,8 +145,8 @@ export function useCitations(options: UseCitationsOptions = {}): UseCitationsRet
 
   // Computed values
   const hasCitations = citations.length > 0;
-  const availableCitationsCount = citations.filter(c => c.is_file_available).length;
-  const downloadableCitationsCount = citations.filter(c => c.is_file_available && c.can_download).length;
+  const availableCitationsCount = citations.filter(c => c.isFileAvailable).length;
+  const downloadableCitationsCount = citations.filter(c => c.isFileAvailable && c.canDownload).length;
   const isDownloading = downloadingFileIds.length > 0;
 
   return {
@@ -181,8 +181,8 @@ export function useCitation(citationId?: string) {
       
       const response: CitationServiceResponse = await citationService.getCitationById(id);
       
-      if (response.success && response.enhanced_citations && response.enhanced_citations.length > 0) {
-        setCitation(response.enhanced_citations[0]);
+      if (response.success && response.enhancedCitations && response.enhancedCitations.length > 0) {
+        setCitation(response.enhancedCitations[0]);
       } else {
         setError(response.error || 'Failed to load citation');
         setCitation(null);
