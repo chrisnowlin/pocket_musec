@@ -30,18 +30,18 @@ interface ChatMessage {
 interface ImageData {
   id: string;
   filename: string;
-  uploaded_at: string;
-  ocr_text?: string | null;
-  vision_analysis?: string | null;
-  file_size: number;
-  mime_type: string;
+  uploadedAt: string;
+  ocrText?: string | null;
+  visionAnalysis?: string | null;
+  fileSize: number;
+  mimeType: string;
 }
 
 interface StorageInfo {
-  image_count: number;
-  usage_mb: number;
-  limit_mb: number;
-  available_mb: number;
+  imageCount: number;
+  usageMb: number;
+  limitMb: number;
+  availableMb: number;
   percentage: number;
 }
 
@@ -63,14 +63,14 @@ const standardLibrary: StandardRecord[] = [
   {
     id: 'cn-3-1',
     code: '3.CN.1',
-    strand_code: 'CN',
-    strand_name: 'Connect',
+    strandCode: 'CN',
+    strandName: 'Connect',
     grade: 'Grade 3',
     title: 'Understand relationships between music, other disciplines, and daily life',
     description:
       'Students explore how music relates to other subjects, cultures, and real‑world experiences.',
     objectives: 4,
-    last_used: '2 days ago',
+    lastUsed: '2 days ago',
     learningObjectives: [
       'Explain how music connects to storytelling and visual arts.',
       'Describe the influence of music on community events.',
@@ -80,14 +80,14 @@ const standardLibrary: StandardRecord[] = [
   {
     id: 'cn-3-2',
     code: '3.CN.2',
-    strand_code: 'CN',
-    strand_name: 'Connect',
+    strandCode: 'CN',
+    strandName: 'Connect',
     grade: 'Grade 3',
     title: 'Explore interdisciplinary and global music connections',
     description:
       'Students discover musical ideas across cultures and link them to science, history, and language.',
     objectives: 3,
-    last_used: 'Never used',
+    lastUsed: 'Never used',
     learningObjectives: [
       'Identify musical patterns shared across cultures.',
       'Relate rhythms to mathematical fractions.',
@@ -97,14 +97,14 @@ const standardLibrary: StandardRecord[] = [
   {
     id: 'cr-4-1',
     code: '4.CR.1',
-    strand_code: 'CR',
-    strand_name: 'Create',
+    strandCode: 'CR',
+    strandName: 'Create',
     grade: 'Grade 4',
     title: 'Create short compositions using classroom instruments',
     description:
       'Students improvise and notate ideas that incorporate steady beat and contrasting dynamics.',
     objectives: 5,
-    last_used: '1 week ago',
+    lastUsed: '1 week ago',
     learningObjectives: [
       'Write rhythm patterns with quarter and eighth notes.',
       'Layer dynamics to create contrast.',
@@ -299,8 +299,7 @@ export default function WorkspacePage() {
   const loadStandards = useCallback(
     async (grade: string, strand: string) => {
       try {
-        const result = await api.listStandards({
-          grade_level: grade,
+        const result = await api.listStandards({ grade_level: grade,
           strand_code: strand,
         });
 
@@ -320,21 +319,20 @@ export default function WorkspacePage() {
     const defaultStrand = 'Connect';
 
     try {
-      const result = await api.createSession({
-        grade_level: defaultGrade,
+      const result = await api.createSession({ grade_level: defaultGrade,
         strand_code: defaultStrand,
       });
 
       if (result.ok) {
         setSession(result.data);
-        setSelectedGrade(result.data.grade_level ?? defaultGrade);
-        setSelectedStrand(result.data.strand_code ?? defaultStrand);
-        if (result.data.selected_standard) {
-          setSelectedStandard(result.data.selected_standard);
+        setSelectedGrade(result.data.gradeLevel ?? defaultGrade);
+        setSelectedStrand(result.data.strandCode ?? defaultStrand);
+        if (result.data.selectedStandard) {
+          setSelectedStandard(result.data.selectedStandard);
         }
         await loadStandards(
-          result.data.grade_level ?? defaultGrade,
-          result.data.strand_code ?? defaultStrand
+          result.data.gradeLevel ?? defaultGrade,
+          result.data.strandCode ?? defaultStrand
         );
       } else {
         setSessionError(result.message || 'Unable to start a session');
@@ -350,14 +348,14 @@ export default function WorkspacePage() {
   }, [initSession]);
 
   useEffect(() => {
-    if (session?.grade_level) {
-      setSelectedGrade(session.grade_level);
+    if (session?.gradeLevel) {
+      setSelectedGrade(session.gradeLevel);
     }
-    if (session?.strand_code) {
-      setSelectedStrand(session.strand_code);
+    if (session?.strandCode) {
+      setSelectedStrand(session.strandCode);
     }
-    if (session?.selected_standard) {
-      setSelectedStandard(session.selected_standard);
+    if (session?.selectedStandard) {
+      setSelectedStandard(session.selectedStandard);
     }
   }, [session]);
 
@@ -441,7 +439,7 @@ export default function WorkspacePage() {
     async (standard: StandardRecord) => {
       setSelectedStandard(standard);
       setSelectedGrade(standard.grade);
-      setSelectedStrand(standard.strand_name);
+      setSelectedStrand(standard.strandName);
       setMode('browse');
 
       if (session?.id) {
@@ -613,7 +611,7 @@ export default function WorkspacePage() {
   const filteredStandards = useMemo(() => {
     return displayStandards.filter((standard) => {
       const matchesGrade = selectedGrade ? standard.grade === selectedGrade : true;
-      const matchesStrand = selectedStrand ? standard.strand_name === selectedStrand : true;
+      const matchesStrand = selectedStrand ? standard.strandName === selectedStrand : true;
       const matchesSearch = browseQuery
         ? standard.title.toLowerCase().includes(browseQuery.toLowerCase()) ||
           standard.description.toLowerCase().includes(browseQuery.toLowerCase()) ||
@@ -1169,7 +1167,7 @@ export default function WorkspacePage() {
                               <span className="text-xs font-mono font-semibold text-gray-700 bg-gray-100 px-2 py-1 rounded">
                                 {standard.code}
                               </span>
-                              <span className="text-xs text-gray-500">{standard.strand_name} Strand</span>
+                              <span className="text-xs text-gray-500">{standard.strandName} Strand</span>
                             </div>
                             <h3 className="font-medium text-gray-900 mb-2">{standard.title}</h3>
                             <div className="flex items-center gap-4 text-sm text-gray-600">
@@ -1183,7 +1181,7 @@ export default function WorkspacePage() {
                                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                  {standard.last_used ?? 'Recently used'}
+                                  {standard.lastUsed ?? 'Recently used'}
                                 </span>
                             </div>
                           </div>
@@ -1317,7 +1315,7 @@ export default function WorkspacePage() {
                     {selectedStandard.code}
                   </span>
                   <span className="text-xs text-gray-500">
-                    {selectedStandard.grade} • {selectedStandard.strand_name}
+                    {selectedStandard.grade} • {selectedStandard.strandName}
                   </span>
                 </div>
                 <h3 className="font-medium text-gray-900">{selectedStandard.title}</h3>
@@ -1357,7 +1355,7 @@ export default function WorkspacePage() {
                   <div className="flex justify-between text-xs text-gray-500">
                     <span>Storage</span>
                     <span>
-                      {storageInfo.usage_mb.toFixed(1)} MB / {storageInfo.limit_mb} MB
+                      {storageInfo.usageMb.toFixed(1)} MB / {storageInfo.limitMb} MB
                     </span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2.5">
@@ -1367,8 +1365,8 @@ export default function WorkspacePage() {
                     />
                   </div>
                   <div className="flex justify-between text-xs text-gray-500">
-                    <span>{storageInfo.image_count} images</span>
-                    <span>{(storageInfo.available_mb).toFixed(1)} MB free</span>
+                    <span>{storageInfo.imageCount} images</span>
+                    <span>{(storageInfo.availableMb).toFixed(1)} MB free</span>
                   </div>
                 </>
               ) : (
@@ -1386,7 +1384,7 @@ export default function WorkspacePage() {
                       <div>
                         <p className="text-sm font-medium text-gray-900">{image.filename}</p>
                         <p className="text-xs text-gray-500">
-                          {new Date(image.uploaded_at).toLocaleDateString()}
+                          {new Date(image.uploadedAt).toLocaleDateString()}
                         </p>
                       </div>
                       <span className="text-xs text-gray-500">Details</span>
@@ -1411,7 +1409,7 @@ export default function WorkspacePage() {
                 </div>
               </div>
               <div className="mt-3 text-xs text-gray-600">
-                <p>{storageInfo?.image_count ?? 0} images stored</p>
+                <p>{storageInfo?.imageCount ?? 0} images stored</p>
                 <p>Demo environment · single-user mode</p>
               </div>
             </div>
@@ -1531,22 +1529,22 @@ export default function WorkspacePage() {
               </button>
             </div>
             <div className="space-y-4 text-sm text-gray-600">
-              <p>Uploaded: {new Date(selectedImage.uploaded_at).toLocaleString()}</p>
-              <p>Size: {(selectedImage.file_size / 1024).toFixed(2)} KB</p>
-              <p>Type: {selectedImage.mime_type}</p>
-              {selectedImage.ocr_text && (
+              <p>Uploaded: {new Date(selectedImage.uploadedAt).toLocaleString()}</p>
+              <p>Size: {(selectedImage.fileSize / 1024).toFixed(2)} KB</p>
+              <p>Type: {selectedImage.mimeType}</p>
+              {selectedImage.ocrText && (
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">OCR Extracted Text</h4>
                   <div className="bg-gray-50 rounded p-4 text-sm text-gray-700 whitespace-pre-wrap">
-                    {selectedImage.ocr_text}
+                    {selectedImage.ocrText}
                   </div>
                 </div>
               )}
-              {selectedImage.vision_analysis && (
+              {selectedImage.visionAnalysis && (
                 <div>
                   <h4 className="font-semibold text-gray-900 mb-2">Vision Analysis</h4>
                   <div className="bg-blue-50 rounded p-4 text-sm text-gray-700 whitespace-pre-wrap">
-                    {selectedImage.vision_analysis}
+                    {selectedImage.visionAnalysis}
                   </div>
                 </div>
               )}

@@ -34,8 +34,8 @@ export const useImageStoreComputed = () => {
     // Expensive computed values
     filteredImages: images.filter(img => {
       if (filters.category && img.classification?.category !== filters.category) return false;
-      if (filters.education_level && img.classification?.education_level !== filters.education_level) return false;
-      if (filters.difficulty_level && img.classification?.difficulty_level !== filters.difficulty_level) return false;
+      if (filters.educationLevel && img.classification?.educationLevel !== filters.educationLevel) return false;
+      if (filters.difficultyLevel && img.classification?.difficultyLevel !== filters.difficultyLevel) return false;
       return true;
     }),
     
@@ -46,13 +46,13 @@ export const useImageStoreComputed = () => {
     }, {} as Record<string, typeof images>),
     
     imagesByEducationLevel: images.reduce((acc, img) => {
-      const level = img.classification?.education_level || 'unknown';
+      const level = img.classification?.educationLevel || 'unknown';
       acc[level] = (acc[level] || []).concat(img);
       return acc;
     }, {} as Record<string, typeof images>),
     
     imagesByDifficultyLevel: images.reduce((acc, img) => {
-      const level = img.classification?.difficulty_level || 'unknown';
+      const level = img.classification?.difficultyLevel || 'unknown';
       acc[level] = (acc[level] || []).concat(img);
       return acc;
     }, {} as Record<string, typeof images>),

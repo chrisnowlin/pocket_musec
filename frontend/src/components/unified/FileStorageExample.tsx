@@ -32,8 +32,8 @@ export default function FileStorageExample() {
     
     if (response.duplicate) {
       alert(`Duplicate file detected: ${response.existing_file?.filename}`);
-    } else if (response.file_metadata) {
-      alert(`File successfully stored: ${response.file_metadata.original_filename}`);
+    } else if (response.fileMetadata) {
+      alert(`File successfully stored: ${response.fileMetadata.originalFilename}`);
       refresh(); // Refresh the file list
     }
   };
@@ -77,13 +77,13 @@ export default function FileStorageExample() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span className="text-sm text-ink-600">
-            Total Files: <strong>{fileStats?.total_files || 0}</strong>
+            Total Files: <strong>{fileStats?.totalFiles || 0}</strong>
           </span>
           <span className="text-sm text-ink-600">
-            Storage Used: <strong>{fileStats ? Math.round(fileStats.total_mb) : 0} MB</strong>
+            Storage Used: <strong>{fileStats ? Math.round(fileStats.totalMb) : 0} MB</strong>
           </span>
           <span className="text-sm text-ink-600">
-            Processing: <strong>{fileStats?.processing_files || 0}</strong>
+            Processing: <strong>{fileStats?.processingFiles || 0}</strong>
           </span>
         </div>
         <button

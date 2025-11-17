@@ -6,14 +6,14 @@ import type { EnhancedCitation, Citation } from '../types/fileStorage';
 export function createFallbackCitation(citation: Citation): EnhancedCitation {
   return {
     id: citation.id,
-    citation_number: citation.citation_number,
-    source_title: citation.source_title,
-    source_type: citation.source_type,
-    citation_text: citation.citation_text,
-    page_number: citation.page_number,
+    citationNumber: citation.citationNumber,
+    sourceTitle: citation.sourceTitle,
+    sourceType: citation.sourceType,
+    citationText: citation.citationText,
+    pageNumber: citation.pageNumber,
     excerpt: citation.excerpt,
-    is_file_available: false,
-    can_download: false,
+    isFileAvailable: false,
+    canDownload: false,
   };
 }
 
@@ -32,7 +32,7 @@ export function normalizeCitations(citations: any[]): (Citation | string)[] {
     }
     
     // Fallback to string
-    return citation.source_title || JSON.stringify(citation);
+    return citation.sourceTitle || JSON.stringify(citation);
   });
 }
 
@@ -46,9 +46,9 @@ export function filterCitationsByAvailability(
   unavailable: EnhancedCitation[];
   downloadable: EnhancedCitation[];
 } {
-  const available = citations.filter(c => c.is_file_available);
-  const unavailable = citations.filter(c => !c.is_file_available);
-  const downloadable = citations.filter(c => c.is_file_available && c.can_download);
+  const available = citations.filter(c => c.isFileAvailable);
+  const unavailable = citations.filter(c => !c.isFileAvailable);
+  const downloadable = citations.filter(c => c.isFileAvailable && c.canDownload);
 
   return { available, unavailable, downloadable };
 }
@@ -59,15 +59,15 @@ export function filterCitationsByAvailability(
 export function sortCitations(citations: EnhancedCitation[]): EnhancedCitation[] {
   return [...citations].sort((a, b) => {
     // First sort by availability (available first)
-    if (a.is_file_available && !b.is_file_available) return -1;
-    if (!a.is_file_available && b.is_file_available) return 1;
+    if (a.isFileAvailable && !b.isFileAvailable) return -1;
+    if (!a.isFileAvailable && b.isFileAvailable) return 1;
     
     // Then by downloadability (downloadable first)
-    if (a.can_download && !b.can_download) return -1;
-    if (!a.can_download && b.can_download) return 1;
+    if (a.canDownload && !b.canDownload) return -1;
+    if (!a.canDownload && b.canDownload) return 1;
     
     // Finally by citation number
-    return a.citation_number - b.citation_number;
+    return a.citationNumber - b.citationNumber;
   });
 }
 
@@ -108,7 +108,7 @@ export function validateCitation(citation: any): boolean {
     return false;
   }
   
-  const requiredFields = ['id', 'source_title', 'source_type'];
+  const requiredFields = ['id', 'sourceTitle', 'sourceType'];
   return requiredFields.every(field => field in citation);
 }
 
@@ -224,11 +224,11 @@ export function debounce<T extends (...args: any[]) => any>(
  * Check if citation is recent (within last 30 days)
  */
 export function isRecentCitation(citation: EnhancedCitation): boolean {
-  if (!citation.file_metadata?.created_at) {
+  if (!citation.fileMetadata?.createdAt) {
     return false;
   }
   
-  const createdDate = new Date(citation.file_metadata.created_at);
+  const createdDate = new Date(citation.fileMetadata.createdAt);
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   

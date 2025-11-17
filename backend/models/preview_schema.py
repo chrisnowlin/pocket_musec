@@ -12,6 +12,7 @@ from uuid import uuid4
 from enum import Enum
 
 from pydantic import BaseModel, Field, validator
+from backend.api.models import CamelModel
 
 
 class PreviewStatus(str, Enum):
@@ -25,7 +26,7 @@ class PreviewStatus(str, Enum):
     EXPIRED = "expired"  # Preview is older than current lesson revision
 
 
-class PreviewSlideOutline(BaseModel):
+class PreviewSlideOutline(CamelModel):
     """Outline of a single slide in the preview."""
 
     id: str
@@ -37,10 +38,12 @@ class PreviewSlideOutline(BaseModel):
     slide_type: str = "content"  # title, content, activity, assessment, closure
     source_section: str
     content_summary: str = ""  # Brief summary of slide content
-    visual_elements: List[str] = Field(default_factory=list)  # Suggested visual elements
+    visual_elements: List[str] = Field(
+        default_factory=list
+    )  # Suggested visual elements
 
 
-class PreviewQualityCheck(BaseModel):
+class PreviewQualityCheck(CamelModel):
     """Result of content quality validation."""
 
     check_type: str  # content_length, structure, objectives, materials, timing
@@ -50,7 +53,7 @@ class PreviewQualityCheck(BaseModel):
     suggestion: Optional[str] = None
 
 
-class PreviewMetadata(BaseModel):
+class PreviewMetadata(CamelModel):
     """Metadata about the preview generation."""
 
     estimated_duration_minutes: int
@@ -66,7 +69,7 @@ class PreviewMetadata(BaseModel):
     generation_time_ms: Optional[int] = None
 
 
-class PreviewUserFeedback(BaseModel):
+class PreviewUserFeedback(CamelModel):
     """User feedback on the preview."""
 
     rating: Optional[int] = Field(ge=1, le=5, default=None)
@@ -76,7 +79,7 @@ class PreviewUserFeedback(BaseModel):
     rejected_at: Optional[datetime] = None
 
 
-class PreviewDocument(BaseModel):
+class PreviewDocument(CamelModel):
     """Structured representation of a presentation preview.
 
     Contains the outline and key information before full presentation generation.
@@ -111,7 +114,9 @@ class PreviewDocument(BaseModel):
     updated_at: datetime
 
     # Conversion tracking
-    converted_to_presentation_id: Optional[str] = None  # Links to full presentation if accepted
+    converted_to_presentation_id: Optional[str] = (
+        None  # Links to full presentation if accepted
+    )
 
 
 def _now_utc() -> datetime:
@@ -196,7 +201,7 @@ def create_slide_outline(
     )
 
 
-class PreviewGenerationRequest(BaseModel):
+class PreviewGenerationRequest(CamelModel):
     """Request model for preview generation."""
 
     lesson_id: str
@@ -205,10 +210,12 @@ class PreviewGenerationRequest(BaseModel):
     max_slides: Optional[int] = Field(default=20, ge=5, le=50)
     include_quality_checks: bool = True
     target_duration_minutes: Optional[int] = Field(default=45, ge=15, le=120)
-    complexity_preference: str = Field(default="balanced", regex="^(simple|balanced|advanced)$")
+    complexity_preference: str = Field(
+        default="balanced", pattern="^(simple|balanced|advanced)$"
+    )
 
 
-class PreviewUpdateRequest(BaseModel):
+class PreviewUpdateRequest(CamelModel):
     """Request model for updating preview content."""
 
     slide_outlines: Optional[List[PreviewSlideOutline]] = None
@@ -217,7 +224,7 @@ class PreviewUpdateRequest(BaseModel):
     style: Optional[str] = None
 
 
-class PreviewAcceptRequest(BaseModel):
+class PreviewAcceptRequest(CamelModel):
     """Request model for accepting a preview for full generation."""
 
     use_llm_polish: bool = True
@@ -226,7 +233,7 @@ class PreviewAcceptRequest(BaseModel):
     additional_instructions: Optional[str] = None
 
 
-class PreviewFeedbackRequest(BaseModel):
+class PreviewFeedbackRequest(CamelModel):
     """Request model for submitting user feedback."""
 
     rating: Optional[int] = Field(ge=1, le=5)
@@ -235,7 +242,7 @@ class PreviewFeedbackRequest(BaseModel):
 
 
 # Response models
-class PreviewResponse(BaseModel):
+class PreviewResponse(CamelModel):
     """Response model for preview data."""
 
     id: str
@@ -264,7 +271,7 @@ class PreviewDetailResponse(PreviewResponse):
     style_preview: Dict[str, Any]
 
 
-class PreviewGenerationResponse(BaseModel):
+class PreviewGenerationResponse(CamelModel):
     """Response model for preview generation requests."""
 
     preview_id: str
@@ -273,21 +280,22 @@ class PreviewGenerationResponse(BaseModel):
     generation_time_ms: Optional[int] = None
 
 
-class PreviewQualityReport(BaseModel):
+class PreviewQualityReport(CamelModel):
     """Quality assessment report for a preview."""
 
     preview_id: str
     overall_score: float = Field(ge=0.0, le=1.0)
     checks: List[PreviewQualityCheck]
     recommendations: List[str] = Field(default_factory=list)
-    estimated_quality_tier: str = Field(regex="^(basic|standard|premium)$")
+    estimated_quality_tier: str = Field(pattern="^(basic|standard|premium)$")
 
 
 # ---------------------------------------------------------------------------
 # Simple content preview models
 # ---------------------------------------------------------------------------
 
-class SlidePreview(BaseModel):
+
+class SlidePreview(CamelModel):
     """A lightweight representation of a single slide.
 
     Attributes
@@ -312,7 +320,7 @@ class SlidePreview(BaseModel):
         return v
 
 
-class PresentationPreview(BaseModel):
+class PresentationPreview(CamelModel):
     """A preview of an entire presentation.
 
     Attributes

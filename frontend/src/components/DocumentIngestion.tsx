@@ -80,12 +80,17 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
         setDuplicateWarning({
           duplicate: true,
           message: ingestionResponse.message || 'File already exists',
-          existing_file: ingestionResponse.existing_file as any
+          existingFile: ingestionResponse.existing_file as any
         });
         setCurrentStep('duplicate');
       } else {
-        setResults(ingestionResponse.results || null);
-        setFileMetadata(ingestionResponse.file_metadata || null);
+setResults(ingestionResponse.results || null);
+        // Transform snake_case to camelCase for FileMetadata
+        const fileMetadata = ingestionResponse.fileMetadata ? {
+          ...ingestionResponse.fileMetadata,
+          // The fileMetadata already uses camelCase properties from FileMetadata interface
+        } : null;
+        setFileMetadata(fileMetadata);
         setCurrentStep('complete');
         onIngestionComplete?.(ingestionResponse);
       }
@@ -171,29 +176,29 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
     if (fileMetadata) {
       fileMetrics.push({
         label: 'File Size',
-        value: formatFileSize(fileMetadata.file_size),
+        value: formatFileSize(fileMetadata.fileSize),
         icon: '📁',
-        detail: fileMetadata.original_filename
+        detail: fileMetadata.originalFilename
       });
       fileMetrics.push({
         label: 'File ID',
-        value: fileMetadata.file_id.substring(0, 8) + '...',
+        value: fileMetadata.fileId.substring(0, 8) + '...',
         icon: '🏷️',
         detail: 'Unique identifier'
       });
       fileMetrics.push({
         label: 'Upload Date',
-        value: formatDateTime(fileMetadata.created_at),
+        value: formatDateTime(fileMetadata.createdAt),
         icon: '📅',
-        detail: getRelativeTime(fileMetadata.created_at)
+        detail: getRelativeTime(fileMetadata.createdAt)
       });
       fileMetrics.push({
         label: 'Status',
-        value: FILE_STATUS_LABELS[fileMetadata.ingestion_status],
-        icon: fileMetadata.ingestion_status === 'completed' ? '✅' :
-              fileMetadata.ingestion_status === 'processing' ? '⏳' :
-              fileMetadata.ingestion_status === 'error' ? '❌' : '⬆️',
-        detail: fileMetadata.ingestion_status
+        value: FILE_STATUS_LABELS[fileMetadata.ingestionStatus],
+        icon: fileMetadata.ingestionStatus === 'completed' ? '✅' :
+              fileMetadata.ingestionStatus === 'processing' ? '⏳' :
+              fileMetadata.ingestionStatus === 'error' ? '❌' : '⬆️',
+        detail: fileMetadata.ingestionStatus
       });
     }
 
@@ -220,7 +225,7 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
             </div>
             <div className="mt-4 pt-4 border-t border-ink-200">
               <button
-                onClick={() => handleDownloadFile(fileMetadata.file_id, fileMetadata.original_filename)}
+                onClick={() => handleDownloadFile(fileMetadata.fileId, fileMetadata.originalFilename)}
                 className="inline-flex items-center px-3 py-2 border border-ink-300 rounded-md text-sm text-ink-700 hover:bg-parchment-200"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -440,15 +445,15 @@ export default function DocumentIngestion({ onIngestionComplete }: DocumentInges
             <div className="space-y-2 text-sm">
               <div>
                 <span className="text-ink-600">File Name:</span>
-                <span className="ml-2 font-medium text-ink-800">{duplicateWarning.existing_file.filename}</span>
+                <span className="ml-2 font-medium text-ink-800">{duplicateWarning.existingFile.filename}</span>
               </div>
               <div>
                 <span className="text-ink-600">Upload Date:</span>
-                <span className="ml-2 font-medium text-ink-800">{formatDateTime(duplicateWarning.existing_file.upload_date)}</span>
+                <span className="ml-2 font-medium text-ink-800">{formatDateTime(duplicateWarning.existingFile.uploadDate)}</span>
               </div>
               <div>
                 <span className="text-ink-600">Status:</span>
-                <span className="ml-2 font-medium text-ink-800">{duplicateWarning.existing_file.status}</span>
+                <span className="ml-2 font-medium text-ink-800">{duplicateWarning.existingFile.status}</span>
               </div>
             </div>
           </div>

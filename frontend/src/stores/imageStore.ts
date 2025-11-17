@@ -22,8 +22,8 @@ export interface ImageStoreState {
   imageDragActive: boolean;
   filters: {
     category?: string;
-    education_level?: string;
-    difficulty_level?: string;
+    educationLevel?: string;
+    difficultyLevel?: string;
   };
   
   // Actions
@@ -58,8 +58,8 @@ const initialState = {
   imageDragActive: false,
   filters: {
     category: undefined,
-    education_level: undefined,
-    difficulty_level: undefined,
+    educationLevel: undefined,
+    difficultyLevel: undefined,
   },
 };
 
@@ -110,15 +110,15 @@ export const imageSelectors = {
   getImagesByCategory: (state: ImageStoreState, category?: string) => 
     category ? state.images.filter(img => img.classification?.category === category) : state.images,
   getImagesByEducationLevel: (state: ImageStoreState, educationLevel?: string) => 
-    educationLevel ? state.images.filter(img => img.classification?.education_level === educationLevel) : state.images,
+    educationLevel ? state.images.filter(img => img.classification?.educationLevel === educationLevel) : state.images,
   getImagesByDifficultyLevel: (state: ImageStoreState, difficultyLevel?: string) => 
-    difficultyLevel ? state.images.filter(img => img.classification?.difficulty_level === difficultyLevel) : state.images,
+    difficultyLevel ? state.images.filter(img => img.classification?.difficultyLevel === difficultyLevel) : state.images,
   getFilteredImages: (state: ImageStoreState) => {
     const { images, filters } = state;
     return images.filter(img => {
       if (filters.category && img.classification?.category !== filters.category) return false;
-      if (filters.education_level && img.classification?.education_level !== filters.education_level) return false;
-      if (filters.difficulty_level && img.classification?.difficulty_level !== filters.difficulty_level) return false;
+      if (filters.educationLevel && img.classification?.educationLevel !== filters.educationLevel) return false;
+      if (filters.difficultyLevel && img.classification?.difficultyLevel !== filters.difficultyLevel) return false;
       return true;
     });
   },

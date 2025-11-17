@@ -1,12 +1,26 @@
 """Pydantic models for API requests and responses"""
 
-from pydantic import BaseModel, EmailStr, Field
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from backend.utils.casing import to_camel_case
+
+
+class CamelModel(BaseModel):
+    """Base model that serializes JSON using camelCase keys."""
+
+    model_config = ConfigDict(
+        alias_generator=to_camel_case,
+        populate_by_name=True,
+        protected_namespaces=(),
+        from_attributes=True,
+    )
 
 
 # Auth Request Models
-class RegisterRequest(BaseModel):
+class RegisterRequest(CamelModel):
     """User registration request"""
 
     email: EmailStr
@@ -15,20 +29,20 @@ class RegisterRequest(BaseModel):
     role: str = Field(default="teacher", pattern="^(teacher|admin)$")
 
 
-class LoginRequest(BaseModel):
+class LoginRequest(CamelModel):
     """User login request"""
 
     email: EmailStr
     password: str
 
 
-class RefreshTokenRequest(BaseModel):
+class RefreshTokenRequest(CamelModel):
     """Token refresh request"""
 
     refresh_token: str
 
 
-class ChangePasswordRequest(BaseModel):
+class ChangePasswordRequest(CamelModel):
     """Password change request"""
 
     current_password: str
@@ -36,7 +50,7 @@ class ChangePasswordRequest(BaseModel):
 
 
 # Auth Response Models
-class TokenResponse(BaseModel):
+class TokenResponse(CamelModel):
     """Authentication token response"""
 
     access_token: str
@@ -45,7 +59,7 @@ class TokenResponse(BaseModel):
     expires_in: int  # seconds
 
 
-class UserResponse(BaseModel):
+class UserResponse(CamelModel):
     """User information response"""
 
     id: str
@@ -61,27 +75,27 @@ class UserResponse(BaseModel):
         from_attributes = True
 
 
-class LoginResponse(BaseModel):
+class LoginResponse(CamelModel):
     """Login response with user and tokens"""
 
     user: UserResponse
     tokens: TokenResponse
 
 
-class MessageResponse(BaseModel):
+class MessageResponse(CamelModel):
     """Generic message response"""
 
     message: str
 
 
-class ErrorResponse(BaseModel):
+class ErrorResponse(CamelModel):
     """Error response"""
 
     detail: str
     error_code: Optional[str] = None
 
 
-class StandardResponse(BaseModel):
+class StandardResponse(CamelModel):
     """Standard metadata for UI"""
 
     id: str
@@ -96,7 +110,7 @@ class StandardResponse(BaseModel):
     last_used: Optional[str] = None
 
 
-class SessionCreateRequest(BaseModel):
+class SessionCreateRequest(CamelModel):
     """Request to start a new session"""
 
     grade_level: Optional[str] = None
@@ -112,7 +126,7 @@ class SessionCreateRequest(BaseModel):
     selected_model: Optional[str] = None  # Selected AI model for cloud mode
 
 
-class SessionUpdateRequest(BaseModel):
+class SessionUpdateRequest(CamelModel):
     """Update session context"""
 
     grade_level: Optional[str] = None
@@ -128,7 +142,7 @@ class SessionUpdateRequest(BaseModel):
     selected_model: Optional[str] = None  # Selected AI model for cloud mode
 
 
-class SessionResponse(BaseModel):
+class SessionResponse(CamelModel):
     """Session summary returned to the client"""
 
     id: str
@@ -143,7 +157,7 @@ class SessionResponse(BaseModel):
     updated_at: Optional[datetime]
 
 
-class LessonSummary(BaseModel):
+class LessonSummary(CamelModel):
     """Lesson summary returned with chat response"""
 
     id: str
@@ -155,7 +169,7 @@ class LessonSummary(BaseModel):
     presentation_status: Optional[Dict[str, Any]] = None
 
 
-class ChatMessageRequest(BaseModel):
+class ChatMessageRequest(CamelModel):
     """Chat message sent from the workspace"""
 
     message: str
@@ -163,13 +177,13 @@ class ChatMessageRequest(BaseModel):
     class_size: Optional[str] = None
 
 
-class ModelSelectionRequest(BaseModel):
+class ModelSelectionRequest(CamelModel):
     """Request to update the selected model for a session"""
 
     selected_model: Optional[str] = None
 
 
-class ModelAvailabilityResponse(BaseModel):
+class ModelAvailabilityResponse(CamelModel):
     """Response with available models and their status"""
 
     available_models: List[Dict[str, Any]]
@@ -177,7 +191,7 @@ class ModelAvailabilityResponse(BaseModel):
     processing_mode: str
 
 
-class ChatResponse(BaseModel):
+class ChatResponse(CamelModel):
     """Response payload containing AI reply and lesson"""
 
     response: str
@@ -186,7 +200,7 @@ class ChatResponse(BaseModel):
 
 
 # Draft Models
-class DraftCreateRequest(BaseModel):
+class DraftCreateRequest(CamelModel):
     """Request to create a new draft"""
 
     session_id: str
@@ -195,7 +209,7 @@ class DraftCreateRequest(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 
-class DraftUpdateRequest(BaseModel):
+class DraftUpdateRequest(CamelModel):
     """Request to update an existing draft"""
 
     title: Optional[str] = None
@@ -203,7 +217,7 @@ class DraftUpdateRequest(BaseModel):
     metadata: Optional[Dict[str, Any]] = None
 
 
-class DraftResponse(BaseModel):
+class DraftResponse(CamelModel):
     """Draft response for the frontend"""
 
     id: str
@@ -213,8 +227,11 @@ class DraftResponse(BaseModel):
     grade: Optional[str] = None
     strand: Optional[str] = None
     standard: Optional[str] = None
+    selectedStandards: Optional[List[str]] = None
+    selectedObjectives: Optional[List[str]] = None
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
+    presentation_status: Optional[Dict[str, Any]] = None
 
     class Config:
         from_attributes = True

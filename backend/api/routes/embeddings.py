@@ -14,16 +14,23 @@ from backend.llm.embeddings import (
     EmbeddedObjective,
 )
 from ..dependencies import get_current_user
+from ..models import CamelModel
 from backend.auth import User
 from backend.services.embedding_job_manager import get_job_manager, EmbeddingJobManager
 from backend.models.embedding_jobs import EmbeddingJob, JobStatus
+from backend.models.ingestion_schema import (
+    create_success_response,
+    create_error_response,
+    create_pending_response,
+    IngestionStatus,
+)
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/embeddings", tags=["embeddings"])
 
 
-class EmbeddingStatsResponse(BaseModel):
+class EmbeddingStatsResponse(CamelModel):
     """Response model for embedding statistics"""
 
     standard_embeddings: int
@@ -31,14 +38,14 @@ class EmbeddingStatsResponse(BaseModel):
     embedding_dimension: int
 
 
-class EmbeddingGenerateRequest(BaseModel):
+class EmbeddingGenerateRequest(CamelModel):
     """Request model for generating embeddings"""
 
     force: bool = False
     batch_size: int = 10
 
 
-class EmbeddingGenerateResponse(BaseModel):
+class EmbeddingGenerateResponse(CamelModel):
     """Response model for embedding generation results"""
 
     success: int
@@ -47,7 +54,7 @@ class EmbeddingGenerateResponse(BaseModel):
     message: str
 
 
-class BatchOperationRequest(BaseModel):
+class BatchOperationRequest(CamelModel):
     """Request model for batch operations"""
 
     operation: str  # 'regenerate', 'delete', 'refresh'
@@ -56,7 +63,7 @@ class BatchOperationRequest(BaseModel):
     )
 
 
-class BatchOperationResponse(BaseModel):
+class BatchOperationResponse(CamelModel):
     """Response model for batch operation results"""
 
     success: int
@@ -65,7 +72,7 @@ class BatchOperationResponse(BaseModel):
     message: str
 
 
-class SemanticSearchRequest(BaseModel):
+class SemanticSearchRequest(CamelModel):
     """Request model for semantic search"""
 
     query: str
@@ -76,7 +83,7 @@ class SemanticSearchRequest(BaseModel):
     offset: int = 0
 
 
-class SemanticSearchResult(BaseModel):
+class SemanticSearchResult(CamelModel):
     """Response model for semantic search results"""
 
     standard_id: str
@@ -87,7 +94,7 @@ class SemanticSearchResult(BaseModel):
     similarity: float
 
 
-class SemanticSearchResponse(BaseModel):
+class SemanticSearchResponse(CamelModel):
     """Response model for paginated semantic search results"""
 
     results: List[SemanticSearchResult]
@@ -98,14 +105,14 @@ class SemanticSearchResponse(BaseModel):
     has_previous: bool
 
 
-class PreparedTextsResponse(BaseModel):
+class PreparedTextsResponse(CamelModel):
     """Response model for prepared texts"""
 
     standards: List[str]
     objectives: List[str]
 
 
-class ShowTextResponse(BaseModel):
+class ShowTextResponse(CamelModel):
     """Response model for showing prepared text"""
 
     text: str
@@ -113,7 +120,7 @@ class ShowTextResponse(BaseModel):
     item_type: str
 
 
-class JobResponse(BaseModel):
+class JobResponse(CamelModel):
     """Response model for embedding job"""
 
     id: str
@@ -131,7 +138,7 @@ class JobResponse(BaseModel):
     duration_seconds: Optional[float]
 
 
-class JobListResponse(BaseModel):
+class JobListResponse(CamelModel):
     """Response model for job list"""
 
     jobs: List[JobResponse]
@@ -158,36 +165,74 @@ async def get_embedding_stats(
         )
 
 
-@router.post("/generate", response_model=EmbeddingGenerateResponse)
+@router.post(
+    "/generate",
+    responses={
+        200: {
+            "description": "Embedding generation response with standardized ingestion envelope",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "status": "pending",
+                        "message": "Embedding generation started in background",
+                        "data": {
+                            "success": 0,
+                            "failed": 0,
+                            "skipped": 0,
+                            "message": "Embedding generation started in background",
+                        },
+                        "meta": {
+                            "operation_type": "embedding_generation",
+                            "batch_size": 10,
+                            "force_regeneration": False,
+                            "user_id": "user-123",
+                        },
+                        "timestamp": "2025-11-16T10:30:00Z",
+                    }
+                }
+            },
+        },
+        500: {"description": "Failed to start embedding generation", "model": dict},
+    },
+    summary="Generate embeddings with standardized response",
+    description="Starts embedding generation for all standards and objectives using the harmonized ingestion response envelope. The process runs in the background and status can be tracked via the progress endpoint.",
+)
 async def generate_embeddings(
     request: EmbeddingGenerateRequest,
     background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
-) -> EmbeddingGenerateResponse:
+):
     """Generate embeddings for all standards and objectives"""
     global _generation_progress
 
     try:
         # Check if already running
         if _generation_progress["status"] == "running":
-            return EmbeddingGenerateResponse(
-                success=0,
-                failed=0,
-                skipped=0,
+            return create_success_response(
+                data=EmbeddingGenerateResponse(
+                    success=0,
+                    failed=0,
+                    skipped=0,
+                    message="Embedding generation already in progress",
+                ).model_dump(),
                 message="Embedding generation already in progress",
-            )
+            ).to_dict()
 
         # Check if embeddings already exist
         embeddings_manager = StandardsEmbeddings()
         stats = embeddings_manager.get_embedding_stats()
 
         if stats["standard_embeddings"] > 0 and not request.force:
-            return EmbeddingGenerateResponse(
-                success=0,
-                failed=0,
-                skipped=0,
+            return create_success_response(
+                data=EmbeddingGenerateResponse(
+                    success=0,
+                    failed=0,
+                    skipped=0,
+                    message=f"Found {stats['standard_embeddings']} existing embeddings. Use force=true to regenerate.",
+                ).model_dump(),
                 message=f"Found {stats['standard_embeddings']} existing embeddings. Use force=true to regenerate.",
-            )
+                meta={"existing_embeddings": stats["standard_embeddings"]},
+            ).to_dict()
 
         # Start background generation
         _generation_progress["status"] = "running"
@@ -198,19 +243,30 @@ async def generate_embeddings(
             _generate_embeddings_background, request.force, request.batch_size
         )
 
-        return EmbeddingGenerateResponse(
-            success=0,
-            failed=0,
-            skipped=0,
+        return create_pending_response(
             message="Embedding generation started in background",
-        )
+            data=EmbeddingGenerateResponse(
+                success=0,
+                failed=0,
+                skipped=0,
+                message="Embedding generation started in background",
+            ).model_dump(),
+            meta={
+                "batch_size": request.batch_size,
+                "force_regeneration": request.force,
+            },
+        ).to_dict()
 
     except Exception as e:
         _generation_progress["status"] = "error"
         _generation_progress["message"] = f"Error: {str(e)}"
+        error_response = create_error_response(
+            message=f"Failed to start embedding generation: {str(e)}",
+            errors=[{"message": str(e), "code": "embedding_generation_failed"}],
+            meta={"error_type": "generation_start_failed", "user_id": current_user.id},
+        )
         raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to start embedding generation: {str(e)}",
+            status.HTTP_500_INTERNAL_SERVER_ERROR, detail=error_response.to_dict()
         )
 
 
@@ -398,7 +454,7 @@ async def clear_prepared_texts(
 
 
 # Usage tracking endpoints
-class UsageStatsResponse(BaseModel):
+class UsageStatsResponse(CamelModel):
     """Response model for usage statistics"""
 
     total_searches: int

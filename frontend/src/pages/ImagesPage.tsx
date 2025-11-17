@@ -4,11 +4,11 @@ import api from '../lib/api';
 interface ImageData {
   id: string;
   filename: string;
-  uploaded_at: string;
-  ocr_text: string | null;
-  vision_analysis: string | null;
-  file_size: number;
-  mime_type: string;
+  uploadedAt: string;
+  ocrText: string | null;
+  visionAnalysis: string | null;
+  fileSize: number;
+  mimeType: string;
 }
 
 interface StorageInfo {
@@ -23,8 +23,7 @@ interface ImagesResponse {
   images: ImageData[];
 }
 
-interface StorageInfoResponse {
-  image_count: number;
+interface StorageInfoResponse { imageCount: number;
   usage_mb: number;
   limit_mb: number;
   percentage: number;
@@ -70,7 +69,7 @@ export default function ImagesPage() {
       if (result.ok) {
         const data = result.data as StorageInfoResponse;
         setStorageInfo({
-          total_images: data.image_count,
+          total_images: data.imageCount,
           total_size_bytes: data.usage_mb * 1024 * 1024,
           total_size_mb: data.usage_mb,
           quota_mb: data.limit_mb,
@@ -185,8 +184,8 @@ export default function ImagesPage() {
   const filteredImages = searchQuery
     ? images.filter(img =>
         img.filename.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        img.ocr_text?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        img.vision_analysis?.toLowerCase().includes(searchQuery.toLowerCase())
+        img.ocrText?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        img.visionAnalysis?.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : images;
 
@@ -340,20 +339,20 @@ export default function ImagesPage() {
                 </div>
 
                 <div className="text-sm text-gray-600 mb-2">
-                  {new Date(image.uploaded_at).toLocaleDateString()}
+                  {new Date(image.uploadedAt).toLocaleDateString()}
                 </div>
 
-                {image.ocr_text && (
+                {image.ocrText && (
                   <div className="mt-2">
                     <p className="text-xs text-gray-500 font-medium">OCR Text:</p>
-                    <p className="text-sm text-gray-700 line-clamp-3">{image.ocr_text}</p>
+                    <p className="text-sm text-gray-700 line-clamp-3">{image.ocrText}</p>
                   </div>
                 )}
 
-                {image.vision_analysis && (
+                {image.visionAnalysis && (
                   <div className="mt-2">
                     <p className="text-xs text-gray-500 font-medium">AI Analysis:</p>
-                    <p className="text-sm text-gray-700 line-clamp-3">{image.vision_analysis}</p>
+                    <p className="text-sm text-gray-700 line-clamp-3">{image.visionAnalysis}</p>
                   </div>
                 )}
               </div>
@@ -400,25 +399,25 @@ export default function ImagesPage() {
 
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500">Uploaded: {new Date(selectedImage.uploaded_at).toLocaleString()}</p>
-                  <p className="text-sm text-gray-500">Size: {(selectedImage.file_size / 1024).toFixed(2)} KB</p>
-                  <p className="text-sm text-gray-500">Type: {selectedImage.mime_type}</p>
+                  <p className="text-sm text-gray-500">Uploaded: {new Date(selectedImage.uploadedAt).toLocaleString()}</p>
+                  <p className="text-sm text-gray-500">Size: {(selectedImage.fileSize / 1024).toFixed(2)} KB</p>
+                  <p className="text-sm text-gray-500">Type: {selectedImage.mimeType}</p>
                 </div>
 
-                {selectedImage.ocr_text && (
+                {selectedImage.ocrText && (
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">OCR Extracted Text</h3>
                     <div className="bg-gray-50 rounded p-4">
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedImage.ocr_text}</p>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedImage.ocrText}</p>
                     </div>
                   </div>
                 )}
 
-                {selectedImage.vision_analysis && (
+                {selectedImage.visionAnalysis && (
                   <div>
                     <h3 className="font-semibold text-gray-900 mb-2">AI Vision Analysis</h3>
                     <div className="bg-blue-50 rounded p-4">
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedImage.vision_analysis}</p>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedImage.visionAnalysis}</p>
                     </div>
                   </div>
                 )}

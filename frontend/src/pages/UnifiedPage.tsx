@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect, lazy, Suspense } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useChat } from '../hooks/useChat';
 import { useSession } from '../hooks/useSession';
 import { useImages } from '../hooks/useImages';
@@ -25,6 +26,7 @@ import api from '../lib/api';
 import { frontendToBackendGrade } from '../lib/gradeUtils';
 
 import type { StandardRecord } from '../lib/types';
+import type { DraftItem } from '../types/unified';
 import { useConversationStore } from '../stores/conversationStore';
 import { useUIStore } from '../stores/uiStore';
 
@@ -124,6 +126,33 @@ export default function UnifiedPage() {
     updateDraft,
   } = useDrafts();
 
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydrateWorkspace = async () => {
+      const result = await api.getWorkspaceDashboard();
+      if (!result.ok || !result.data || cancelled) {
+        return;
+      }
+
+      if (result.data.sessions) {
+        setSessions(result.data.sessions);
+      }
+
+      if (result.data.drafts?.items) {
+        queryClient.setQueryData<DraftItem[]>(['drafts'], result.data.drafts.items as DraftItem[]);
+      }
+    };
+
+    hydrateWorkspace();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [queryClient, setSessions]);
+
 
   // Refs - must be declared at top level (React hooks rule)
   const imageFileInputRef = useRef<HTMLInputElement>(null);
@@ -141,22 +170,22 @@ export default function UnifiedPage() {
     const newSession = await initSession(
       lessonSettings.selectedGrade,
       lessonSettings.selectedStrand,
-      lessonSettings.selectedStandards.length > 0 ? lessonSettings.selectedStandards[0].id : null,
+      (lessonSettings.selectedStandards || []).length > 0 ? lessonSettings.selectedStandards[0].id : null,
       lessonSettings.lessonContext || null,
       parseInt(lessonSettings.lessonDuration) || 30,
       parseInt(lessonSettings.classSize) || 25,
       lessonSettings.selectedObjectives,
-      lessonSettings.selectedStandards.slice(1) // All standards except the first one
+      (lessonSettings.selectedStandards || []).slice(1) // All standards except the first one
     );
     
     if (newSession) {
       // Update lesson settings to match the created session
       updateLessonSettings({
-        selectedGrade: newSession.grade_level || lessonSettings.selectedGrade,
-        selectedStrand: newSession.strand_code || lessonSettings.selectedStrand,
-        selectedStandards: newSession.selected_standards || [],
-        selectedObjectives: newSession.selected_objectives || [],
-        lessonContext: newSession.additional_context || lessonSettings.lessonContext,
+        selectedGrade: newSession.gradeLevel || lessonSettings.selectedGrade,
+        selectedStrand: newSession.strandCode || lessonSettings.selectedStrand,
+        selectedStandards: newSession.selectedStandards || [],
+        selectedObjectives: newSession.selectedObjectives || [],
+        lessonContext: newSession.additionalContext || lessonSettings.lessonContext,
       });
       
       // Refresh the sessions list so the new conversation appears in Recent Chats
@@ -174,11 +203,11 @@ export default function UnifiedPage() {
     if (loadedSession) {
       // Update lesson settings based on the loaded session
       updateLessonSettings({
-        selectedGrade: loadedSession.grade_level || 'All Grades',
-        selectedStrand: loadedSession.strand_code || 'All Strands',
-        selectedStandards: loadedSession.selected_standards || [],
-        selectedObjectives: loadedSession.selected_objectives || [],
-        lessonContext: loadedSession.additional_context || '',
+        selectedGrade: loadedSession.gradeLevel || 'All Grades',
+        selectedStrand: loadedSession.strandCode || 'All Strands',
+        selectedStandards: loadedSession.selectedStandards || [],
+        selectedObjectives: loadedSession.selectedObjectives || [],
+        lessonContext: loadedSession.additionalContext || '',
       });
       
       // Explicitly load conversation messages into the chat UI
@@ -210,15 +239,14 @@ export default function UnifiedPage() {
     updateLessonSettings({ 
       selectedStandards: [standard],
       selectedGrade: standard.grade,
-      selectedStrand: standard.strand_name
+      selectedStrand: standard.strandName
     });
     
     // Update session with the selected standard if session exists
     if (session?.id) {
       const backendGrade = frontendToBackendGrade(standard.grade);
-      const result = await api.updateSession(session.id, {
-        grade_level: backendGrade,
-        strand_code: standard.strand_code,
+      const result = await api.updateSession(session.id, { grade_level: backendGrade,
+        strand_code: standard.strandCode,
         standard_id: standard.id
       });
       if (result.ok) {
@@ -376,9 +404,9 @@ export default function UnifiedPage() {
       } else {
         // Fallback: try to extract from conversation history
         const sessionResult = await api.getSession(sessionId);
-        if (sessionResult.ok && sessionResult.data.conversation_history) {
+        if (sessionResult.ok && sessionResult.data.conversationHistory) {
           try {
-            const history = JSON.parse(sessionResult.data.conversation_history);
+            const history = JSON.parse(sessionResult.data.conversationHistory);
             // Find the last assistant message that contains lesson content
             for (let i = history.length - 1; i >= 0; i--) {
               if (history[i].role === 'assistant' && history[i].content) {
@@ -433,13 +461,13 @@ export default function UnifiedPage() {
           const session = sessionResult.data;
           const createResult = await api.createDraft({
             session_id: editorSessionId,
-            title: `${session.grade_level || 'Lesson'} · ${session.strand_code || 'Lesson'} Strand`,
+            title: `${session.gradeLevel || 'Lesson'} · ${session.strandCode || 'Lesson'} Strand`,
             content,
             metadata: {
               session_id: editorSessionId,
-              grade_level: session.grade_level,
-              strand_code: session.strand_code,
-              standard_id: session.selected_standards?.[0]?.code,
+              grade_level: session.gradeLevel,
+              strand_code: session.strandCode,
+              standard_id: session.selectedStandards?.[0]?.code,
             },
           });
           if (createResult.ok) {
@@ -507,7 +535,7 @@ export default function UnifiedPage() {
                 isLoadingConversation={isLoadingConversation}
                 onUpdateMessage={handleUpdateMessage}
                 sessionId={session?.id}
-                selectedModel={session?.selected_model ?? null}
+                selectedModel={session?.selectedModel ?? null}
                 onModelChange={(model, updatedSession) => session?.id && updateSelectedModel(session.id, model, updatedSession)}
                 processingMode={settingsState.processingMode}
               />
@@ -518,7 +546,7 @@ export default function UnifiedPage() {
                 standards={standards}
                 selectedGrade={lessonSettings.selectedGrade}
                 selectedStrand={lessonSettings.selectedStrand}
-                selectedStandard={lessonSettings.selectedStandards[0] || null}
+                selectedStandard={(lessonSettings.selectedStandards || [])[0] || null}
                 browseQuery={browseState.query}
                 onGradeChange={(grade) => updateLessonSettings({ selectedGrade: grade })}
                 onStrandChange={(strand) => updateLessonSettings({ selectedStrand: strand })}

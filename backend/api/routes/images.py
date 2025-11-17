@@ -10,8 +10,16 @@ import logging
 from backend.auth import User
 from backend.image_processing import ImageProcessor, ImageRepository
 from ..dependencies import get_current_user
-from ..models import MessageResponse
+from ..models import MessageResponse, CamelModel
 from backend.config import config
+from backend.models.ingestion_schema import (
+    create_success_response,
+    create_batch_success_response,
+    create_batch_partial_response,
+    create_error_response,
+    create_file_error_response,
+    get_http_status_for_ingestion_status,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +45,7 @@ from pydantic import BaseModel
 from datetime import datetime
 
 
-class ImageResponse(BaseModel):
+class ImageResponse(CamelModel):
     """Image metadata response"""
 
     id: str
@@ -55,7 +63,7 @@ class ImageResponse(BaseModel):
         from_attributes = True
 
 
-class ImageUploadResponse(BaseModel):
+class ImageUploadResponse(CamelModel):
     """Image upload response"""
 
     id: str
@@ -70,7 +78,7 @@ class ImageUploadResponse(BaseModel):
     message: str
 
 
-class StorageInfoResponse(BaseModel):
+class StorageInfoResponse(CamelModel):
     """Storage quota information"""
 
     usage_mb: float
@@ -80,9 +88,7 @@ class StorageInfoResponse(BaseModel):
     image_count: int
 
 
-@router.post(
-    "/upload", response_model=ImageUploadResponse, status_code=status.HTTP_201_CREATED
-)
+@router.post("/upload")
 async def upload_image(
     file: UploadFile = File(...),
     analyze_vision: bool = Form(True),
@@ -162,7 +168,8 @@ async def upload_image(
 
         logger.info(f"User {current_user.id} uploaded image: {image_model.id}")
 
-        return ImageUploadResponse(
+        # Create response data in legacy format for backward compatibility
+        image_data = ImageUploadResponse(
             id=image_model.id,
             filename=file.filename,
             file_size=result["file_size"],
@@ -174,6 +181,16 @@ async def upload_image(
             image_type=result["image_type"],
             message="Image uploaded and processed successfully",
         )
+
+        return create_success_response(
+            message="Image uploaded and processed successfully",
+            data=image_data.model_dump(),
+            meta={
+                "user_id": current_user.id,
+                "analyze_vision": analyze_vision,
+                "image_type": result["image_type"],
+            },
+        ).to_dict()
 
     finally:
         # Clean up temporary file
