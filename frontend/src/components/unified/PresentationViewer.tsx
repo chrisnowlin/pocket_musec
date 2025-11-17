@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import type { PresentationDetail, SourceSection } from '../../types/presentations';
 import { PresentationStatusIndicator } from './PresentationStatusIndicator';
+import { usePresentationErrorHandler, PresentationError } from '../../errors/presentationErrors';
+import apiClient from '../../services/presentationApiClient';
 
 interface PresentationViewerProps {
   presentation: PresentationDetail;
@@ -8,17 +10,23 @@ interface PresentationViewerProps {
   onClose: () => void;
   onExport?: (format: 'json' | 'markdown' | 'pptx' | 'pdf') => void;
   isExporting?: boolean;
+  onError?: (error: PresentationError) => void;
 }
 
-export function PresentationViewer({ 
-  presentation, 
-  isOpen, 
-  onClose, 
-  onExport, 
-  isExporting = false 
+export function PresentationViewer({
+  presentation,
+  isOpen,
+  onClose,
+  onExport,
+  isExporting = false,
+  onError
 }: PresentationViewerProps) {
   const [currentSlideIndex, setCurrentSlideIndex] = useState(0);
   const [showTeacherScript, setShowTeacherScript] = useState(true);
+  const [exportError, setExportError] = useState<PresentationError | null>(null);
+  const [exportProgress, setExportProgress] = useState<string | null>(null);
+
+  const { handleError, getRecoveryActions } = usePresentationErrorHandler();
 
   if (!isOpen) return null;
 
@@ -33,6 +41,128 @@ export function PresentationViewer({
 
   const nextSlide = () => goToSlide(currentSlideIndex + 1);
   const prevSlide = () => goToSlide(currentSlideIndex - 1);
+
+  const handleExport = useCallback(async (format: 'json' | 'markdown' | 'pptx' | 'pdf') => {
+    try {
+      setExportError(null);
+      setExportProgress(`Preparing ${format.toUpperCase()} export...`);
+
+      // Call the provided onExport handler if it exists
+      if (onExport) {
+        onExport(format);
+        return;
+      }
+
+      // Use the API client for direct export
+      const blob = await apiClient.exportPresentation(presentation.id, format, {
+        onProgress: (formatting, progress) => {
+          setExportProgress(`Exporting ${formatting.toUpperCase()}: ${progress}%`);
+        }
+      });
+
+      // Download the file
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `presentation_${presentation.id}.${format}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+
+      setExportProgress(`${format.toUpperCase()} export completed successfully`);
+
+      // Clear progress after 3 seconds
+      setTimeout(() => setExportProgress(null), 3000);
+
+    } catch (error: any) {
+      console.error('Export failed:', error);
+
+      const structuredError = error.structuredError || handleError(error);
+      setExportError(structuredError);
+
+      // Call error handler if provided
+      if (onError) {
+        onError(structuredError);
+      }
+    } finally {
+      setExportProgress(null);
+    }
+  }, [presentation.id, onExport, onError, handleError]);
+
+  const clearExportError = () => {
+    setExportError(null);
+  };
+
+  const getExportErrorMessage = () => {
+    if (!exportError) return null;
+
+    const recoveryActions = getRecoveryActions(exportError);
+    const primaryActions = recoveryActions.filter(action => action.type === 'primary');
+    const secondaryActions = recoveryActions.filter(action => action.type === 'secondary');
+
+    return (
+      <div className="space-y-4">
+        <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+          <div className="flex items-start">
+            <svg className="h-5 w-5 text-yellow-400 mt-0.5 mr-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <div className="flex-1">
+              <h4 className="text-sm font-medium text-yellow-800">Export Error</h4>
+              <p className="mt-1 text-sm text-yellow-700">{exportError.error.user_message}</p>
+            </div>
+            <button
+              onClick={clearExportError}
+              className="ml-3 text-yellow-600 hover:text-yellow-800"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        {primaryActions.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {primaryActions.map((action, index) => (
+              <button
+                key={index}
+                onClick={action.action}
+                className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {secondaryActions.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {secondaryActions.map((action, index) => (
+              <button
+                key={index}
+                onClick={action.action}
+                className="px-3 py-1 text-sm bg-gray-200 hover:bg-gray-300 text-gray-900 rounded-md transition-colors"
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {import.meta.env.DEV && (
+          <details className="mt-2">
+            <summary className="text-xs text-gray-500 cursor-pointer">Technical Details</summary>
+            <div className="mt-1 p-2 bg-gray-100 rounded text-xs text-gray-700 font-mono">
+              <div><strong>Code:</strong> {exportError.error.code}</div>
+              <div><strong>Technical:</strong> {exportError.error.technical_message}</div>
+            </div>
+          </details>
+        )}
+      </div>
+    );
+  };
 
   const slideTitle = useMemo(() => {
     return (
@@ -89,47 +219,59 @@ export function PresentationViewer({
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[90]">
       <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="border-b border-gray-200 p-4 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div>
               <h2 className="text-xl font-semibold text-gray-900">{slideTitle}</h2>
-              <p className="text-sm text-gray-500">Lesson #{presentation.lesson_id}</p>
+              <p className="text-sm text-gray-500">Lesson #{presentation.lessonId}</p>
             </div>
             <PresentationStatusIndicator status={presentation.status} />
           </div>
           <div className="flex items-center gap-2">
-            {onExport && (
+            {exportProgress && (
+              <div className="flex-1 bg-blue-50 border border-blue-200 rounded-md px-3 py-2">
+                <div className="flex items-center text-sm text-blue-700">
+                  <svg className="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {exportProgress}
+                </div>
+              </div>
+            )}
+
+            {(onExport || apiClient) && (
               <>
                 <button
-                  onClick={() => onExport('json')}
-                  disabled={isExporting}
+                  onClick={() => handleExport('json')}
+                  disabled={isExporting || !!exportProgress}
                   className="px-3 py-1 text-sm bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white rounded-md transition-colors"
                 >
-                  {isExporting ? 'Exporting...' : 'Export JSON'}
+                  {exportProgress ? 'Processing...' : 'Export JSON'}
                 </button>
                 <button
-                  onClick={() => onExport('markdown')}
-                  disabled={isExporting}
+                  onClick={() => handleExport('markdown')}
+                  disabled={isExporting || !!exportProgress}
                   className="px-3 py-1 text-sm bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white rounded-md transition-colors"
                 >
-                  {isExporting ? 'Exporting...' : 'Export Markdown'}
+                  {exportProgress ? 'Processing...' : 'Export Markdown'}
                 </button>
                 <button
-                  onClick={() => onExport('pptx')}
-                  disabled={isExporting}
+                  onClick={() => handleExport('pptx')}
+                  disabled={isExporting || !!exportProgress}
                   className="px-3 py-1 text-sm bg-orange-600 hover:bg-orange-700 disabled:bg-orange-300 text-white rounded-md transition-colors"
                 >
-                  {isExporting ? 'Exporting...' : 'Export PPTX'}
+                  {exportProgress ? 'Processing...' : 'Export PPTX'}
                 </button>
                 <button
-                  onClick={() => onExport('pdf')}
-                  disabled={isExporting}
+                  onClick={() => handleExport('pdf')}
+                  disabled={isExporting || !!exportProgress}
                   className="px-3 py-1 text-sm bg-red-600 hover:bg-red-700 disabled:bg-red-300 text-white rounded-md transition-colors"
                 >
-                  {isExporting ? 'Exporting...' : 'Export PDF'}
+                  {exportProgress ? 'Processing...' : 'Export PDF'}
                 </button>
               </>
             )}
@@ -154,11 +296,11 @@ export function PresentationViewer({
                     <span className="text-sm font-medium text-gray-500">
                       Slide {currentSlideIndex + 1} of {totalSlides}
                     </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSectionStyle(currentSlide.source_section)}`}>
-                      {getSectionLabel(currentSlide.source_section)}
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getSectionStyle(currentSlide.sourceSection)}`}>
+                      {getSectionLabel(currentSlide.sourceSection)}
                     </span>
                     <span className="text-sm text-gray-500">
-                      {currentSlide.duration_minutes ? `${currentSlide.duration_minutes} min` : 'Flexible'}
+                      {currentSlide.durationMinutes ? `${currentSlide.durationMinutes} min` : 'Flexible'}
                     </span>
                   </div>
                 </div>
@@ -172,23 +314,23 @@ export function PresentationViewer({
                 )}
 
                 <div className="space-y-3">
-                  {((currentSlide.key_points && currentSlide.key_points.length > 0) ||
+                  {((currentSlide.keyPoints && currentSlide.keyPoints.length > 0) ||
                     currentSlide.content) && (
                     <ul className="list-disc list-inside text-gray-800 space-y-1">
-                      {(currentSlide.key_points && currentSlide.key_points.length > 0
-                        ? currentSlide.key_points
+                      {(currentSlide.keyPoints && currentSlide.keyPoints.length > 0
+                        ? currentSlide.keyPoints
                         : currentSlide.content
                         ? [currentSlide.content]
                         : []
-                      ).map((point, idx) => (
+                      ).map((point: string, idx: number) => (
                         <li key={idx}>{point}</li>
                       ))}
                     </ul>
                   )}
-                  {currentSlide.standard_codes &&
-                    currentSlide.standard_codes.length > 0 && (
+                  {currentSlide.standardCodes &&
+                    currentSlide.standardCodes.length > 0 && (
                       <div className="text-sm text-gray-500">
-                        Standards: {currentSlide.standard_codes.join(', ')}
+                        Standards: {currentSlide.standardCodes.join(', ')}
                       </div>
                     )}
                 </div>
@@ -211,12 +353,19 @@ export function PresentationViewer({
               <div className="flex-1 p-4 overflow-y-auto">
                 <div className="bg-yellow-50 rounded-lg p-4">
                   <div className="whitespace-pre-wrap text-sm text-gray-700">
-                    {currentSlide.teacher_script || 'No teacher script provided.'}
+                    {currentSlide.teacherScript || 'No teacher script provided.'}
                   </div>
                 </div>
               </div>
             )}
           </div>
+
+        {/* Error Display */}
+        {exportError && (
+          <div className="border-b border-gray-200 p-4">
+            {getExportErrorMessage()}
+          </div>
+        )}
         </div>
 
         {/* Navigation */}

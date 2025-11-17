@@ -103,7 +103,7 @@ export const presentationSelectors = {
   getPresentationById: (state: PresentationStoreState, id: string) => 
     state.presentations.find(p => p.id === id),
   getPresentationsByLessonId: (state: PresentationStoreState, lessonId: string) =>
-    state.presentations.filter(p => p.lesson_id === lessonId),
+    state.presentations.filter(p => p.lessonId === lessonId),
   getCompletedPresentations: (state: PresentationStoreState) =>
     state.presentations.filter(p => p.status === 'complete'),
   getPendingPresentations: (state: PresentationStoreState) =>

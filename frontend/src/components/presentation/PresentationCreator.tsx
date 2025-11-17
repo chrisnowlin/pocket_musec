@@ -14,10 +14,10 @@ interface PresentationCreatorProps {
 
 interface GenerationOptions {
   style: string;
-  use_llm_polish: boolean;
-  timeout_seconds: number;
+  useLlmPolish: boolean;
+  timeoutSeconds: number;
   priority: string;
-  max_retries: number;
+  maxRetries: number;
 }
 
 const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentationGenerated }) => {
@@ -31,10 +31,10 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
 
   const [options, setOptions] = useState<GenerationOptions>({
     style: 'default',
-    use_llm_polish: true,
-    timeout_seconds: 30,
+    useLlmPolish: true,
+    timeoutSeconds: 30,
     priority: 'normal',
-    max_retries: 2
+    maxRetries: 2
   });
 
   // Available styles
@@ -104,10 +104,10 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
       // Create presentation generation job
       const generationResult = await apiClient.generatePresentation(selectedLesson, {
         style: options.style,
-        useLlmPolish: options.use_llm_polish,
-        timeoutSeconds: options.timeout_seconds,
+        useLlmPolish: options.useLlmPolish,
+        timeoutSeconds: options.timeoutSeconds,
         priority: options.priority,
-        maxRetries: options.max_retries
+        maxRetries: options.maxRetries
       });
 
       setProgress({ message: generationResult.message, progress: 10 });
@@ -137,12 +137,12 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
           }
         });
 
-        if (pollResult.success && pollResult.status.presentation_id) {
+        if (pollResult.success && pollResult.status.presentationId) {
           setProgress({ message: 'Presentation generated successfully!', progress: 100 });
-          setSuccess(`Presentation "${pollResult.status.presentation_id}" has been created successfully!`);
+          setSuccess(`Presentation "${pollResult.status.presentationId}" has been created successfully!`);
 
           if (onPresentationGenerated) {
-            onPresentationGenerated(pollResult.status.presentation_id);
+            onPresentationGenerated(pollResult.status.presentationId);
           }
 
           // Reset form after 3 seconds
@@ -177,10 +177,10 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-2xl mx-auto p-6 min-h-full">
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-ink-900">Create New Presentation</h2>
-        <p className="text-ink-700 mt-2">Generate an engaging presentation from your lesson content</p>
+        <h2 className="text-2xl font-bold text-ink-800">Create New Presentation</h2>
+        <p className="text-ink-600 mt-2">Generate an engaging presentation from your lesson content</p>
       </div>
 
       {/* Success Message */}
@@ -221,14 +221,14 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
 
       {/* Progress Display */}
       {progress && (
-        <div className="mb-6 bg-parchment-100 border border-parchment-300 rounded-md p-4">
+        <div className="mb-6 bg-parchment-100 border border-ink-200 rounded-md p-4">
           <div className="flex items-center">
             <svg className="animate-spin h-5 w-5 text-ink-600 mr-3" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
             <div className="flex-1">
-              <p className="text-sm text-ink-700 font-medium">{progress.message}</p>
+              <p className="text-sm text-ink-600 font-medium">{progress.message}</p>
               <div className="mt-2 w-full bg-parchment-300 rounded-full h-2">
                 <div
                   className="bg-ink-600 h-2 rounded-full transition-all duration-300"
@@ -240,11 +240,11 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
         </div>
       )}
 
-      <div className="bg-parchment-50 shadow rounded-lg">
+      <div className="workspace-card shadow rounded-lg">
         <div className="p-6 space-y-6">
           {/* Lesson Selection */}
           <div>
-            <label htmlFor="lesson" className="block text-sm font-medium text-ink-800 mb-2">
+            <label htmlFor="lesson" className="block text-sm font-medium text-ink-700 mb-2">
               Select Lesson
             </label>
             <select
@@ -262,7 +262,7 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
               ))}
             </select>
             {lessons.length === 0 && !loading && (
-              <p className="mt-2 text-sm text-ink-600">
+              <p className="mt-2 text-sm text-ink-500">
                 No lessons available. Create some lessons first to generate presentations.
               </p>
             )}
@@ -270,7 +270,7 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
 
           {/* Style Selection */}
           <div>
-            <label className="block text-sm font-medium text-ink-800 mb-2">
+            <label className="block text-sm font-medium text-ink-700 mb-2">
               Presentation Style
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -301,8 +301,8 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
                       )}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-ink-900">{style.label}</p>
-                      <p className="text-xs text-ink-600 mt-1">{style.description}</p>
+                      <p className="text-sm font-medium text-ink-800">{style.label}</p>
+                      <p className="text-xs text-ink-500 mt-1">{style.description}</p>
                     </div>
                   </div>
                 </label>
@@ -312,7 +312,7 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
 
           {/* Advanced Options */}
           <details className="border border-ink-200 rounded-lg">
-            <summary className="px-4 py-3 cursor-pointer hover:bg-parchment-100 font-medium text-sm text-ink-800">
+            <summary className="px-4 py-3 cursor-pointer hover:bg-parchment-100 font-medium text-sm text-ink-700">
               Advanced Options
             </summary>
             <div className="p-4 pt-0 space-y-4">
@@ -321,19 +321,19 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
                 <input
                   type="checkbox"
                   id="use_llm_polish"
-                  checked={options.use_llm_polish}
-                  onChange={(e) => handleOptionChange('use_llm_polish', e.target.checked)}
+                  checked={options.useLlmPolish}
+                  onChange={(e) => handleOptionChange('useLlmPolish', e.target.checked)}
                   disabled={generating}
                   className="rounded border-ink-300 text-ink-600 focus:ring-ink-500"
                 />
-                <label htmlFor="use_llm_polish" className="ml-2 text-sm text-ink-800">
+                <label htmlFor="use_llm_polish" className="ml-2 text-sm text-ink-700">
                   Use AI polishing to enhance content quality
                 </label>
               </div>
 
               {/* Priority */}
               <div>
-                <label className="block text-sm font-medium text-ink-800 mb-2">
+                <label className="block text-sm font-medium text-ink-700 mb-2">
                   Processing Priority
                 </label>
                 <select
@@ -352,12 +352,12 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
 
               {/* Timeout */}
               <div>
-                <label className="block text-sm font-medium text-ink-800 mb-2">
+                <label className="block text-sm font-medium text-ink-700 mb-2">
                   Generation Timeout
                 </label>
                 <select
-                  value={options.timeout_seconds}
-                  onChange={(e) => handleOptionChange('timeout_seconds', parseInt(e.target.value))}
+                  value={options.timeoutSeconds}
+                  onChange={(e) => handleOptionChange('timeoutSeconds', parseInt(e.target.value))}
                   disabled={generating}
                   className="w-full border border-ink-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-ink-500"
                 >
@@ -371,19 +371,19 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
 
               {/* Max Retries */}
               <div>
-                <label className="block text-sm font-medium text-ink-800 mb-2">
-                  Maximum Retries: {options.max_retries}
+                <label className="block text-sm font-medium text-ink-700 mb-2">
+                  Maximum Retries: {options.maxRetries}
                 </label>
                 <input
                   type="range"
                   min="0"
                   max="5"
-                  value={options.max_retries}
-                  onChange={(e) => handleOptionChange('max_retries', parseInt(e.target.value))}
+                  value={options.maxRetries}
+                  onChange={(e) => handleOptionChange('maxRetries', parseInt(e.target.value))}
                   disabled={generating}
                   className="w-full"
                 />
-                <div className="flex justify-between text-xs text-ink-600">
+                <div className="flex justify-between text-xs text-ink-500">
                   <span>No retries</span>
                   <span>5 retries</span>
                 </div>
@@ -400,14 +400,14 @@ const PresentationCreator: React.FC<PresentationCreatorProps> = ({ onPresentatio
               setSelectedLesson('');
               setOptions({
                 style: 'default',
-                use_llm_polish: true,
-                timeout_seconds: 30,
+                useLlmPolish: true,
+                timeoutSeconds: 30,
                 priority: 'normal',
-                max_retries: 2
+                maxRetries: 2
               });
             }}
             disabled={generating}
-            className="px-4 py-2 border border-ink-300 rounded-md text-sm font-medium text-ink-800 hover:bg-parchment-200 focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-ink-500 disabled:opacity-50"
+            className="px-4 py-2 border border-ink-300 rounded-md text-sm font-medium text-ink-700 hover:bg-parchment-200 focus:outline-none focus:ring-2 focus:ring-ink-500 focus:border-ink-500 disabled:opacity-50"
           >
             Reset Form
           </button>

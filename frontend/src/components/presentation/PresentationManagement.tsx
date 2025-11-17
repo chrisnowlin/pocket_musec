@@ -3,45 +3,45 @@ import apiClient from '../../services/presentationApiClient';
 
 // Types
 interface Job {
-  job_id: string;
+  jobId: string;
   status: string;
   priority: string;
-  lesson_id: string;
+  lessonId: string;
   progress: number;
   message: string;
-  created_at: string;
-  started_at?: string;
-  completed_at?: string;
-  presentation_id?: string;
-  slide_count?: number;
-  error_code?: string;
-  error_message?: string;
-  retry_count: number;
-  max_retries: number;
-  processing_time_seconds?: number;
+  createdAt: string;
+  startedAt?: string;
+  completedAt?: string;
+  presentationId?: string;
+  slideCount?: number;
+  errorCode?: string;
+  errorMessage?: string;
+  retryCount: number;
+  maxRetries: number;
+  processingTimeSeconds?: number;
   style: string;
-  use_llm_polish: boolean;
+  useLlmPolish: boolean;
 }
 
 interface Presentation {
   id: string;
-  presentation_id: string;
-  lesson_id: string;
-  lesson_revision: number;
+  presentationId: string;
+  lessonId: string;
+  lessonRevision: number;
   version: string;
   status: string;
   style: string;
-  slide_count: number;
-  created_at: string;
-  updated_at: string;
-  has_exports: boolean;
-  error_code?: string;
-  error_message?: string;
+  slideCount: number;
+  createdAt: string;
+  updatedAt: string;
+  hasExports: boolean;
+  errorCode?: string;
+  errorMessage?: string;
   title?: string;
   description?: string;
-  total_slides?: number;
-  total_duration_minutes?: number;
-  is_stale?: boolean;
+  totalSlides?: number;
+  totalDurationMinutes?: number;
+  isStale?: boolean;
 }
 
 interface JobHealthMetrics {
@@ -166,15 +166,15 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
 
   const getStatusBadge = (status: string) => {
     const styles: Record<string, string> = {
-      'pending': 'bg-parchment-200 text-ink-800',
-      'running': 'bg-blue-100 text-ink-800',
-      'completed': 'bg-green-100 text-ink-800',
-      'failed': 'bg-red-100 text-ink-800',
-      'cancelled': 'bg-gray-200 text-ink-700'
+      'pending': 'bg-parchment-200 text-ink-700',
+      'running': 'bg-blue-100 text-blue-800',
+      'completed': 'bg-green-100 text-green-800',
+      'failed': 'bg-red-100 text-red-800',
+      'cancelled': 'bg-parchment-100 text-ink-600'
     };
 
     return (
-      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] || 'bg-gray-200 text-ink-700'}`}>
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${styles[status] || 'bg-parchment-100 text-ink-600'}`}>
         {status}
       </span>
     );
@@ -182,14 +182,14 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
 
   const getPriorityBadge = (priority: string) => {
     const styles: Record<string, string> = {
-      'low': 'bg-gray-200 text-ink-700',
-      'normal': 'bg-parchment-200 text-ink-800',
-      'high': 'bg-orange-200 text-ink-800',
-      'urgent': 'bg-red-200 text-ink-800'
+      'low': 'bg-parchment-100 text-ink-600',
+      'normal': 'bg-parchment-200 text-ink-700',
+      'high': 'bg-orange-100 text-orange-800',
+      'urgent': 'bg-red-100 text-red-800'
     };
 
     return (
-      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${styles[priority] || 'bg-gray-200 text-ink-700'}`}>
+      <span className={`inline-flex items-center px-2 py-1 rounded text-xs font-medium ${styles[priority] || 'bg-parchment-100 text-ink-600'}`}>
         {priority}
       </span>
     );
@@ -214,10 +214,10 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
   }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto min-h-full">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold text-ink-900">Presentation Management</h1>
-        <p className="text-ink-700 mt-2">Manage presentation generation jobs and view created presentations</p>
+        <h1 className="text-3xl font-bold text-ink-800">Presentation Management</h1>
+        <p className="text-ink-600 mt-2">Manage presentation generation jobs and view created presentations</p>
       </div>
 
       {/* Error Alert */}
@@ -290,49 +290,49 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
               <svg className="mx-auto h-12 w-12 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 13h6m-3-3v6m-9 1V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
               </svg>
-              <h3 className="mt-4 text-lg font-medium text-ink-900">No jobs found</h3>
+              <h3 className="mt-4 text-lg font-medium text-ink-800">No jobs found</h3>
               <p className="mt-2 text-ink-600">Get started by generating a presentation from a lesson.</p>
             </div>
           ) : (
-            <div className="bg-parchment-50 shadow overflow-hidden sm:rounded-md">
+            <div className="workspace-card shadow overflow-hidden sm:rounded-md">
               <ul className="divide-y divide-ink-200">
                 {jobs.map((job) => (
-                  <li key={job.job_id} className="hover:bg-parchment-100">
+                  <li key={job.jobId} className="hover:bg-parchment-100">
                     <div className="px-4 py-4 sm:px-6">
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-3">
-                            <p className="text-sm font-medium text-ink-700 truncate">
-                              Job ID: {job.job_id}
+                            <p className="text-sm font-medium text-ink-600 truncate">
+                              Job ID: {job.jobId}
                             </p>
                             {getStatusBadge(job.status)}
                             {getPriorityBadge(job.priority)}
                           </div>
-                          <div className="mt-2 flex items-center text-sm text-ink-600">
-                            <p>Lesson ID: {job.lesson_id}</p>
+                          <div className="mt-2 flex items-center text-sm text-ink-500">
+                            <p>Lesson ID: {job.lessonId}</p>
                             <span className="mx-2">•</span>
-                            <p>Created: {formatDate(job.created_at)}</p>
-                            {job.started_at && (
+                            <p>Created: {formatDate(job.createdAt)}</p>
+                            {job.startedAt && (
                               <>
                                 <span className="mx-2">•</span>
-                                <p>Started: {formatDate(job.started_at)}</p>
+                                <p>Started: {formatDate(job.startedAt)}</p>
                               </>
                             )}
-                            {job.processing_time_seconds && (
+                            {job.processingTimeSeconds && (
                               <>
                                 <span className="mx-2">•</span>
-                                <p>Duration: {formatDuration(job.processing_time_seconds)}</p>
+                                <p>Duration: {formatDuration(job.processingTimeSeconds)}</p>
                               </>
                             )}
                           </div>
-                          <p className="mt-1 text-sm text-ink-600">{job.message}</p>
+                          <p className="mt-1 text-sm text-ink-500">{job.message}</p>
 
                           {/* Progress Bar */}
                           {(job.status === 'running' || job.status === 'pending') && (
                             <div className="mt-2">
                               <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs text-ink-600">Progress</span>
-                                <span className="text-xs text-ink-600">{job.progress}%</span>
+                                <span className="text-xs text-ink-500">Progress</span>
+                                <span className="text-xs text-ink-500">{job.progress}%</span>
                               </div>
                               <div className="w-full bg-parchment-300 rounded-full h-1.5">
                                 <div
@@ -344,9 +344,9 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
                           )}
 
                           {/* Error Details */}
-                          {job.error_message && (
+                          {job.errorMessage && (
                             <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-sm text-red-700">
-                              {job.error_message}
+                              {job.errorMessage}
                             </div>
                           )}
                         </div>
@@ -354,7 +354,7 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
                         <div className="flex items-center space-x-2 ml-4">
                           {job.status === 'pending' || job.status === 'running' ? (
                             <button
-                              onClick={() => cancelJob(job.job_id)}
+                              onClick={() => cancelJob(job.jobId)}
                               className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded"
                               title="Cancel job"
                             >
@@ -364,8 +364,8 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
                             </button>
                           ) : job.status === 'failed' ? (
                             <button
-                              onClick={() => retryJob(job.job_id)}
-                              className="p-2 text-ink-700 hover:text-ink-800 hover:bg-parchment-200 rounded"
+                              onClick={() => retryJob(job.jobId)}
+                              className="p-2 text-ink-500 hover:text-ink-700 hover:bg-parchment-200 rounded"
                               title="Retry job"
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -374,16 +374,16 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
                             </button>
                           ) : null}
 
-                          {job.presentation_id && (
+                          {job.presentationId && (
                             <button
                               onClick={() => {
                                 if (onViewPresentation) {
-                                  onViewPresentation(job.presentation_id);
+                                  onViewPresentation(job.presentationId!);
                                 } else {
-                                  window.location.href = `/presentations/${job.presentation_id}`;
+                                  window.location.href = `/presentations/${job.presentationId}`;
                                 }
                               }}
-                              className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded"
+                              className="p-2 text-green-700 hover:text-green-800 hover:bg-green-50 rounded"
                               title="View presentation"
                             >
                               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -410,7 +410,7 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
             <svg className="mx-auto h-12 w-12 text-ink-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
             </svg>
-            <h3 className="mt-4 text-lg font-medium text-ink-900">Presentations Interface</h3>
+            <h3 className="mt-4 text-lg font-medium text-ink-800">Presentations Interface</h3>
             <p className="mt-2 text-ink-600">Presentation viewing and management will be implemented here.</p>
           </div>
         </div>
@@ -422,53 +422,53 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
           {healthMetrics ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {/* Overall Stats */}
-              <div className="bg-parchment-50 p-6 rounded-lg shadow">
-                <h3 className="text-lg font-medium text-ink-900 mb-4">System Overview</h3>
+              <div className="workspace-card p-6 rounded-lg shadow">
+                <h3 className="text-lg font-medium text-ink-800 mb-4">System Overview</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-ink-600">Total Jobs</span>
-                    <span className="text-sm font-medium text-ink-800">{healthMetrics.total_jobs}</span>
+                    <span className="text-sm text-ink-500">Total Jobs</span>
+                    <span className="text-sm font-medium text-ink-700">{healthMetrics.total_jobs}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-ink-600">Success Rate</span>
-                    <span className="text-sm font-medium text-green-600">{healthMetrics.success_rate.toFixed(1)}%</span>
+                    <span className="text-sm text-ink-500">Success Rate</span>
+                    <span className="text-sm font-medium text-green-700">{healthMetrics.success_rate.toFixed(1)}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-ink-600">Avg Processing Time</span>
-                    <span className="text-sm font-medium text-ink-800">{formatDuration(healthMetrics.avg_processing_time)}</span>
+                    <span className="text-sm text-ink-500">Avg Processing Time</span>
+                    <span className="text-sm font-medium text-ink-700">{formatDuration(healthMetrics.avg_processing_time)}</span>
                   </div>
                 </div>
               </div>
 
               {/* Job Status Breakdown */}
-              <div className="bg-parchment-50 p-6 rounded-lg shadow">
-                <h3 className="text-lg font-medium text-ink-900 mb-4">Job Status</h3>
+              <div className="workspace-card p-6 rounded-lg shadow">
+                <h3 className="text-lg font-medium text-ink-800 mb-4">Job Status</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-ink-600">Pending</span>
+                    <span className="text-sm text-ink-500">Pending</span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-ink-800">{healthMetrics.pending_jobs}</span>
+                      <span className="text-sm font-medium text-ink-700">{healthMetrics.pending_jobs}</span>
                       {getStatusBadge('pending')}
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-ink-600">Running</span>
+                    <span className="text-sm text-ink-500">Running</span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-ink-800">{healthMetrics.running_jobs}</span>
+                      <span className="text-sm font-medium text-ink-700">{healthMetrics.running_jobs}</span>
                       {getStatusBadge('running')}
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-ink-600">Completed</span>
+                    <span className="text-sm text-ink-500">Completed</span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-ink-800">{healthMetrics.completed_jobs}</span>
+                      <span className="text-sm font-medium text-ink-700">{healthMetrics.completed_jobs}</span>
                       {getStatusBadge('completed')}
                     </div>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-sm text-ink-600">Failed</span>
+                    <span className="text-sm text-ink-500">Failed</span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium text-ink-800">{healthMetrics.failed_jobs}</span>
+                      <span className="text-sm font-medium text-ink-700">{healthMetrics.failed_jobs}</span>
                       {getStatusBadge('failed')}
                     </div>
                   </div>
@@ -476,20 +476,20 @@ const PresentationManagement: React.FC<PresentationManagementProps> = ({ onViewP
               </div>
 
               {/* User Stats */}
-              <div className="bg-parchment-50 p-6 rounded-lg shadow">
-                <h3 className="text-lg font-medium text-ink-900 mb-4">Your Jobs</h3>
+              <div className="workspace-card p-6 rounded-lg shadow">
+                <h3 className="text-lg font-medium text-ink-800 mb-4">Your Jobs</h3>
                 <div className="space-y-3">
                   <div className="flex justify-between">
-                    <span className="text-sm text-ink-600">Your Total Jobs</span>
-                    <span className="text-sm font-medium text-ink-800">{healthMetrics.total_user_jobs}</span>
+                    <span className="text-sm text-ink-500">Your Total Jobs</span>
+                    <span className="text-sm font-medium text-ink-700">{healthMetrics.total_user_jobs}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-ink-600">Your Success Rate</span>
-                    <span className="text-sm font-medium text-green-600">{healthMetrics.user_success_rate.toFixed(1)}%</span>
+                    <span className="text-sm text-ink-500">Your Success Rate</span>
+                    <span className="text-sm font-medium text-green-700">{healthMetrics.user_success_rate.toFixed(1)}%</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-sm text-ink-600">Your Active Jobs</span>
-                    <span className="text-sm font-medium text-ink-800">{healthMetrics.user_pending_jobs + healthMetrics.user_running_jobs}</span>
+                    <span className="text-sm text-ink-500">Your Active Jobs</span>
+                    <span className="text-sm font-medium text-ink-700">{healthMetrics.user_pending_jobs + healthMetrics.user_running_jobs}</span>
                   </div>
                 </div>
               </div>
