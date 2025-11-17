@@ -40,8 +40,7 @@ interface ImageData {
   mime_type: string;
 }
 
-interface StorageInfo {
-  image_count: number;
+interface StorageInfo { imageCount: number;
   usage_mb: number;
   limit_mb: number;
   available_mb: number;
@@ -58,13 +57,13 @@ const standardLibrary: StandardRecord[] = [
   {
     id: 'cn-3-1',
     code: '3.CN.1',
-    strand_code: 'CN',
-    strand_name: 'Connect',
+    strandCode: 'CN',
+    strandName: 'Connect',
     grade: 'Grade 3',
     title: 'Understand relationships between music, other disciplines, and daily life',
     description: 'Students explore how music relates to other subjects, cultures, and real‑world experiences.',
     objectives: 4,
-    last_used: '2 days ago',
+    lastUsed: '2 days ago',
     learningObjectives: [
       'Explain how music connects to storytelling and visual arts.',
       'Describe the influence of music on community events.',
@@ -74,13 +73,13 @@ const standardLibrary: StandardRecord[] = [
   {
     id: 'cn-3-2',
     code: '3.CN.2',
-    strand_code: 'CN',
-    strand_name: 'Connect',
+    strandCode: 'CN',
+    strandName: 'Connect',
     grade: 'Grade 3',
     title: 'Explore interdisciplinary and global music connections',
     description: 'Students discover musical ideas across cultures and link them to science, history, and language.',
     objectives: 3,
-    last_used: 'Never used',
+    lastUsed: 'Never used',
     learningObjectives: [
       'Identify musical patterns shared across cultures.',
       'Relate rhythms to mathematical fractions.',
@@ -90,13 +89,13 @@ const standardLibrary: StandardRecord[] = [
   {
     id: 'cr-4-1',
     code: '4.CR.1',
-    strand_code: 'CR',
-    strand_name: 'Create',
+    strandCode: 'CR',
+    strandName: 'Create',
     grade: 'Grade 4',
     title: 'Create short compositions using classroom instruments',
     description: 'Students improvise and notate ideas that incorporate steady beat and contrasting dynamics.',
     objectives: 5,
-    last_used: '1 week ago',
+    lastUsed: '1 week ago',
     learningObjectives: [
       'Write rhythm patterns with quarter and eighth notes.',
       'Layer dynamics to create contrast.',
@@ -291,8 +290,7 @@ export default function UnifiedPage() {
   const loadStandards = useCallback(
     async (grade: string, strand: string) => {
       try {
-        const result = await api.listStandards({
-          grade_level: grade,
+        const result = await api.listStandards({ grade_level: grade,
           strand_code: strand,
         });
 
@@ -312,21 +310,20 @@ export default function UnifiedPage() {
     const defaultStrand = 'Connect';
 
     try {
-      const result = await api.createSession({
-        grade_level: defaultGrade,
+      const result = await api.createSession({ grade_level: defaultGrade,
         strand_code: defaultStrand,
       });
 
       if (result.ok) {
         setSession(result.data);
-        setSelectedGrade(result.data.grade_level ?? defaultGrade);
-        setSelectedStrand(result.data.strand_code ?? defaultStrand);
-        if (result.data.selected_standard) {
-          setSelectedStandard(result.data.selected_standard);
+        setSelectedGrade(result.data.gradeLevel ?? defaultGrade);
+        setSelectedStrand(result.data.strandCode ?? defaultStrand);
+        if (result.data.selectedStandard) {
+          setSelectedStandard(result.data.selectedStandard);
         }
         await loadStandards(
-          result.data.grade_level ?? defaultGrade,
-          result.data.strand_code ?? defaultStrand
+          result.data.gradeLevel ?? defaultGrade,
+          result.data.strandCode ?? defaultStrand
         );
       } else {
         setSessionError(result.message || 'Unable to start a session');
@@ -503,7 +500,7 @@ export default function UnifiedPage() {
   const filteredStandards = useMemo(() => {
     return standards.filter((standard) => {
       const matchesGrade = selectedGrade ? standard.grade === selectedGrade : true;
-      const matchesStrand = selectedStrand ? standard.strand_name === selectedStrand : true;
+      const matchesStrand = selectedStrand ? standard.strandName === selectedStrand : true;
       const matchesSearch = browseQuery
         ? standard.title.toLowerCase().includes(browseQuery.toLowerCase()) ||
           standard.description.toLowerCase().includes(browseQuery.toLowerCase()) ||
@@ -943,7 +940,7 @@ export default function UnifiedPage() {
                                 <span className="text-xs font-mono font-semibold text-ink-700 bg-parchment-200 px-2 py-1 rounded">
                                   {standard.code}
                                 </span>
-                                <span className="text-xs text-ink-600">{standard.strand_name} Strand</span>
+                                <span className="text-xs text-ink-600">{standard.strandName} Strand</span>
                               </div>
                               <h3 className="font-medium text-ink-800 mb-2">{standard.title}</h3>
                               <div className="flex items-center gap-4 text-sm text-ink-600">
@@ -957,7 +954,7 @@ export default function UnifiedPage() {
                                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                   </svg>
-                                  {standard.last_used ?? 'Recently used'}
+                                  {standard.lastUsed ?? 'Recently used'}
                                 </span>
                               </div>
                             </div>
@@ -1020,7 +1017,7 @@ export default function UnifiedPage() {
                       <div className="space-y-3">
                         <div className="flex justify-between items-center">
                           <span className="text-ink-600">Images:</span>
-                          <span className="font-medium text-ink-800">{storageInfo.image_count}</span>
+                          <span className="font-medium text-ink-800">{storageInfo.imageCount}</span>
                         </div>
                         <div className="flex justify-between items-center">
                           <span className="text-ink-600">Storage:</span>
@@ -1344,7 +1341,7 @@ export default function UnifiedPage() {
                       {standards
                         .filter((standard) => 
                           standard.grade === selectedGrade && 
-                          standard.strand_name === selectedStrand
+                          standard.strandName === selectedStrand
                         )
                         .map((standard) => (
                           <option key={standard.id} value={standard.id}>
@@ -1465,7 +1462,7 @@ export default function UnifiedPage() {
                   </div>
                 </div>
                 <div className="mt-2 text-xs text-ink-600 leading-tight">
-                  <span>{storageInfo?.image_count ?? 0} images</span>
+                  <span>{storageInfo?.imageCount ?? 0} images</span>
                   <span className="mx-1">•</span>
                   <span>Demo mode</span>
                 </div>

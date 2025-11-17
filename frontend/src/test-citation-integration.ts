@@ -83,7 +83,7 @@ export const testCitationService = async () => {
     
     // Test file info formatting
     const enhancedCitations = mockCitations.map(citation => {
-      const fileInfo = formatCitationFileInfo(citation, mockFileMetadata.find(f => f.file_id === citation.file_id));
+      const fileInfo = formatCitationFileInfo(citation, mockFileMetadata.find(f => f.fileId === citation.fileId));
       return {
         ...citation,
         ...fileInfo
@@ -151,7 +151,7 @@ export const testErrorHandling = () => {
     
     const fileInfo = formatCitationFileInfo(citationWithoutFile);
     
-    if (fileInfo.is_file_available === false && fileInfo.can_download === false) {
+    if (fileInfo.isFileAvailable === false && fileInfo.canDownload === false) {
       console.log('✅ Error handling for missing files works');
       return true;
     } else {

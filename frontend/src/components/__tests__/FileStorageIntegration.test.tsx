@@ -46,8 +46,7 @@ const mockFileMetadata = {
   },
 };
 
-const mockFileStats = {
-  total_files: 5,
+const mockFileStats = { totalFiles: 5,
   total_bytes: 5 * 1024 * 1024, // 5MB
   total_mb: 5,
   completed_files: 4,

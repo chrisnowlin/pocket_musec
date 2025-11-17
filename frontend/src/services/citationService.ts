@@ -170,7 +170,7 @@ class CitationService {
     for (const citation of citations) {
       let fileMetadata: FileMetadata | undefined;
 
-      // Try to get file metadata if file_id is present
+      // Try to get file metadata if fileId is present
       if (citation.fileId) {
         fileMetadata = await this.getFileMetadata(citation.fileId);
       }

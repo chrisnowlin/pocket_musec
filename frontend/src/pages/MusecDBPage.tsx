@@ -31,7 +31,7 @@ type TabType = 'drafts' | 'lessons' | 'database' | 'files' | 'upload' | 'statist
 interface EnhancedStandardRecord extends StandardRecord {
   source_file?: {
     id: string;
-    file_id: string;
+    fileId: string;
     original_filename: string;
     file_size: number;
     created_at: string;
@@ -116,11 +116,11 @@ const { validateMultipleFiles } = useFileValidation();
   const fileFilterOptions = useMemo(() => {
     const fileMap = new Map<string, { id: string; filename: string; type: string }>();
     files.forEach(file => {
-      if (file.ingestion_status === 'completed') {
-        fileMap.set(file.file_id, {
-          id: file.file_id,
-          filename: file.original_filename,
-          type: file.document_type || 'unknown'
+      if (file.ingestionStatus === 'completed') {
+        fileMap.set(file.fileId, {
+          id: file.fileId,
+          filename: file.originalFilename,
+          type: file.documentType || 'unknown'
         });
       }
     });
@@ -135,26 +135,25 @@ const { validateMultipleFiles } = useFileValidation();
       const gradeParam = selectedGrade === 'All Grades' ? undefined : frontendToBackendGrade(selectedGrade);
       const strandParam = selectedStrand === 'All Strands' ? undefined : frontendToBackendStrand(selectedStrand);
       
-      const response = await api.listStandards({
-        grade_level: gradeParam,
+      const response = await api.listStandards({ grade_level: gradeParam,
         strand_code: strandParam,
         limit: 200 // Request all standards (default is 50, but we have 112+ standards)
       });
       
       if (response.ok && response.data && Array.isArray(response.data)) {
         // Get unique file IDs from standards
-        const fileIds = [...new Set(response.data.map((standard: StandardRecord) => standard.file_id).filter(Boolean))];
+        const fileIds = [...new Set(response.data.map((standard: StandardRecord) => standard.fileId).filter(Boolean))];
         
         // Fetch file metadata in bulk
         let fileMetadataMap: Record<string, any> = {};
         if (fileIds.length > 0) {
           try {
-            const bulkFileResponse = await fetch(`/api/ingestion/files/bulk?file_ids=${fileIds.join(',')}`);
+            const bulkFileResponse = await fetch(`/api/ingestion/files/bulk?fileIds=${fileIds.join(',')}`);
             if (bulkFileResponse.ok) {
               const bulkFileData = await bulkFileResponse.json();
               if (bulkFileData.success && bulkFileData.files) {
                 fileMetadataMap = bulkFileData.files.reduce((acc: any, file: any) => {
-                  acc[file.file_id] = file;
+                  acc[file.fileId] = file;
                   return acc;
                 }, {});
               }
@@ -166,10 +165,10 @@ const { validateMultipleFiles } = useFileValidation();
         
         // Enhance standards with file information from bulk response
         const enhancedStandards = response.data.map((standard: StandardRecord) => {
-          if (standard.file_id && fileMetadataMap[standard.file_id]) {
+          if (standard.fileId && fileMetadataMap[standard.fileId]) {
             return {
               ...standard,
-              source_file: fileMetadataMap[standard.file_id]
+              source_file: fileMetadataMap[standard.fileId]
             };
           }
           return standard;
@@ -196,7 +195,7 @@ const { validateMultipleFiles } = useFileValidation();
       
       // Filter by source file
       const matchesFile = selectedFileFilter === 'all' || 
-        (standard.source_file && standard.source_file.file_id === selectedFileFilter);
+        (standard.source_file && standard.source_file.fileId === selectedFileFilter);
       
       return matchesSearch && matchesFile;
     });
@@ -324,7 +323,7 @@ const { validateMultipleFiles } = useFileValidation();
         title: exportingDraft.title || 'Untitled Draft',
         grade: exportingDraft.grade,
         strand: exportingDraft.strand,
-        createdAt: formatDateTime(exportingDraft.createdAt),
+        created_at: formatDateTime(exportingDraft.created_at),
         updatedAt: formatDateTime(exportingDraft.updatedAt),
       };
 
@@ -334,7 +333,7 @@ const { validateMultipleFiles } = useFileValidation();
 
 ${metadata.grade ? `**Grade:** ${metadata.grade}` : ''}
 ${metadata.strand ? `**Strand:** ${metadata.strand}` : ''}
-**Created:** ${metadata.createdAt}
+**Created:** ${metadata.created_at}
 **Last Updated:** ${metadata.updatedAt}
 
 ---
@@ -371,7 +370,7 @@ ${exportingDraft.content}`;
                   <div class="metadata">
                     ${metadata.grade ? `<span><strong>Grade:</strong> ${metadata.grade}</span>` : ''}
                     ${metadata.strand ? `<span><strong>Strand:</strong> ${metadata.strand}</span>` : ''}
-                    <span><strong>Created:</strong> ${metadata.createdAt}</span>
+                    <span><strong>Created:</strong> ${metadata.created_at}</span>
                     <span><strong>Last Updated:</strong> ${metadata.updatedAt}</span>
                   </div>
                   <hr>
@@ -389,7 +388,7 @@ ${exportingDraft.content}`;
 
 Grade: ${metadata.grade || 'N/A'}
 Strand: ${metadata.strand || 'N/A'}
-Created: ${metadata.createdAt}
+Created: ${metadata.created_at}
 Last Updated: ${metadata.updatedAt}
 
 ${exportingDraft.content}`;
@@ -642,15 +641,15 @@ ${exportingDraft.content}`;
                 {fileStats && (
                   <div className="flex items-center gap-6 text-sm">
                     <div className="text-center">
-                      <div className="text-lg font-bold text-parchment-100">{fileStats.total_files}</div>
+                      <div className="text-lg font-bold text-parchment-100">{fileStats.totalFiles}</div>
                       <div className="text-parchment-400">Total Files</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-parchment-100">{formatFileSize(fileStats.total_bytes)}</div>
+                      <div className="text-lg font-bold text-parchment-100">{formatFileSize(fileStats.totalBytes)}</div>
                       <div className="text-parchment-400">Storage Used</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg font-bold text-green-400">{fileStats.completed_files}</div>
+                      <div className="text-lg font-bold text-green-400">{fileStats.completedFiles}</div>
                       <div className="text-parchment-400">Completed</div>
                     </div>
                     <div className="text-center">
@@ -1284,7 +1283,7 @@ ${exportingDraft.content}`;
                                   <span className="text-xs font-mono font-semibold text-parchment-300 bg-ink-700 px-2 py-1 rounded">
                                     {standard.code}
                                   </span>
-                                  <span className="text-xs text-parchment-400">{standard.strand_name} Strand</span>
+                                  <span className="text-xs text-parchment-400">{standard.strandName} Strand</span>
                                   {standard.source_file && (
                                     <span className="text-xs text-parchment-400 flex items-center gap-1">
                                       📄 Source: {standard.source_file.original_filename}
@@ -1300,7 +1299,7 @@ ${exportingDraft.content}`;
                                     🎯 {standard.objectives} objectives
                                   </span>
                                   <span className="flex items-center gap-1">
-                                    📅 {standard.last_used ?? 'Recently used'}
+                                    📅 {standard.lastUsed ?? 'Recently used'}
                                   </span>
                                   {standard.source_file && (
                                     <>
@@ -1318,7 +1317,7 @@ ${exportingDraft.content}`;
                               <div className="flex flex-col gap-2 ml-4">
                                 {standard.source_file && (
                                   <button
-                                    onClick={() => downloadFile(standard.source_file!.file_id, standard.source_file!.original_filename)}
+                                    onClick={() => downloadFile(standard.source_file!.fileId, standard.source_file!.original_filename)}
                                     className="px-3 py-1 text-xs bg-ink-600 text-parchment-100 rounded hover:bg-ink-500 transition-colors"
                                   >
                                     📥 Download Source
@@ -1451,28 +1450,28 @@ ${exportingDraft.content}`;
                       
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-ink-700">{fileStats.total_files}</div>
+                          <div className="text-2xl font-bold text-ink-700">{fileStats.totalFiles}</div>
                           <div className="text-sm text-ink-600">Total Files</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-ink-700">{formatFileSize(fileStats.total_bytes)}</div>
+                          <div className="text-2xl font-bold text-ink-700">{formatFileSize(fileStats.totalBytes)}</div>
                           <div className="text-sm text-ink-600">Total Storage</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-green-700">{fileStats.completed_files}</div>
+                          <div className="text-2xl font-bold text-green-700">{fileStats.completedFiles}</div>
                           <div className="text-sm text-ink-600">Completed</div>
                         </div>
                         <div className="text-center">
-                          <div className="text-2xl font-bold text-blue-700">{fileStats.processing_files}</div>
+                          <div className="text-2xl font-bold text-blue-700">{fileStats.processingFiles}</div>
                           <div className="text-sm text-ink-600">Processing</div>
                         </div>
                       </div>
                       
-                      {Object.keys(fileStats.files_by_type).length > 0 && (
+                      {Object.keys(fileStats.filesByType).length > 0 && (
                         <div>
                           <h4 className="text-sm font-semibold text-ink-800 mb-3">Files by Document Type</h4>
                           <div className="space-y-2">
-                            {Object.entries(fileStats.files_by_type).map(([type, count]) => (
+                            {Object.entries(fileStats.filesByType).map(([type, count]) => (
                               <div key={type} className="flex items-center justify-between p-2 bg-parchment-50 rounded">
                                 <span className="flex items-center gap-2 text-ink-700">
                                   {DOCUMENT_TYPE_ICONS[type as keyof typeof DOCUMENT_TYPE_ICONS] || '📄'}

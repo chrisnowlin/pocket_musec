@@ -16,7 +16,7 @@ const mockPresentation: PresentationDocument = {
     {
       id: 'slide-1',
       slide_number: 1,
-      slide_type: SlideType.TITLE,
+      slide_type: 'title' as SlideType,
       title: 'Introduction to Music',
       content: 'Welcome to our music lesson!\n\nToday we will learn about rhythm and melody.',
       teacher_script: 'Welcome students to the music class. Introduce yourself and the lesson objectives.',
@@ -28,7 +28,7 @@ const mockPresentation: PresentationDocument = {
     {
       id: 'slide-2',
       slide_number: 2,
-      slide_type: SlideType.CONTENT,
+      slide_type: 'content' as SlideType,
       title: 'Understanding Rhythm',
       content: 'Rhythm is the pattern of sounds in music.\n\nKey concepts:\n• Beat\n• Tempo\n• Time signature',
       teacher_script: 'Explain what rhythm means. Use examples of familiar songs to demonstrate beat patterns.',
@@ -40,7 +40,7 @@ const mockPresentation: PresentationDocument = {
     {
       id: 'slide-3',
       slide_number: 3,
-      slide_type: SlideType.ACTIVITY,
+      slide_type: 'activity' as SlideType,
       title: 'Clapping Exercise',
       content: 'Let\'s practice rhythm together!\n\n1. Follow the leader\n2. Clap the beat\n3. Create your own pattern',
       teacher_script: 'Guide students through the clapping exercise. Encourage participation and creativity.',
